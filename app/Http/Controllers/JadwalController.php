@@ -1,0 +1,185 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Imports\JadwalImport;
+use App\Exports\JadwalExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Mapel;
+use App\Models\Guru;
+use App\Models\Kelas;
+use DB;
+use DateTime;
+
+
+class JadwalController extends Controller
+{
+
+    public function index(Request $request)
+    {	
+        $ma_pel=Mapel::all();
+        $gu_ru=Guru::all();
+        $ke_las=Kelas::all();
+
+        if ($request->ajax() || $request->has('draw')) {
+            $query = \App\Models\Jadwal::where('tahun_ajaran', session('tahun_ajaran'))
+                ->where('semester', session('semester'));
+
+            $totalRecords = $query->count();
+
+            if ($searchValue = $request->input('search.value')) {
+                $query->where(function($q) use ($searchValue) {
+                    $q->where('kelas', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('jamke', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('jumlahjam', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('mapel', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('guru', 'LIKE', "%{$searchValue}%")
+                      ->orWhere('hari', 'LIKE', "%{$searchValue}%");
+                });
+            }
+
+            $filteredRecords = $query->count();
+            $start = intval($request->input('start', 0));
+            $length = intval($request->input('length', 10));
+
+            $data = $query->skip($start)->take($length)->get();
+
+            $isAdminOrKurikulum = (auth()->user()->role=='admin' || auth()->user()->role=='kurikulum');
+
+            $resultData = [];
+            foreach ($data as $jadwal) {
+                $row = [];
+
+                if ($isAdminOrKurikulum) {
+                    $row['checkbox'] = '<input type="checkbox" name="ids[]" value="'.$jadwal->id.'" class="checkItem">';
+                }
+
+                $row['kelas'] = e($jadwal->kelas);
+                $row['jamke'] = e($jadwal->jamke);
+                $row['jumlahjam'] = e($jadwal->jumlahjam);
+                $row['mapel'] = e($jadwal->mapel);
+                $row['guru'] = e($jadwal->guru);
+                $row['hari'] = e($jadwal->hari);
+
+                if ($isAdminOrKurikulum) {
+                    $row['aksi'] = '<button type="button" class="btn btn-warning btn-sm edit-btn text-dark me-1" 
+                        data-myid="'.$jadwal->id.'"
+                        data-mykelas="'.e($jadwal->kelas).'"
+                        data-myjamke="'.e($jadwal->jamke).'"
+                        data-myjumlahjam="'.e($jadwal->jumlahjam).'"
+                        data-mymapel="'.e($jadwal->mapel).'"
+                        data-myguru="'.e($jadwal->guru).'"
+                        data-myhari="'.e($jadwal->hari).'"
+                        data-myj1="'.e($jadwal->j1).'"
+                        data-myj2="'.e($jadwal->j2).'"
+                        data-myj3="'.e($jadwal->j3).'"
+                        data-myj4="'.e($jadwal->j4).'"
+                        data-myj5="'.e($jadwal->j5).'"
+                        data-myj6="'.e($jadwal->j6).'"
+                        data-myj7="'.e($jadwal->j7).'"
+                        data-myj8="'.e($jadwal->j8).'"
+                        data-myj9="'.e($jadwal->j9).'"
+                        data-myj10="'.e($jadwal->j10).'"
+                        data-myj11="'.e($jadwal->j11).'"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#editjadwalpel">Edit</button>'.
+                        '<a href="/jadwal/'.$jadwal->id.'/delete" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin ingin menghapus jadwal ini?\')">Hapus</a>';
+                }
+
+                $resultData[] = $row;
+            }
+
+            return response()->json([
+                'draw' => intval($request->input('draw')),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $filteredRecords,
+                'data' => $resultData
+            ]);
+        }
+
+        $data_jadwal = collect();
+
+        return view('jadwal.index',['data_jadwal' => $data_jadwal],compact('ma_pel','gu_ru','ke_las'));
+    }
+
+    public function create(Request $request)
+    {   
+        $data = $request->all();
+        $data['tahun_ajaran'] = session('tahun_ajaran');
+        $data['semester'] = session('semester');
+
+        \App\Models\Jadwal::create($data);
+
+        \App\Helpers\AuditLog::write('Menambahkan jadwal baru: ' . $request->hari . ', Jam Ke: ' . $request->jamke . ', Kelas: ' . $request->kelas . ' (' . $request->mapel . ')');
+
+        return redirect('/jadwal')->with('sukses','Jadwal Berhasil Ditambahkan');
+    }
+
+    public function update(Request $request)
+    {
+        $jadwal=\App\Models\Jadwal::findorFail($request->jadwalid);
+        $jadwal->update($request->all());
+
+        \App\Helpers\AuditLog::write('Memperbarui jadwal: ' . $request->hari . ', Jam Ke: ' . $request->jamke . ', Kelas: ' . $request->kelas . ' (' . $request->mapel . ')');
+
+        return redirect('/jadwal')->with('sukses','Jadwal Berhasil Diupdate');
+    }
+
+   
+
+    public function delete($id)
+    {
+        $jadwal=\App\Models\Jadwal::find($id);
+        if ($jadwal) {
+            \App\Helpers\AuditLog::write('Menghapus jadwal: ' . $jadwal->hari . ', Jam Ke: ' . $jadwal->jamke . ', Kelas: ' . $jadwal->kelas . ' (' . $jadwal->mapel . ')');
+            $jadwal->delete();
+        }
+        return redirect('/jadwal')->with('sukses','Jadwal Berhasil Dihapus');
+    }
+
+    public function deleteMultiple(Request $request)
+    {
+        $ids = $request->input('ids');
+        if (!empty($ids)) {
+            \App\Models\Jadwal::whereIn('id', $ids)->delete();
+            \App\Helpers\AuditLog::write('Menghapus beberapa jadwal terpilih');
+            return redirect('/jadwal')->with('sukses', 'Jadwal pelajaran terpilih berhasil dihapus');
+        }
+        return redirect('/jadwal')->with('gagal', 'Tidak ada jadwal yang dipilih');
+    }
+
+    public function deleteAll()
+    {
+        \App\Models\Jadwal::truncate();
+        \App\Helpers\AuditLog::write('Membasmi / Mengosongkan seluruh jadwal pelajaran');
+        return redirect('/jadwal')->with('sukses', 'Seluruh jadwal pelajaran berhasil dikosongkan');
+    }
+
+    public function import(Request $request) 
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:5120'
+        ], [
+            'file.required' => 'File Excel wajib diunggah.',
+            'file.mimes' => 'Format file harus berupa .xlsx atau .xls.',
+            'file.max' => 'Ukuran file tidak boleh lebih dari 5 MB.'
+        ]);
+
+        Excel::import(new JadwalImport, $request->file('file'));
+
+        \App\Helpers\AuditLog::write('Mengimpor data jadwal pelajaran via Excel');
+        
+        return redirect('/jadwal')->with('sukses','Jadwal Berhasil Diupload');
+    }
+
+    public function export() 
+    {
+        return Excel::download(new JadwalExport, 'Jadwal.xlsx');
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new \App\Exports\JadwalTemplateExport, 'template_import_jadwal.xlsx');
+    }
+}
