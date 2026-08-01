@@ -18,9 +18,9 @@
         position: sticky;
         top: 0;
         z-index: 10;
-        background-color: #002366 !important;
+        background-color: #004d1a !important;
         color: #ffffff !important;
-        border-bottom: 2px solid #0a3d91;
+        border-bottom: 2px solid #009638;
     }
 
     .matrix-table-wrapper thead th.th-weekend {
@@ -47,13 +47,13 @@
 
     .matrix-table-wrapper thead th.sticky-col-no {
         z-index: 20;
-        background-color: #002366 !important;
+        background-color: #004d1a !important;
     }
 
     .matrix-table-wrapper thead th.sticky-col-nama {
         z-index: 20;
-        background-color: #002366 !important;
-        border-right: 2px solid #0a3d91 !important;
+        background-color: #004d1a !important;
+        border-right: 2px solid #009638 !important;
     }
 </style>
 
@@ -69,7 +69,7 @@
         <!-- Filter Card -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-light d-flex align-items-center justify-content-between flex-wrap gap-2 py-3">
-                <h3 class="fw-bold m-0" style="color: #002366;">
+                <h3 class="fw-bold m-0" style="color: #004d1a;">
                     <i class="fas fa-list-alt me-2"></i>Rekap Presensi Guru & Pegawai
                 </h3>
                 <div class="d-flex gap-2">
@@ -149,7 +149,7 @@
                 <!-- TAMPILAN MATRIKS PER TANGGAL (ROW: PEGAWAI, COL: TANGGAL) -->
                 <div class="matrix-table-wrapper">
                     <table class="table table-bordered table-hover align-middle mb-0 text-nowrap" style="font-size: 13px;">
-                        <thead class="text-center align-middle text-white" style="background-color: #002366;">
+                        <thead class="text-center align-middle text-white" style="background-color: #004d1a;">
                             <tr>
                                 <th style="width: 40px;" class="sticky-col-no">No</th>
                                 <th style="min-width: 200px;" class="sticky-col-nama">Nama Guru / Tendik</th>
@@ -219,7 +219,7 @@
                 <!-- TAMPILAN TABEL LOG DETAIL (DATATABLES SERVER-SIDE AJAX) -->
                 <div class="table-responsive p-3">
                     <table class="table table-bordered table-striped table-hover align-middle mb-0" id="tableLogDetail" style="width: 100%;">
-                        <thead class="text-center align-middle text-white" style="background-color: #002366;">
+                        <thead class="text-center align-middle text-white" style="background-color: #004d1a;">
                             <tr>
                                 <th style="width: 50px;">No</th>
                                 <th>Nama Guru / Tendik</th>

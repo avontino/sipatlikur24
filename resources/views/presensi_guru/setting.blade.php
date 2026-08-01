@@ -17,7 +17,7 @@
         <!-- Top Title Bar -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-light d-flex align-items-center justify-content-between flex-wrap gap-2 py-3">
-                <h3 class="fw-bold m-0" style="color: #002366;">
+                <h3 class="fw-bold m-0" style="color: #004d1a;">
                     <i class="fas fa-map-marked-alt me-2"></i>Pengaturan Lokasi Kantor & Sekolah
                 </h3>
                 <div class="d-flex gap-2">
@@ -128,8 +128,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Radius Circle
     let circle = L.circle([initialLat, initialLng], {
-        color: '#0a3d91',
-        fillColor: '#0a3d91',
+        color: '#009638',
+        fillColor: '#009638',
         fillOpacity: 0.2,
         radius: initialRadius
     }).addTo(map);
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         icon: 'warning',
                         title: 'Gagal Deteksi GPS',
                         text: 'Gagal mendeteksi lokasi GPS. Pastikan izin lokasi browser Anda aktif.',
-                        confirmButtonColor: '#0a3d91'
+                        confirmButtonColor: '#009638'
                     });
                 } else {
                     alert('Gagal mendeteksi lokasi GPS. Pastikan izin lokasi browser Anda aktif.');
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon: 'error',
                     title: 'Tidak Didukung',
                     text: 'Browser Anda tidak mendukung Geolocation.',
-                    confirmButtonColor: '#0a3d91'
+                    confirmButtonColor: '#009638'
                 });
             } else {
                 alert('Browser Anda tidak mendukung Geolocation.');

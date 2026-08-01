@@ -37,7 +37,7 @@
 				<div class="col-md-12">
 					<div class="panel">			
 								<div class="card-header bg-light d-flex align-items-center justify-content-between flex-wrap gap-2">
-									<h5 class="m-0 fw-bold text-dark card-title"><i class="fas fa-envelope me-2"></i> Data Surat SMAN TARUNA NALA Malang</h5>
+									<h5 class="m-0 fw-bold text-dark card-title"><i class="fas fa-envelope me-2"></i> Data Surat SMP NEGERI 24 Malang</h5>
                                     <div class="d-flex gap-2">
                                         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#tambah">
                                             <i class="fas fa-plus me-1"></i> Tambah Surat

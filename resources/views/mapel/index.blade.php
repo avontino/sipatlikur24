@@ -15,7 +15,7 @@
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-3">
-                        <h3 class="fw-bold m-0" style="color: #002366;"><i class="fas fa-book me-2"></i>Data Mata Pelajaran</h3>
+                        <h3 class="fw-bold m-0" style="color: #004d1a;"><i class="fas fa-book me-2"></i>Data Mata Pelajaran</h3>
                         @if(auth()->user()->role=='admin')
                         <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#tambahMapel">
                             <i class="fas fa-plus me-1"></i> Tambah Mapel

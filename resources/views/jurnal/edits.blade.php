@@ -19,7 +19,7 @@
         <div class="col-md-12">
           <div class="panel">     
                 <div class="card-header">
-                  <h3 class="panel-title">Edit Jurnal SMAN TARUNA NALA Malang</h3>
+                  <h3 class="panel-title">Edit Jurnal SMP NEGERI 24 Malang</h3>
 
                 </div>
 

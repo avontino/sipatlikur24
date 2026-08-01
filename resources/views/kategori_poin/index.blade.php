@@ -12,7 +12,7 @@
 
         <div class="card shadow-sm border-0">
             <div class="card-header bg-light d-flex align-items-center justify-content-between flex-wrap gap-2 py-3">
-                <h3 class="fw-bold m-0" style="color: #002366;"><i class="fas fa-gavel me-2"></i>Master Kategori Poin Kedisiplinan & Prestasi</h3>
+                <h3 class="fw-bold m-0" style="color: #004d1a;"><i class="fas fa-gavel me-2"></i>Master Kategori Poin Kedisiplinan & Prestasi</h3>
                 <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#tambahModal">
                     <i class="fas fa-plus me-1"></i> Tambah Kategori
                 </button>

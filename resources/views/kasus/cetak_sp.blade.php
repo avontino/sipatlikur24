@@ -102,9 +102,9 @@
     </div>
 
     <div class="header">
-        <h2>Pemerintah Provinsi Jawa Timur</h2>
-        <h2>Dinas Pendidikan</h2>
-        <h2>SMAN Taruna Nala Jawa Timur</h2>
+        <h2>Pemerintah Kota Malang</h2>
+        <h2>Dinas Pendidikan dan Kebudayaan</h2>
+        <h2>SMP Negeri 24 Malang</h2>
         <p>Jl. Raya Tlogowaru No. 66, Tlogowaru, Kec. Kedungkandang, Kota Malang, Jawa Timur 65133</p>
     </div>
 
@@ -169,7 +169,7 @@
             </tbody>
         </table>
 
-        <p>Demikian surat peringatan ini dikeluarkan agar menjadi perhatian serius bagi siswa yang bersangkutan serta orang tua/wali siswa. Siswa diharapkan segera melakukan perbaikan perilaku demi menjaga ketertiban proses belajar mengajar di SMAN Taruna Nala Jawa Timur.</p>
+        <p>Demikian surat peringatan ini dikeluarkan agar menjadi perhatian serius bagi siswa yang bersangkutan serta orang tua/wali siswa. Siswa diharapkan segera melakukan perbaikan perilaku demi menjaga ketertiban proses belajar mengajar di SMP Negeri 24 Malang.</p>
     </div>
 
     <div class="footer">
@@ -182,7 +182,7 @@
         </div>
         <div class="signature-block">
             <p>Malang, {{ date('d M Y') }}</p>
-            <p>Kepala SMAN Taruna Nala Jawa Timur</p>
+            <p>Kepala SMP Negeri 24 Malang</p>
             <div class="signature-space"></div>
             <p style="text-decoration: underline; font-weight: bold;">Drs. Hari Wahyono, M.Pd</p>
             <p>NIP. 196805211994031008</p>

@@ -102,41 +102,7 @@
       </ul>
     </li>
 
-    <li class="nav-item {{ Request::is('presensi-guru*') ? 'menu-open' : '' }}">
-      <a href="#" class="nav-link {{ Request::is('presensi-guru*') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-user-check text-success"></i>
-        <p>
-          Presensi & Lokasi Guru
-          <i class="nav-arrow fas fa-angle-left"></i>
-        </p>
-      </a>
-      <ul class="nav nav-treeview ps-2">
-        <li class="nav-item">
-          <a href="/presensi-guru" class="nav-link {{ Request::is('presensi-guru') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-clock"></i>
-            <p>Presensi Saya</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/presensi-guru/rekap" class="nav-link {{ Request::is('presensi-guru/rekap*') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-calendar-check"></i>
-            <p>Rekap Presensi Guru</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/presensi-guru/setting" class="nav-link {{ Request::is('presensi-guru/setting*') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-map-marked-alt"></i>
-            <p>Pengaturan Lokasi Guru</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/presensi-guru/shifts" class="nav-link {{ Request::is('presensi-guru/shifts*') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-business-time"></i>
-            <p>Manajemen Shift & Roster</p>
-          </a>
-        </li>
-      </ul>
-    </li>
+    {{-- Presensi & Lokasi Guru (Disembunyikan) --}}
 
     <!-- CATEGORY: PENGAWASAN SISWA & KEDISIPLINAN -->
     <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #86efac !important;">Siswa & Kedisiplinan</li>
@@ -202,18 +168,7 @@
       </ul>
     </li>
 
-    <li class="nav-item">
-      <a href="/garjas" class="nav-link {{ Request::is('garjas*') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-running text-danger"></i>
-        <p>Garjas (Kesamaptaan)</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="/tagihan" class="nav-link {{ Request::is('tagihan*') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-file-invoice-dollar text-success"></i>
-        <p>Tagihan Siswa</p>
-      </a>
-    </li>
+    {{-- Garjas & Tagihan Siswa (Disembunyikan) --}}
 
     <!-- CATEGORY: PEMELIHARAAN SISTEM -->
     <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #f43f5e !important;">Pemeliharaan Sistem</li>
@@ -245,13 +200,7 @@
     </li>
     @endif
 
-    @if(auth()->user()->hasRole('guru') || auth()->user()->hasRole('tendik'))
-    <li class="nav-item">
-      <a href="/presensi-guru" class="nav-link {{ Request::is('presensi-guru') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-user-check"></i>
-        <p>Presensi Guru</p>
-      </a>
-    </li>
+    {{-- Presensi Guru (Disembunyikan) --}}
     <li class="nav-item">
       <a href="/jurnalh" class="nav-link {{ Request::is('jurnalh*') && !request()->filled('view') ? 'active' : '' }}">
         <i class="nav-icon fas fa-calendar-day text-success"></i>
@@ -264,7 +213,6 @@
         <p>Riwayat Jurnal Saya</p>
       </a>
     </li>
-    @endif
 
 
     <!-- CATEGORY: GURU / STAF -->
@@ -367,15 +315,7 @@
     </li>
     @endif
 
-    <!-- Garjas Link (Kesiswaan & Pembina) -->
-    @if((auth()->user()->hasRole('kesiswaan') || auth()->user()->hasRole('pembina')) && !auth()->user()->hasRole('siswa'))
-    <li class="nav-item">
-      <a href="/garjas" class="nav-link {{ Request::is('garjas*') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-running text-danger"></i>
-        <p>Garjas</p>
-      </a>
-    </li>
-    @endif
+    {{-- Garjas (Disembunyikan) --}}
 
 
     <!-- CATEGORY: MENU SISWA -->
@@ -394,12 +334,7 @@
         <p>Riwayat Izin Saya</p>
       </a>
     </li>
-    <li class="nav-item">
-      <a href="/garjas" class="nav-link {{ Request::is('garjas*') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-running text-danger"></i>
-        <p>Garjas</p>
-      </a>
-    </li>
+    {{-- Garjas Siswa (Disembunyikan) --}}
     @endif
 
 
@@ -507,8 +442,8 @@
     </li>
 
     <!-- Data Master -->
-    <li class="nav-item {{ Request::is('tahun-ajaran*', 'kelas*', 'mapel*', 'presensi-guru/rekap*', 'presensi-guru/setting*') ? 'menu-open' : '' }}">
-      <a href="#" class="nav-link {{ Request::is('tahun-ajaran*', 'kelas*', 'mapel*', 'presensi-guru/rekap*', 'presensi-guru/setting*') ? 'active' : '' }}">
+    <li class="nav-item {{ Request::is('tahun-ajaran*', 'kelas*', 'mapel*') ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ Request::is('tahun-ajaran*', 'kelas*', 'mapel*') ? 'active' : '' }}">
         <i class="nav-icon fas fa-folder text-teal"></i>
         <p>
           Data Master & Lokasi
@@ -532,24 +467,6 @@
           <a href="/mapel" class="nav-link {{ Request::is('mapel*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-book"></i>
             <p>Data Mapel</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/presensi-guru/rekap" class="nav-link {{ Request::is('presensi-guru/rekap*') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-calendar-check"></i>
-            <p>Rekap Presensi Guru</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/presensi-guru/setting" class="nav-link {{ Request::is('presensi-guru/setting*') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-map-marked-alt"></i>
-            <p>Pengaturan Lokasi Guru</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/presensi-guru/shifts" class="nav-link {{ Request::is('presensi-guru/shifts*') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-business-time"></i>
-            <p>Manajemen Shift & Roster</p>
           </a>
         </li>
       </ul>

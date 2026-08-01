@@ -15,6 +15,22 @@ class ApplySessionOverrides
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (!session()->has('tahun_ajaran') || !session()->has('semester')) {
+            $activeTa = \DB::table('tahun_ajaran')->where('status', 1)->first();
+            if ($activeTa) {
+                session([
+                    'tahun_ajaran' => $activeTa->tahun_ajaran,
+                    'semester' => $activeTa->semester,
+                    'tahun_ajaran_id' => $activeTa->id
+                ]);
+            } else {
+                session([
+                    'tahun_ajaran' => '2026/2027',
+                    'semester' => 'Ganjil'
+                ]);
+            }
+        }
+
         if (auth()->check()) {
             $user = auth()->user();
             if (session()->has('active_role')) {

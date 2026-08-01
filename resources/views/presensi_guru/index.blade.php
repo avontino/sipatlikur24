@@ -6,8 +6,8 @@
         <!-- Top Title Bar -->
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-light d-flex align-items-center justify-content-between flex-wrap gap-2 py-3">
-                <h3 class="fw-bold m-0" style="color: #002366;">
-                    <i class="fas fa-camera me-2"></i>Presensi Guru & Staf
+                <h3 class="fw-bold m-0" style="color: #004d1a;">
+                    <i class="fas fa-fingerprint me-2"></i>Presensi Mandiri Guru & Pegawai
                 </h3>
                 <div class="d-flex gap-2">
                     @if(auth()->user()->role === 'admin' || auth()->user()->role === 'kurikulum')

@@ -9,7 +9,9 @@ class KelasController extends Controller
 {
     public function index()
     {
+        $tahunAjaran = session('tahun_ajaran') ?: '2026/2027';
         $studentCounts = \DB::table('siswa')
+            ->where('tahun_ajaran', $tahunAjaran)
             ->select('kelas', \DB::raw('count(*) as total'))
             ->groupBy('kelas')
             ->pluck('total', 'kelas')

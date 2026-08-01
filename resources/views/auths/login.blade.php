@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>SINALA - Login</title>
+  <title>SIPATLIKUR - Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Google Fonts: Outfit -->
@@ -20,10 +20,13 @@
 
   <style>
     :root {
-      --primary-blue: #0a3d91;
-      --dark-blue: #002366;
-      --light-blue: #e6f0fa;
-      --accent-color: #f39c12;
+      --primary-green: #009638;
+      --dark-green: #004d1a;
+      --light-green: #e8f5e9;
+      --primary-blue: #009638;
+      --dark-blue: #004d1a;
+      --light-blue: #e8f5e9;
+      --accent-color: #facc15;
     }
 
     * {
@@ -42,7 +45,7 @@
       justify-content: center;
       min-height: 100vh;
       position: relative;
-      background: linear-gradient(135deg, rgba(10, 61, 145, 0.88) 0%, rgba(0, 35, 102, 0.95) 100%), 
+      background: linear-gradient(135deg, rgba(0, 150, 56, 0.88) 0%, rgba(0, 77, 26, 0.95) 100%), 
                   url("{{ asset('adminlte/img/background.png') }}") no-repeat center center;
       background-size: cover;
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -306,9 +309,9 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <img src="{{ asset('adminlte/img/user2.png') }}" alt="SINALA Logo" class="login-logo-img">
-        <h1 class="login-title">SINALA</h1>
-        <h2 class="login-subtitle">SMAN Taruna Nala Malang</h2>
+        <img src="{{ asset('adminlte/img/user2.png') }}" alt="SIPATLIKUR Logo" class="login-logo-img">
+        <h1 class="login-title">SIPATLIKUR</h1>
+        <h2 class="login-subtitle">SMP Negeri 24 Malang</h2>
       </div>
 
       <form id="loginForm" action="{{ url('/postlogin') }}" method="post">
@@ -346,9 +349,9 @@
     <div class="loading-box">
       <div class="loading-logo-container">
         <div class="loading-spinner-ring"></div>
-        <img src="{{ asset('adminlte/img/user2.png') }}" alt="SINALA Logo" class="loading-logo-img">
+        <img src="{{ asset('adminlte/img/user2.png') }}" alt="SIPATLIKUR Logo" class="loading-logo-img">
       </div>
-      <div class="loading-title">Authenticating SINALA</div>
+      <div class="loading-title">Authenticating SIPATLIKUR</div>
       <div class="loading-subtext">Memverifikasi kredensial...</div>
       <div class="loading-progress-bar">
         <div class="loading-progress-fill"></div>

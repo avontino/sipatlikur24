@@ -15,7 +15,7 @@
 				<div class="col-md-12">
 					<div class="panel">			
 								<div class="card-header">
-									<h3 class="panel-title">Data Jurnal SMAN TARUNA NALA Malang {{ date('d-m-Y') }}</h3>
+									<h3 class="panel-title">Data Jurnal SMP NEGERI 24 Malang {{ date('d-m-Y') }}</h3>
 
 								</div>
 

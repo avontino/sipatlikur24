@@ -6,8 +6,8 @@
         <div class="card shadow border-0" style="border-radius: 12px;">
             <div class="card-header bg-light py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div>
-                    <h3 class="fw-bold m-0" style="color: #002366;"><i class="fas fa-history me-2"></i>Log Aktivitas Pengguna (Audit Trail)</h3>
-                    <p class="text-muted mb-0 small" style="font-size: 12px;">Rekam jejak seluruh aktivitas pengguna dan perubahan data di sistem SINALA</p>
+                    <h3 class="fw-bold m-0" style="color: #004d1a;"><i class="fas fa-history me-2"></i>Log Aktivitas Pengguna (Audit Trail)</h3>
+                    <p class="text-muted mb-0 small" style="font-size: 12px;">Rekam jejak seluruh aktivitas pengguna dan perubahan data di sistem SIPATLIKUR</p>
                 </div>
                 <form action="/admin/logs" method="GET" class="d-flex gap-2 flex-grow-1 flex-md-grow-0" style="max-width: 380px;">
                     <div class="input-group input-group-sm">

@@ -15,7 +15,7 @@
                 <div class="col-md-12">
                     <div class="panel">
                         <div class="card-header bg-light py-3">
-                            <h3 class="fw-bold m-0" style="color: #002366;"><i class="fas fa-clipboard-check me-2"></i>Data Izin Siswa SMAN TARUNA NALA</h3>
+                            <h3 class="fw-bold m-0" style="color: #004d1a;"><i class="fas fa-clipboard-check me-2"></i>Data Izin Siswa SMP NEGERI 24 Malang</h3>
                         </div>
                         <div class="card-body">
              
@@ -47,8 +47,8 @@
                                         @if((auth()->user()->hasRole('kepala') || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa')
                                         <th>KEPALA SEKOLAH</th>
                                         @endif
-                                        <th>PEMBINA</th>
-                                        @if((auth()->user()->hasRole('pembina') || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa' && (!request()->filled('view') || request()->query('view') === 'pembina'))
+                                        <th>GURU PIKET</th>
+                                        @if((auth()->user()->hasRole('pembina') || auth()->user()->hasRole('piket') || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa' && (!request()->filled('view') || request()->query('view') === 'pembina' || request()->query('view') === 'piket'))
                                         <th>STATUS</th>
                                         @endif
                                         <th>KURIKULUM</th>
@@ -59,7 +59,7 @@
                                         @if((auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa' && (!request()->filled('view') || request()->query('view') === 'walikelas'))
                                         <th>STATUS</th>
                                         @endif
-                                        <th>TIM KESEHATAN</th>
+                                        <th>KESISWAAN</th>
                                         @if((auth()->user()->hasRole('kesehatan') || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa' && (!request()->filled('view') || request()->query('view') === 'kesehatan'))
                                         <th>STATUS</th>
                                         @endif

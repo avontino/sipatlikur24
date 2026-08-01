@@ -24,7 +24,7 @@
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-light py-3">
-                        <h3 class="fw-bold m-0" style="color: #002366;"><i class="fas fa-book-open me-2"></i>Data Jurnal Mengajar SMAN TARUNA NALA Malang</h3>
+                        <h3 class="fw-bold m-0" style="color: #004d1a;"><i class="fas fa-book-open me-2"></i>Data Jurnal Mengajar SMP NEGERI 24 Malang</h3>
                     </div>
                     <div class="card-body">	
                         <div class="row g-3 mb-3">

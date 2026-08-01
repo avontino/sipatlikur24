@@ -40,7 +40,7 @@
           $presensiMsg = '';
           $presensiIcon = 'fa-user-check text-warning';
           
-          if(auth()->check()) {
+          if(false && auth()->check()) {
               $isGuruOrTendik = (auth()->user()->role == 'guru' || auth()->user()->role == 'tendik');
               if ($isGuruOrTendik) {
                   $todayPresensi = \App\Models\PresensiGuru::where('user_id', auth()->id())

@@ -32,7 +32,7 @@
             <div class="row">
           <div class="col-12">
              <form class="form-inline ms-auto d-flex align-items-center gap-2 flex-wrap" method="GET" action="/siswa">
-                    <h3 class="fw-bold m-0 me-auto" style="color: #002366;"><i class="fas fa-user-graduate me-2"></i>Data Master Siswa</h3>
+                    <h3 class="fw-bold m-0 me-auto" style="color: #004d1a;"><i class="fas fa-user-graduate me-2"></i>Data Master Siswa</h3>
                     <div class="d-flex align-items-center gap-2">
                         <input type="text" name="cari" class="form-control form-control-sm" placeholder="Cari NIS / Nama / Kelas..." value="{{ request('cari') }}" style="width: 250px;">
                         <button type="submit" class="btn btn-sm btn-secondary"><i class="fas fa-search"></i> Cari</button>
@@ -318,11 +318,10 @@
           <div class="form-group">
             <label for="jenis_ijin">Jenis Ijin</label>
             <select class="form-control" id="jenis_ijin" name="jenis_ijin" required>
-              <option value="Ijin Pesiar">Ijin Pesiar</option>
-              <option value="Ijin Bermalam">Ijin Bermalam</option>
-              <option value="Ijin Bermalam Resmi">Ijin Bermalam Resmi</option>
-              <option value="Ijin Jalan">Ijin Jalan</option>
-              <option value="Ijin Khusus">Ijin Khusus</option>
+              <option value="Izin Keluar / Pulang Karena Sakit">Izin Keluar / Pulang Karena Sakit</option>
+              <option value="Izin Keluar / Pulang Keperluan Keluarga">Izin Keluar / Pulang Keperluan Keluarga</option>
+              <option value="Izin Meninggalkan Sekolah Sementara">Izin Meninggalkan Sekolah Sementara</option>
+              <option value="Izin Tidak Masuk Sekolah (Sakit / Izin Harian)">Izin Tidak Masuk Sekolah (Sakit / Izin Harian)</option>
             </select>
           </div>
           <div class="form-group">

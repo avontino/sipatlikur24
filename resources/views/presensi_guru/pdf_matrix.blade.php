@@ -13,12 +13,12 @@
         .header {
             text-align: center;
             margin-bottom: 15px;
-            border-bottom: 2px solid #002366;
+            border-bottom: 2px solid #004d1a;
             padding-bottom: 5px;
         }
         .header h2 {
             margin: 0;
-            color: #002366;
+            color: #004d1a;
             font-size: 16px;
             text-transform: uppercase;
         }
@@ -43,7 +43,7 @@
             text-align: center;
         }
         .report-table th {
-            background-color: #002366;
+            background-color: #004d1a;
             color: #ffffff;
             font-weight: bold;
         }
@@ -73,7 +73,7 @@
 </head>
 <body>
     <div class="header">
-        <h2>SINALA - REKAPITULASI MATRIKS PRESENSI GURU & PEGAWAI</h2>
+        <h2>SIPATLIKUR - REKAPITULASI MATRIKS PRESENSI GURU & PEGAWAI</h2>
         <p>Periode: {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} s/d {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }} | Tahun Ajaran: {{ session('tahun_ajaran') }} - {{ session('semester') }}</p>
     </div>
 

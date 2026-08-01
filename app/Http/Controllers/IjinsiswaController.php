@@ -369,7 +369,40 @@ class IjinsiswaController extends Controller
             break;
     
         default:
-            $errorMsg = 'Jenis ijin tidak dikenal';
+            if ($role === 'kepala' || $role === 'admin' || auth()->user()->role === 'kepala' || auth()->user()->role === 'admin') {
+                Ijinsiswa::where('id', $id)->update([
+                    'ok_pembina' => 'ok',
+                    'ok_kurikulum' => 'ok',
+                    'ok_walikelas' => 'ok',
+                    'ok_kesehatan' => 'ok',
+                ]);
+                $success = true;
+            } else {
+                switch ($role) {
+                    case 'walikelas':
+                        Ijinsiswa::where('id', $id)->update(['ok_walikelas' => 'ok']);
+                        $success = true;
+                        break;
+                    case 'kurikulum':
+                        Ijinsiswa::where('id', $id)->update(['ok_kurikulum' => 'ok']);
+                        $success = true;
+                        break;
+                    case 'pembina':
+                    case 'piket':
+                    case 'guru_piket':
+                        Ijinsiswa::where('id', $id)->update(['ok_pembina' => 'ok']);
+                        $success = true;
+                        break;
+                    case 'kesehatan':
+                    case 'kesiswaan':
+                        Ijinsiswa::where('id', $id)->update(['ok_kesehatan' => 'ok']);
+                        $success = true;
+                        break;
+                    default:
+                        $errorMsg = 'Peran tidak sesuai untuk jenis ijin ini';
+                }
+            }
+            break;
     }
 
     if ($success) {

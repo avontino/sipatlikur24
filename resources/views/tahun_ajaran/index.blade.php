@@ -21,7 +21,7 @@
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-3">
-                        <h3 class="fw-bold m-0" style="color: #002366;"><i class="fas fa-calendar-alt me-2"></i>Data Tahun Ajaran & Semester</h3>
+                        <h3 class="fw-bold m-0" style="color: #004d1a;"><i class="fas fa-calendar-alt me-2"></i>Data Tahun Ajaran & Semester</h3>
                         @if(auth()->user()->role=='admin')
                         <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#tambahTahunAjaran">
                             <i class="fas fa-plus me-1"></i> Tambah Tahun Ajaran

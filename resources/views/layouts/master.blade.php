@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>SINALA</title>
+  <title>SIPATLIKUR</title>
   <link rel="icon" type="image/png" href="{{ asset('adminlte/img/user2.png') }}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -34,13 +34,16 @@
 
   <style>
     :root {
-      --primary-blue: #0a3d91;
-      --dark-blue: #002366;
-      --light-blue: #e6f0fa;
-      --accent-color: #f39c12;
+      --primary-green: #009638;
+      --dark-green: #004d1a;
+      --light-green: #e8f5e9;
+      --primary-blue: #009638;
+      --dark-blue: #004d1a;
+      --light-blue: #e8f5e9;
+      --accent-color: #facc15;
       --bg-light: #f4f6f9;
-      --lte-sidebar-bg: #002366;
-      --lte-sidebar-hover-bg: #0a3d91;
+      --lte-sidebar-bg: #004d1a;
+      --lte-sidebar-hover-bg: #00732b;
     }
 
     body {
@@ -571,10 +574,10 @@
     <div class="sidebar-brand d-flex align-items-center justify-content-center">
       <a href="/dashboard" class="brand-link d-flex align-items-center text-decoration-none py-2">
         <img src="{{ asset('adminlte/img/user2.png') }}"
-             alt="SINALA Logo"
+             alt="SIPATLIKUR Logo"
              class="brand-image img-fluid"
              style="max-height: 38px; object-fit: contain; margin-right: 10px;">
-        <span class="brand-text text-white font-weight-bold" style="font-size: 20px; font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;">SINALA</span>
+        <span class="brand-text text-white font-weight-bold" style="font-size: 20px; font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;">SIPATLIKUR</span>
       </a>
     </div>
 
@@ -610,7 +613,7 @@
   <!-- Content Wrapper. Contains page content -->
   <main class="app-main">
     <!-- Floating Mobile Notification Banner for iOS/Android -->
-    <div id="iosNotifBanner" class="alert alert-info text-center m-3 shadow-lg" style="display:none; border-radius:14px; font-size:13px; position:relative; z-index:100; background:linear-gradient(135deg, #0a3d91, #002366); color:#fff; border:none;">
+    <div id="iosNotifBanner" class="alert alert-info text-center m-3 shadow-lg" style="display:none; border-radius:14px; font-size:13px; position:relative; z-index:100; background:linear-gradient(135deg, #009638, #004d1a); color:#fff; border:none;">
       <div style="font-weight: 700; font-size: 14px;"><i class="fas fa-bell me-1" style="color:#f39c12;"></i> Notifikasi HP Belum Aktif</div>
       <div class="mt-1" style="font-size:12px; opacity:0.95;">Tekan tombol di bawah untuk mengaktifkan notifikasi di iPhone/Android Anda:</div>
       <button type="button" onclick="enableNotificationManual()" class="btn btn-warning btn-sm mt-2 font-weight-bold text-dark shadow" style="border-radius:20px; padding:7px 22px; font-size:13.5px;">
@@ -628,7 +631,7 @@
     <div class="float-end d-none d-sm-block">
       <b>Version</b> 1.1
     </div>
-    <strong>&copy; 2024 <a href="https://smantarunajatim.sch.id/">SMAN TARUNA NALA</a>.</strong> All rights reserved.
+    <strong>&copy; {{ date('Y') }} <a href="#">SMP NEGERI 24 MALANG</a>.</strong> All rights reserved.
     @yield('footer')
   </footer>
 
@@ -1635,10 +1638,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <span>Tambah Izin</span>
       </a>
 
-      <a href="/garjas" class="text-decoration-none {{ Request::is('garjas*') ? 'text-primary font-weight-bold' : 'text-secondary' }}" style="font-size: 11px;">
-        <i class="fas fa-running d-block mb-1" style="font-size: 18px;"></i>
-        <span>Garjas</span>
-      </a>
+
 
       <a href="/ijinsiswa" class="text-decoration-none {{ Request::is('ijinsiswa*') ? 'text-primary font-weight-bold' : 'text-secondary' }}" style="font-size: 11px;">
         <i class="fas fa-history d-block mb-1" style="font-size: 18px;"></i>
@@ -1658,10 +1658,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <span>Izin</span>
       </a>
     @elseif($authUser->hasRole('walikelas'))
-      <a href="/presensi-guru" class="text-decoration-none {{ Request::is('presensi-guru*') ? 'text-primary font-weight-bold' : 'text-secondary' }}" style="font-size: 11px;">
-        <i class="fas fa-user-check d-block mb-1" style="font-size: 18px;"></i>
-        <span>Presensi</span>
-      </a>
+
       <a href="/jurnalh?view=walikelas" class="text-decoration-none {{ Request::is('jurnalh*') && request()->query('view')==='walikelas' ? 'text-primary font-weight-bold' : 'text-secondary' }}" style="font-size: 11px;">
         <i class="fas fa-book-open d-block mb-1" style="font-size: 18px;"></i>
         <span>Jurnal</span>
@@ -1671,10 +1668,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <span>Izin Kelas</span>
       </a>
     @elseif($authUser->hasRole('kurikulum'))
-      <a href="/presensi-guru" class="text-decoration-none {{ Request::is('presensi-guru*') ? 'text-primary font-weight-bold' : 'text-secondary' }}" style="font-size: 11px;">
-        <i class="fas fa-user-check d-block mb-1" style="font-size: 18px;"></i>
-        <span>Presensi</span>
-      </a>
+
       <a href="/jurnalh?view=kurikulum" class="text-decoration-none {{ Request::is('jurnalh*') && request()->query('view')==='kurikulum' ? 'text-primary font-weight-bold' : 'text-secondary' }}" style="font-size: 11px;">
         <i class="fas fa-book-open d-block mb-1" style="font-size: 18px;"></i>
         <span>Jurnal</span>
@@ -1684,10 +1678,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <span>Izin Siswa</span>
       </a>
     @else
-      <a href="/presensi-guru" class="text-decoration-none {{ Request::is('presensi-guru*') ? 'text-primary font-weight-bold' : 'text-secondary' }}" style="font-size: 11px;">
-        <i class="fas fa-user-check d-block mb-1" style="font-size: 18px;"></i>
-        <span>Presensi</span>
-      </a>
+
       <a href="/jurnalh" class="text-decoration-none {{ Request::is('jurnalh*') ? 'text-primary font-weight-bold' : 'text-secondary' }}" style="font-size: 11px;">
         <i class="fas fa-book-open d-block mb-1" style="font-size: 18px;"></i>
         <span>Jurnal</span>
@@ -1725,13 +1716,13 @@ function fetchAndSendToken() {
   if (typeof firebase === 'undefined') return;
   
   const firebaseConfig = {
-    apiKey: "AIzaSyDYo1RylA8Sl-LuYoo1EmfJM2yiAJtwfSA",
-    authDomain: "sinala-notif.firebaseapp.com",
-    projectId: "sinala-notif",
-    storageBucket: "sinala-notif.firebasestorage.app",
-    messagingSenderId: "977484200703",
-    appId: "1:977484200703:web:98380acbd0f5c3a46ceaca",
-    measurementId: "G-SRYTNDKP5C"
+    apiKey: "AIzaSyCjcYek3pCosfdI0CJB3D08-BnP2HScIsY",
+    authDomain: "sipatlikur.firebaseapp.com",
+    projectId: "sipatlikur",
+    storageBucket: "sipatlikur.firebasestorage.app",
+    messagingSenderId: "521144391233",
+    appId: "1:521144391233:web:b37d0780aecb6c68acd8c0",
+    measurementId: "G-46KWQ3FQ41"
   };
 
   if (!firebase.apps.length) {
@@ -1745,7 +1736,7 @@ function fetchAndSendToken() {
     
     messaging.onMessage(function(payload) {
       console.log('Foreground FCM Message received:', payload);
-      const title = payload.notification ? payload.notification.title : 'SINALA Notifikasi';
+      const title = payload.notification ? payload.notification.title : 'SIPATLIKUR Notifikasi';
       const body = payload.notification ? payload.notification.body : '';
       
       if (typeof Swal !== 'undefined') {
@@ -1802,7 +1793,7 @@ function enableNotificationManual() {
         Swal.fire({
           icon: 'success',
           title: 'Notifikasi Berhasil Diaktifkan! 🎉',
-          text: 'HP Anda siap menerima Push Notification dari SINALA.',
+          text: 'HP Anda siap menerima Push Notification dari SIPATLIKUR.',
           timer: 3000,
           showConfirmButton: false
         });
@@ -1812,8 +1803,8 @@ function enableNotificationManual() {
         Swal.fire({
           icon: 'warning',
           title: 'Notifikasi Diblokir di iPhone',
-          html: 'Izin notifikasi diblokir di setelan iPhone Anda.<br><br><b>Cara Mengaktifkan:</b><br>1. Buka <b>Pengaturan (Settings)</b> iPhone<br>2. Pilih <b>Pemberitahuan (Notifications)</b><br>3. Pilih <b>Safari / SINALA</b><br>4. Aktifkan <b>Izinkan Pemberitahuan</b>',
-          confirmButtonColor: '#0a3d91'
+          html: 'Izin notifikasi diblokir di setelan iPhone Anda.<br><br><b>Cara Mengaktifkan:</b><br>1. Buka <b>Pengaturan (Settings)</b> iPhone<br>2. Pilih <b>Pemberitahuan (Notifications)</b><br>3. Pilih <b>Safari / SIPATLIKUR</b><br>4. Aktifkan <b>Izinkan Pemberitahuan</b>',
+          confirmButtonColor: '#009638'
         });
       }
     }
@@ -1847,6 +1838,15 @@ $(document).ready(function() {
 @stack('scripts')
 @yield('scripts')
 
+<style>
+  .swal2-container.swal2-top-end,
+  .swal2-container.swal2-top-right {
+    top: 70px !important;
+    right: 20px !important;
+    z-index: 999999 !important;
+  }
+</style>
+
 @if(session('sukses'))
 <script>
 $(document).ready(function() {
@@ -1873,7 +1873,7 @@ $(document).ready(function() {
             icon: 'error',
             title: 'Perhatian / Kesalahan',
             text: "{{ session('gagal') ?? session('error') }}",
-            confirmButtonColor: '#0a3d91'
+            confirmButtonColor: '#009638'
         });
     }
 });

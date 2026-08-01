@@ -45,12 +45,11 @@
               <div class="form-group">
                 <label>Jenis Ijin</label>
                 <select id="ijinSelect" name="ijin" class="form-control" required>
-                <option value="">Pilih Jenis Ijin</option>
-                                    <option value="Ijin Pesiar">Ijin Pesiar</option>
-                                    <option value="Ijin Bermalam">Ijin Bermalam</option>
-                                    <option value="Ijin Bermalam Resmi">Ijin Bermalam Resmi</option>
-                                    <option value="Ijin Khusus">Ijin Khusus</option>
-                                    <option value="Ijin Jalan">Ijin Jalan</option>
+                    <option value="">-- Pilih Jenis Izin --</option>
+                    <option value="Izin Keluar / Pulang Karena Sakit">Izin Keluar / Pulang Karena Sakit</option>
+                    <option value="Izin Keluar / Pulang Keperluan Keluarga">Izin Keluar / Pulang Keperluan Keluarga</option>
+                    <option value="Izin Meninggalkan Sekolah Sementara">Izin Meninggalkan Sekolah Sementara (Tugas/Dinas/Lomba)</option>
+                    <option value="Izin Tidak Masuk Sekolah (Sakit / Izin Harian)">Izin Tidak Masuk Sekolah (Sakit / Izin Harian)</option>
                 </select>
               </div>
 
@@ -246,31 +245,14 @@
     var fileUploadGroup = document.getElementById('fileUploadGroup');
 	
 
-    // Dummy data for the example
-    var siswaData = {
-        'Ijin Pesiar': {{ json_encode($siswa->ip) }},
-        'Ijin Bermalam': {{ json_encode($siswa->ib) }},
-        'Ijin Bermalam Resmi': {{ json_encode($siswa->ibr) }},
-        'Ijin Jalan': {{ json_encode($siswa->ij) }},
-        'Ijin Khusus': {{ json_encode($siswa->ik) }}
-    };
-
     selectElement.addEventListener('change', function () {
         var selectedOption = this.value;
-        if (siswaData[selectedOption] !== undefined) {
-            sisaText.textContent = 'Sisa ' + selectedOption + ': ' + siswaData[selectedOption];
-            sisaIjin.style.display = 'block';
-        } else {
-            sisaIjin.style.display = 'none';
-        }
+        sisaIjin.style.display = 'none';
 
-        // Menampilkan atau menyembunyikan file upload berdasarkan opsi yang dipilih
-        if (selectedOption === 'Ijin Bermalam' || selectedOption === 'Ijin Bermalam Resmi') {
+        if (selectedOption !== '') {
             fileUploadGroup.style.display = 'block';
-            document.getElementById('fileUploadInput').required = true; // Menjadikan input file wajib diisi
         } else {
-            fileUploadGroup.style.display = 'block';
-            document.getElementById('fileUploadInput').required = false; // Input file tidak wajib diisi
+            fileUploadGroup.style.display = 'none';
         }
     });
 });

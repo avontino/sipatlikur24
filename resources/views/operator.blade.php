@@ -29,7 +29,7 @@
 				<div class="col-md-12">
 					<div class="panel">			
 								<div class="card-header bg-light py-3">
-									<h3 class="fw-bold m-0" style="color: #002366;"><i class="fas fa-users-cog me-2"></i>Data Guru & Operator SMAN TARUNA NALA MALANG</h3>
+									<h3 class="fw-bold m-0" style="color: #004d1a;"><i class="fas fa-users-cog me-2"></i>Data Guru & Operator SMP NEGERI 24 MALANG</h3>
 								</div>
 
 								<div class="card-body">		

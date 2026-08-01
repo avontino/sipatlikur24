@@ -105,7 +105,7 @@ class IjinRekapExport implements FromCollection, WithMapping, WithHeadings, With
         
         // Judul utama
         $sheet->setCellValue('A1', 'REKAP KEHADIRAN GURU');
-        $sheet->setCellValue('A2', 'SMAN TARUNA NALA MALANG');
+        $sheet->setCellValue('A2', 'SMP NEGERI 24 MALANG');
         $sheet->setCellValue('A3', 'Periode: ' . $tanggalawal . ' - ' . $tanggalakhir);
         
         // Merge cells untuk judul

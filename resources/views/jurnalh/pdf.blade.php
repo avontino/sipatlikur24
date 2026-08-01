@@ -113,7 +113,7 @@
 </head>
 <body>
     <div class="header">Rekap Jurnal Mengajar</div>
-    <div class="sub-header">SMA Taruna Nala</div>
+    <div class="sub-header">SMP Negeri 24 Malang</div>
     <div class="date">Tanggal: {{ \Carbon\Carbon::parse($startDate)->format('d-m-Y') }} - {{ \Carbon\Carbon::parse($endDate)->format('d-m-Y') }}</div>
     <div class="divider"></div>
     <br>

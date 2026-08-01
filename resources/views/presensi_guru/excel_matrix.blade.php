@@ -2,7 +2,7 @@
     <thead>
         <tr>
             <th colspan="{{ count($periodDates) + 4 }}" style="font-size: 14px; font-weight: bold; text-align: center;">
-                REKAPITULASI MATRIKS PRESENSI GURU & PEGAWAI SINALA
+                REKAPITULASI MATRIKS PRESENSI GURU & PEGAWAI SIPATLIKUR
             </th>
         </tr>
         <tr>
@@ -12,15 +12,15 @@
         </tr>
         <tr></tr>
         <tr>
-            <th style="font-weight: bold; background-color: #002366; color: #ffffff; text-align: center; border: 1px solid #000000;">No</th>
-            <th style="font-weight: bold; background-color: #002366; color: #ffffff; text-align: left; border: 1px solid #000000;">Nama Guru / Tendik</th>
-            <th style="font-weight: bold; background-color: #002366; color: #ffffff; text-align: center; border: 1px solid #000000;">Role</th>
+            <th style="font-weight: bold; background-color: #004d1a; color: #ffffff; text-align: center; border: 1px solid #000000;">No</th>
+            <th style="font-weight: bold; background-color: #004d1a; color: #ffffff; text-align: left; border: 1px solid #000000;">Nama Guru / Tendik</th>
+            <th style="font-weight: bold; background-color: #004d1a; color: #ffffff; text-align: center; border: 1px solid #000000;">Role</th>
             @foreach($periodDates as $dateStr)
                 @php
                     $cDate = \Carbon\Carbon::parse($dateStr);
                     $isWeekend = $cDate->isWeekend();
                 @endphp
-                <th style="font-weight: bold; background-color: {{ $isWeekend ? '#dc3545' : '#002366' }}; color: #ffffff; text-align: center; border: 1px solid #000000;">
+                <th style="font-weight: bold; background-color: {{ $isWeekend ? '#dc3545' : '#004d1a' }}; color: #ffffff; text-align: center; border: 1px solid #000000;">
                     {{ $cDate->format('d/m') }}
                 </th>
             @endforeach

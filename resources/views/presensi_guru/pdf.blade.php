@@ -13,12 +13,12 @@
         .header {
             text-align: center;
             margin-bottom: 25px;
-            border-bottom: 2px solid #002366;
+            border-bottom: 2px solid #004d1a;
             padding-bottom: 10px;
         }
         .header h2 {
             margin: 0;
-            color: #002366;
+            color: #004d1a;
             font-size: 18px;
             text-transform: uppercase;
         }
@@ -47,7 +47,7 @@
         .report-table th {
             background-color: #f2f2f2;
             font-weight: bold;
-            color: #002366;
+            color: #004d1a;
             text-align: center;
         }
         .text-center {
@@ -83,7 +83,7 @@
 </head>
 <body>
     <div class="header">
-        <h2>SINALA</h2>
+        <h2>SIPATLIKUR</h2>
         <p>Laporan Rekapitulasi Presensi Kehadiran Guru</p>
     </div>
 
@@ -160,7 +160,7 @@
 
     <table class="footer">
         <tr>
-            <td>Dicetak otomatis oleh Sistem SINALA &copy; {{ date('Y') }}</td>
+            <td>Dicetak otomatis oleh Sistem SIPATLIKUR &copy; {{ date('Y') }}</td>
         </tr>
     </table>
 </body>
