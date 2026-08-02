@@ -490,7 +490,18 @@ public function suratsalah(Request $request, $id)
             'kelas' => 'required',
             'ijin' => 'required',
         ]);
-    
+
+        $ijinsiswa = new IjinSiswa();
+        $ijinsiswa->nama = $request->input('nama');
+        $ijinsiswa->kelas = $request->input('kelas');
+        $ijinsiswa->ketijin = $request->input('ijin');
+        $ijinsiswa->ok_pembina = 'belum';
+        $ijinsiswa->ok_kurikulum = 'belum';
+        $ijinsiswa->ok_walikelas = 'belum';
+        $ijinsiswa->ok_kesehatan = 'belum';
+        $ijinsiswa->filex = 'Surat Sesuai';
+        $ijinsiswa->tahun_ajaran = session('tahun_ajaran') ?: '2026/2027';
+
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $fileContents = file_get_contents($file->getRealPath());
@@ -498,39 +509,20 @@ public function suratsalah(Request $request, $id)
 
             $imageName = 'file_' . time() . '.' . $file->getClientOriginalExtension();
             \File::put(public_path('/storage/uploads/' . $imageName), base64_decode($base64File));
-
-            // Simpan data beserta path file ke database
-            $ijinsiswa = new IjinSiswa();
-            $ijinsiswa->nama = $request->input('nama');
-            $ijinsiswa->kelas = $request->input('kelas');
-            $ijinsiswa->ketijin = $request->input('ijin');
-            $ijinsiswa->ok_pembina = 'belum';
-            $ijinsiswa->ok_kurikulum = 'belum';
-            $ijinsiswa->ok_walikelas = 'belum';
-            $ijinsiswa->ok_kesehatan = 'belum';
             $ijinsiswa->file_path = '/storage/uploads/' . $imageName;
-            $ijinsiswa->tahun_ajaran = session('tahun_ajaran');
-            $ijinsiswa->save();
+        } else {
+            $ijinsiswa->file_path = '';
+        }
 
+        $ijinsiswa->save();
+
+        try {
             $this->dispatchIjinNotification($ijinsiswa->id);
-            return redirect()->back()->with('sukses', 'Ijin siswa berhasil ditambahkan!');
+        } catch (\Throwable $e) {
+            \Log::error("Failed to dispatch Ijin notification: " . $e->getMessage());
         }
-        else {
-             // Save the data along with the file path
-             $ijinsiswa = new IjinSiswa();
-             $ijinsiswa->nama = $request->input('nama');
-             $ijinsiswa->kelas = $request->input('kelas');
-             $ijinsiswa->ketijin = $request->input('ijin');
-             $ijinsiswa->ok_pembina = 'belum';
-             $ijinsiswa->ok_kurikulum = 'belum';
-             $ijinsiswa->ok_walikelas = 'belum';
-             $ijinsiswa->ok_kesehatan = 'belum';
-             $ijinsiswa->tahun_ajaran = session('tahun_ajaran');
-             $ijinsiswa->save();
-     
-             $this->dispatchIjinNotification($ijinsiswa->id);
-             return redirect()->back()->with('sukses', 'Ijin siswa berhasil ditambahkan!');
-        }
+
+        return redirect()->back()->with('sukses', 'Ijin siswa berhasil ditambahkan!');
     }
     
    public function uploadUlang(Request $request, $id)
