@@ -150,47 +150,22 @@ class IjinsiswaController extends Controller
                     $row['lihat_surat'] = '<span class="text">Tidak Ada</span>';
                 }
 
-                // Berangkat — only need Guru Piket (ok_pembina) AND Wali Kelas (ok_walikelas) for day school
-                $allOk = ($ij->ok_pembina == 'ok' && $ij->ok_walikelas == 'ok') || $ij->filex == 'Surat Sesuai';
-                if ($allOk) {
-                    if ($isSatpam) {
-                        $row['berangkat'] = !$ij->cekout
-                            ? '<a href="/ijinsiswa/'.$ij->id.'/cekout" class="btn btn-primary btn-sm">Berangkat</a>'
-                            : \Carbon\Carbon::parse($ij->cekout)->format('d M Y - H:i:s');
-                    } else {
-                        $row['berangkat'] = $ij->cekout ? \Carbon\Carbon::parse($ij->cekout)->format('d M Y - H:i:s') : '<span class="text-danger">Belum Berangkat</span>';
-                    }
-                } else {
-                    $row['berangkat'] = '<span class="text-danger">Belum Semua Disetujui</span>';
-                }
+                // Status surat: either Guru Piket OR Wali Kelas approval suffices for day school
+                $allOk = ($ij->ok_pembina == 'ok' || $ij->ok_walikelas == 'ok') || $ij->filex == 'Surat Sesuai';
+                // No BERANGKAT/DURASI/KEMBALI flow needed for day school - just show status
+                $row['berangkat'] = $allOk
+                    ? '<span class="badge bg-success">Disetujui</span>'
+                    : '<span class="text-danger">Belum Disetujui</span>';
+                $row['durasi'] = '-';
+                $row['kembali'] = '-';
+                $row['bukti'] = '-';
+                $row['keterangan'] = '-';
+                $row['overtime'] = '-';
 
-                $row['durasi'] = e($ij->durasi ?? '-');
-
-                // Kembali
-                $kembali = '';
-                if ($ij->cekout) {
-                    if (!$ij->cekin) {
-                        $kembali = $isSatpam
-                            ? '<button type="button" class="btn btn-warning btn-sm" data-myid="'.$ij->id.'" data-bs-toggle="modal" data-bs-target="#modalCekIn">Kembali</button>'
-                            : '<span class="text-danger">Belum Kembali</span>';
-                    } else {
-                        $kembali = \Carbon\Carbon::parse($ij->cekin)->format('d M Y - H:i:s');
-                    }
-                }
-                $row['kembali'] = $kembali;
-
-                // Bukti
-                $row['bukti'] = $ij->file_bukti
-                    ? '<a href="'.asset($ij->file_bukti).'" target="_blank" class="btn btn-sm btn-secondary">Lihat</a>'
-                    : '-';
-
-                // Keterangan & overtime & surat
-                $row['keterangan'] = e($ij->keterangan ?? '-');
-                $row['overtime']   = e($ij->overtime ?? '-');
-                // Derive displayed status from actual approval flags (not just filex string)
+                // Status surat: derive from actual approval flags (OR logic for day school)
                 if ($ij->filex == 'Surat Salah') {
                     $displayStatus = 'Surat Salah';
-                } elseif ($ij->ok_pembina == 'ok' && $ij->ok_walikelas == 'ok') {
+                } elseif ($ij->ok_pembina == 'ok' || $ij->ok_walikelas == 'ok') {
                     $displayStatus = 'Surat Sesuai';
                 } else {
                     $displayStatus = 'Menunggu Verifikasi';
@@ -261,12 +236,12 @@ class IjinsiswaController extends Controller
         ]);
     }
 
-    // If both Wali Kelas and Guru Piket have approved, automatically mark Surat Sesuai
+    // Either Guru Piket OR Wali Kelas approval is sufficient for day school (SMPN 24 Malang)
     $ijinUpdated = Ijinsiswa::find($id);
     $walikelasOk = (($ijinUpdated->ok_walikelas ?? $ijinUpdated->okbin) === 'ok');
     $piketOk     = (($ijinUpdated->ok_pembina ?? $ijinUpdated->oksis) === 'ok');
 
-    if ($walikelasOk && $piketOk) {
+    if ($walikelasOk || $piketOk) {
         Ijinsiswa::where('id', $id)->update(['filex' => 'Surat Sesuai']);
     }
 

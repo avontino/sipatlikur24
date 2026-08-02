@@ -48,31 +48,19 @@
                                         <th>KEPALA SEKOLAH</th>
                                         @endif
                                         <th>GURU PIKET</th>
-                                        @if((auth()->user()->hasRole('pembina') || auth()->user()->hasRole('piket') || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa' && (!request()->filled('view') || request()->query('view') === 'pembina' || request()->query('view') === 'piket'))
-                                        <th>STATUS</th>
-                                        @endif
-                                        <th>KURIKULUM</th>
-                                        @if((auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa' && (!request()->filled('view') || request()->query('view') === 'kurikulum'))
-                                        <th>STATUS</th>
+                                        @if(auth()->user()->role !== 'siswa' && !in_array(auth()->user()->role, ['satpam']))
+                                        <th>STATUS GURU PIKET</th>
                                         @endif
                                         <th>WALI KELAS</th>
-                                        @if((auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa' && (!request()->filled('view') || request()->query('view') === 'walikelas'))
-                                        <th>STATUS</th>
-                                        @endif
-                                        <th>KESISWAAN</th>
-                                        @if((auth()->user()->hasRole('kesehatan') || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa' && (!request()->filled('view') || request()->query('view') === 'kesehatan'))
-                                        <th>STATUS</th>
+                                        @if((auth()->user()->walikelas_kelas || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa')
+                                        <th>STATUS WALI KELAS</th>
                                         @endif
                                         <th>WAKTU IJIN</th>
                                         <th>LIHAT SURAT</th>
-                                        <th>BERANGKAT</th>
-                                        <th>DURASI</th>
-                                        <th>KEMBALI</th>
-                                        <th>BUKTI</th>
-                                        <th>KETERANGAN</th>
-                                        <th>OVERTIME</th>
-                                        <th>SURAT</th>
+                                        <th>STATUS SURAT</th>
+                                        @if(auth()->user()->role !== 'siswa')
                                         <th>AKSI</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -92,29 +80,27 @@ document.addEventListener('DOMContentLoaded', function() {
     @php
         $user = auth()->user();
         $isSiswa = $user->role == 'siswa';
-        $view = request()->query('view');
+        $isGuruOrStaff = !$isSiswa && $user->role !== 'satpam';
+        $isWaliKelas = $user->walikelas_kelas || $user->hasRole('walikelas');
+        $isAdmin = $user->hasRole('admin') || $user->role == 'admin';
+        $isKepala = $user->hasRole('kepala') || $user->role == 'kepala';
+
         $cols = [];
         if (!$isSiswa) { $cols[] = 'nama'; $cols[] = 'kelas'; }
         $cols[] = 'ketijin';
-        if (($user->hasRole('kepala') || $user->hasRole('admin')) && !$isSiswa) { $cols[] = 'kepala_aksi'; }
+        // Kepala Sekolah action
+        if (($isKepala || $isAdmin) && !$isSiswa) { $cols[] = 'kepala_aksi'; }
+        // Guru Piket status (all non-siswa see status; all guru/staff get action button)
         $cols[] = 'ok_pembina_status';
-        if (($user->hasRole('pembina') || $user->hasRole('admin')) && !$isSiswa && (!request()->filled('view') || $view === 'pembina')) { $cols[] = 'pembina_aksi'; }
-        $cols[] = 'ok_kurikulum_status';
-        if (($user->hasRole('kurikulum') || $user->hasRole('admin')) && !$isSiswa && (!request()->filled('view') || $view === 'kurikulum')) { $cols[] = 'kurikulum_aksi'; }
+        if ($isGuruOrStaff) { $cols[] = 'pembina_aksi'; }
+        // Wali Kelas status
         $cols[] = 'ok_walikelas_status';
-        if (($user->hasRole('walikelas') || $user->walikelas_kelas || $user->hasRole('admin')) && !$isSiswa && (!request()->filled('view') || $view === 'walikelas')) { $cols[] = 'walikelas_aksi'; }
-        $cols[] = 'ok_kesehatan_status';
-        if (($user->hasRole('kesehatan') || $user->hasRole('admin')) && !$isSiswa && (!request()->filled('view') || $view === 'kesehatan')) { $cols[] = 'kesehatan_aksi'; }
+        if (($isWaliKelas || $isAdmin) && !$isSiswa) { $cols[] = 'walikelas_aksi'; }
+        // Time & document
         $cols[] = 'created_at';
         $cols[] = 'lihat_surat';
-        $cols[] = 'berangkat';
-        $cols[] = 'durasi';
-        $cols[] = 'kembali';
-        $cols[] = 'bukti';
-        $cols[] = 'keterangan';
-        $cols[] = 'overtime';
         $cols[] = 'filex';
-        $cols[] = 'aksi';
+        if (!$isSiswa) { $cols[] = 'aksi'; }
     @endphp
 
     if ($.fn.DataTable.isDataTable('#qrcodecam')) {
