@@ -87,17 +87,27 @@ class AbsenController extends Controller
         $tahun_ajaran = session('tahun_ajaran');
         $semester = session('semester');
 
+        if (empty($tahun_ajaran) || empty($semester)) {
+            $activeTa = DB::table('tahun_ajaran')->where('status', 1)->first();
+            if ($activeTa) {
+                $tahun_ajaran = $activeTa->tahun_ajaran;
+                $semester = $activeTa->semester;
+            }
+        }
+
         $user = auth()->user();
         $managedClass = $user->getManagedClass();
         if ($managedClass && $request->kelas !== $managedClass) {
             return redirect('/absen')->with('gagal', 'Anda hanya dapat menginput absensi untuk kelas perwalian Anda sendiri.');
         }
 
+        $targetDate = $request->input('tgl') ?: now()->toDateString();
+
         // General validation of existence
         $existingAbsence = \App\Models\Absen::where('nama', 'LIKE', '%'.$request->nama.'%')
                                     ->where('tahun_ajaran', $tahun_ajaran)
                                     ->where('semester', $semester)
-                                    ->whereDate('created_at', $request->tgl)
+                                    ->whereDate('created_at', $targetDate)
                                     ->first();
 
         if ($existingAbsence) {
@@ -140,7 +150,7 @@ class AbsenController extends Controller
             'ket' => $request->ket,
             'tahun_ajaran' => $tahun_ajaran,
             'semester' => $semester,
-            'created_at' => $request->tgl
+            'created_at' => $targetDate
         ]);
 
         return redirect('/absen')->with('sukses', 'Absen Siswa Berhasil Ditambahkan');

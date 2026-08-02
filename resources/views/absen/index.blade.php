@@ -107,9 +107,9 @@
                                         <button type="submit" class="btn btn-sm btn-outline-primary" name="action" value="kelastgl">Filter Kelas & Tanggal</button>
                                     @endif
 
-                                    @if(auth()->user()->role=='admin' || auth()->user()->role=='kesiswaan' || auth()->user()->role=='walikelas' || auth()->user()->role=='ketuakelas' || (auth()->user()->role=='guru' && auth()->user()->walikelas_kelas))
+                                    @if(auth()->user()->role=='admin' || auth()->user()->role=='kesiswaan' || auth()->user()->role=='walikelas' || auth()->user()->role=='ketuakelas' || auth()->user()->hasRole('walikelas') || auth()->user()->hasRole('ketuakelas') || (auth()->user()->role=='guru' && auth()->user()->walikelas_kelas))
                                      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tambahabsen">
-                                         <i class="fas fa-plus"></i> Tambah Absensi
+                                         <i class="fas fa-plus me-1"></i> Tambah Absensi Siswa
                                      </button>
                                      @endif
                                     
@@ -172,7 +172,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Tambah Absensi</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Tambah Absensi Siswa</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
@@ -181,9 +181,10 @@
                 <form action="/absen/create" method="POST"> 
                   {{csrf_field()}}
               
-              <div class="form-group">
-                <label for="exampleInputEmail1">TANGGAL</label>
-                <input name="tgl" type="date" class="form-control" id="tgl" aria-describedby="emailHelp" >
+              <div class="form-group mb-3">
+                <label for="tgl" class="form-label fw-bold">Tanggal Absensi</label>
+                <input name="tgl" type="date" class="form-control" id="tgl" value="{{ request('crtgl', date('Y-m-d')) }}" required>
+                <small class="form-text text-muted">*Pilih tanggal (bisa tanggal lampau jika lupa menginput absensi).</small>
               </div>
 
              <!-- Dropdown Kelas -->
