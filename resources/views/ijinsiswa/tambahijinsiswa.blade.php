@@ -128,11 +128,16 @@
                     <td>{{ count($verif) ? implode(', ', $verif) : '-' }}</td>
                     <td>
                       @php
+                        // Check approval using new column names with fallback to old names
+                        $piketOk     = ($ijinsiswa->ok_pembina ?? $ijinsiswa->oksis ?? 'belum') == 'ok';
+                        $walikelasOk = ($ijinsiswa->ok_walikelas ?? $ijinsiswa->okbin ?? 'belum') == 'ok';
+
                         $displayStatus = 'Menunggu Verifikasi';
                         if ($ijinsiswa->filex == 'Surat Salah') {
                             $displayStatus = 'Surat Salah';
-                        } elseif (($ijinsiswa->ok_pembina ?? 'belum') == 'ok' && ($ijinsiswa->ok_walikelas ?? 'belum') == 'ok') {
-                            $displayStatus = 'Surat Sesuai';
+                        } elseif ($piketOk || $walikelasOk) {
+                            // Either Guru Piket OR Wali Kelas approval is sufficient
+                            $displayStatus = 'Surat Disetujui';
                         }
                       @endphp
                       @if($displayStatus == 'Surat Salah')
@@ -140,7 +145,7 @@
                           Upload Ulang
                         </button>
                       @else
-                        <span class="badge {{ $displayStatus == 'Surat Sesuai' ? 'bg-success' : 'bg-secondary' }}">
+                        <span class="badge {{ $displayStatus == 'Surat Disetujui' ? 'bg-success' : 'bg-secondary' }}">
                           {{ $displayStatus }}
                         </span>
                       @endif

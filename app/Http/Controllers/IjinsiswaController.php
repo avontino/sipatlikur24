@@ -169,8 +169,9 @@ class IjinsiswaController extends Controller
                 // Status surat: derive from actual approval flags (OR logic for day school)
                 if ($ij->filex == 'Surat Salah') {
                     $displayStatus = 'Surat Salah';
-                } elseif ($ij->ok_pembina == 'ok' || $ij->ok_walikelas == 'ok') {
-                    $displayStatus = 'Surat Sesuai';
+                } elseif ($ij->ok_pembina == 'ok' || $ij->ok_walikelas == 'ok'
+                       || $ij->oksis == 'ok' || $ij->okbin == 'ok') {
+                    $displayStatus = 'Surat Disetujui';
                 } else {
                     $displayStatus = 'Menunggu Verifikasi';
                 }
