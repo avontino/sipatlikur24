@@ -204,11 +204,17 @@
             <p class="mb-1 small text-muted" style="font-size: 12px;">Rincian Kehadiran: {{ $currentDetailStr }}</p>
             <p class="mb-0 small text-secondary" style="font-size: 11px;">Diverifikasi oleh: <strong>{{ optional(\App\Models\User::find($todayVerification->verified_by))->name ?? 'Sistem' }}</strong> pada {{ \Carbon\Carbon::parse($todayVerification->updated_at)->format('H:i') }} WIB</p>
           </div>
-          <div class="ms-3 text-end">
+          <div class="ms-3 text-end d-flex gap-2 flex-wrap justify-content-end align-items-center">
             <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0" onsubmit="return confirmVerifikasiNihil(event, {{ $isNihil ? 'true' : 'false' }});">
               @csrf
               <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-3 py-2 shadow-sm" style="border-radius: 8px;">
                 <i class="fas fa-sync me-1"></i> Perbarui Verifikasi
+              </button>
+            </form>
+            <form action="{{ route('dashboard.batalVerifikasi') }}" method="POST" class="d-inline m-0" onsubmit="return confirmBatalVerifikasi(event);">
+              @csrf
+              <button type="submit" class="btn btn-sm btn-outline-danger fw-bold px-3 py-2 shadow-sm" style="border-radius: 8px;">
+                <i class="fas fa-undo me-1"></i> Batalkan Verifikasi
               </button>
             </form>
           </div>
@@ -266,6 +272,33 @@
         return false;
       }
       return true;
+    }
+
+    function confirmBatalVerifikasi(e) {
+      e.preventDefault();
+      var form = e.target;
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: 'Batalkan Verifikasi?',
+          text: 'Apakah Anda yakin ingin membatalkan status verifikasi absensi pagi untuk hari ini?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: '<i class="fas fa-undo me-1"></i> Ya, Batalkan',
+          cancelButtonText: '<i class="fas fa-times me-1"></i> Batal',
+          reverseButtons: true
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      } else {
+        if (confirm('Apakah Anda yakin ingin membatalkan verifikasi absensi pagi hari ini?')) {
+          form.submit();
+        }
+      }
+      return false;
     }
   </script>
 @endif

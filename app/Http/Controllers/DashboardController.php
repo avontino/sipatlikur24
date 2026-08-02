@@ -657,5 +657,25 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
         auth()->user()->unreadNotifications->markAsRead();
         return redirect()->back()->with('sukses', 'Semua notifikasi berhasil ditandai sebagai dibaca.');
     }
+
+    public function batalVerifikasi(Request $request)
+    {
+        $user = auth()->user();
+        $managedClass = $user->getManagedClass();
+        if (!$managedClass) {
+            return redirect()->back()->with('gagal', 'Anda tidak memiliki otoritas untuk membatalkan verifikasi absensi.');
+        }
+
+        $todayStr = now()->toDateString();
+        
+        if (\Illuminate\Support\Facades\Schema::hasTable('verifikasi_absensi')) {
+            DB::table('verifikasi_absensi')
+                ->where('kelas', $managedClass)
+                ->whereDate('tanggal', $todayStr)
+                ->delete();
+        }
+
+        return redirect()->back()->with('sukses', 'Verifikasi Absensi Pagi berhasil dibatalkan/direset.');
+    }
 }
 
