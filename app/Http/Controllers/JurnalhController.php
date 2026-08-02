@@ -503,9 +503,9 @@ class JurnalhController extends Controller
             $myClass = \App\Models\Siswa::where('username', $user->username)->orWhere('nama', $user->name)->value('kelas');
         }
 
-        $isExplicitWaliView = ($view === 'walikelas' || $user->role === 'walikelas');
+        $isExplicitWaliView = ($view === 'walikelas');
 
-        if ($isKetua || $user->role=='siswa' || $isExplicitWaliView) {
+        if ($isKetua || $user->role==='siswa' || $isExplicitWaliView) {
             $kelasToSearch = $myClass ?: $user->name;
             $targetDate = $request->input('tanggal', date('Y-m-d'));
 
@@ -517,18 +517,22 @@ class JurnalhController extends Controller
 
             return view('jurnalh.index', compact('jurnalhs', 'myClass', 'targetDate'));
 
-        } elseif ($user->role=='guru' || $user->hasRole('guru')) {
+        } elseif ($user->role==='guru' || $user->hasRole('guru') || $user->role==='walikelas' || $user->hasRole('walikelas')) {
             $guruNama = $user->name; 
+            $guruNip  = $user->username;
             $cleanGuruNama = trim(preg_replace('/,.*$/', '', $guruNama));
             $targetDate = $request->input('tanggal', date('Y-m-d'));
 
             $jurnalhs = Jurnalh::where('tahun_ajaran', $tahun_ajaran)
                 ->where('semester', $semester)
                 ->whereDate('created_at', $targetDate)
-                ->where(function ($query) use ($guruNama, $cleanGuruNama) {
+                ->where(function ($query) use ($guruNama, $cleanGuruNama, $guruNip) {
                     for ($i = 1; $i <= 11; $i++) {
                         $query->orWhere('j' . $i, 'like', '%' . $guruNama . '%')
                               ->orWhere('j' . $i, 'like', '%' . $cleanGuruNama . '%');
+                        if ($guruNip) {
+                            $query->orWhere('j' . $i, 'like', '%' . $guruNip . '%');
+                        }
                     }
                 })
                 ->orderBy('created_at', 'desc')

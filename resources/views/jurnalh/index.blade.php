@@ -124,7 +124,15 @@
                                 </form>
                             </div>
                             <div class="col-md-5 col-12 text-md-end text-start mt-2 mt-md-0">
-                                @if(isset($myClass) && $myClass)
+                                @if(request()->query('view') === 'walikelas' && isset($myClass) && $myClass)
+                                    <span class="badge bg-primary fs-6 px-3 py-2">
+                                        <i class="fas fa-chalkboard-teacher me-1"></i> Jurnal Perwalian Kelas: {{ $myClass }}
+                                    </span>
+                                @elseif(!request()->filled('view') && auth()->user()->role !== 'siswa')
+                                    <span class="badge bg-success fs-6 px-3 py-2">
+                                        <i class="fas fa-book-reader me-1"></i> Jurnal Mengajar Saya ({{ auth()->user()->name }})
+                                    </span>
+                                @elseif(isset($myClass) && $myClass)
                                     <span class="badge bg-primary fs-6 px-3 py-2">
                                         <i class="fas fa-chalkboard-teacher me-1"></i> Jurnal Kelas: {{ $myClass }}
                                     </span>
