@@ -508,19 +508,18 @@ public function suratsalah(Request $request, $id)
             $ijinsiswa->kelas = $request->input('kelas');
             $ijinsiswa->ketijin = $request->input('ijin');
 
-            if (\Schema::hasColumn('ijinsiswa', 'ok_pembina')) {
-                $ijinsiswa->ok_pembina = 'belum';
-                $ijinsiswa->ok_kurikulum = 'belum';
-                $ijinsiswa->ok_walikelas = 'belum';
-                $ijinsiswa->ok_kesehatan = 'belum';
-            } else {
-                $ijinsiswa->oksis = 'belum';
-                $ijinsiswa->okkur = 'belum';
-                $ijinsiswa->okbin = 'belum';
-                $ijinsiswa->okas = 'belum';
-            }
+            // Set default unverified status ('belum') for all authority fields
+            $ijinsiswa->ok_pembina = 'belum';
+            $ijinsiswa->ok_kurikulum = 'belum';
+            $ijinsiswa->ok_walikelas = 'belum';
+            $ijinsiswa->ok_kesehatan = 'belum';
 
-            $ijinsiswa->filex = 'Surat Sesuai';
+            $ijinsiswa->oksis = 'belum';
+            $ijinsiswa->okkur = 'belum';
+            $ijinsiswa->okbin = 'belum';
+            $ijinsiswa->okas = 'belum';
+
+            $ijinsiswa->filex = 'Menunggu Verifikasi';
             $ijinsiswa->tahun_ajaran = session('tahun_ajaran') ?: '2026/2027';
 
             $uploadDir = public_path('uploads');

@@ -86,13 +86,11 @@
                     <th>NAMA</th>
                     <th>KELAS</th>
                     <th>JENIS IJIN</th>
-                    <th>PEMBINA</th>
-                    <th>KURIKULUM</th>
-                    <th>WALIKELAS</th>
-                    <th>TIM KESEHATAN</th>
+                    <th>WALI KELAS</th>
+                    <th>GURU PIKET</th>
                     <th>WAKTU IJIN</th>
-                    <th>SURAT</th>
-                    <th>FILE</th>
+                    <th>STATUS SURAT</th>
+                    <th>FILE BUKTI</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -101,45 +99,37 @@
                     <td>{{$ijinsiswa->nama}}</td> 
                     <td>{{$ijinsiswa->kelas}}</td>
                     <td>{{$ijinsiswa->ketijin}}</td>
-                    @if($ijinsiswa->ok_pembina=='belum')
-                    <td style="background-color: #ff0000" align="center">
-                      <span class="nav-icon fas fa-minus-square"></span></td>
+                    
+                    {{-- Status Wali Kelas --}}
+                    @if(($ijinsiswa->ok_walikelas ?? $ijinsiswa->okbin ?? 'belum') == 'ok')
+                    <td style="background-color: #32CD32" align="center" title="Disetujui Wali Kelas">
+                      <span class="nav-icon fas fa-check-square text-white"></span></td>
                     @else
-                    <td style="background-color: #32CD32" align="center">
-                      <span class="nav-icon fas fa-check-square"></span></td>
+                    <td style="background-color: #ff0000" align="center" title="Belum Disetujui Wali Kelas">
+                      <span class="nav-icon fas fa-minus-square text-white"></span></td>
                     @endif
 
-                    @if($ijinsiswa->ok_kurikulum=='belum')
-                    <td style="background-color: #ff0000" align="center">
-                      <span class="nav-icon fas fa-minus-square"></span></td>
+                    {{-- Status Guru Piket --}}
+                    @if(($ijinsiswa->ok_pembina ?? $ijinsiswa->oksis ?? 'belum') == 'ok')
+                    <td style="background-color: #32CD32" align="center" title="Disetujui Guru Piket">
+                      <span class="nav-icon fas fa-check-square text-white"></span></td>
                     @else
-                    <td style="background-color: #32CD32" align="center">
-                      <span class="nav-icon fas fa-check-square"></span></td>
+                    <td style="background-color: #ff0000" align="center" title="Belum Disetujui Guru Piket">
+                      <span class="nav-icon fas fa-minus-square text-white"></span></td>
                     @endif
 
-                    @if($ijinsiswa->ok_walikelas=='belum')
-                    <td style="background-color: #ff0000" align="center">
-                      <span class="nav-icon fas fa-minus-square"></span></td>
-                    @else
-                    <td style="background-color: #32CD32" align="center">
-                      <span class="nav-icon fas fa-check-square"></span></td>
-                    @endif
-
-                    @if($ijinsiswa->ok_kesehatan=='belum')
-                    <td style="background-color: #ff0000" align="center">
-                      <span class="nav-icon fas fa-minus-square"></span></td>
-                    @else
-                    <td style="background-color: #32CD32" align="center">
-                      <span class="nav-icon fas fa-check-square"></span></td>
-                    @endif
-                    <td>{{$ijinsiswa->created_at->format('d M Y - H:i:s')}}</td>
+                    <td>{{$ijinsiswa->created_at ? $ijinsiswa->created_at->format('d M Y - H:i:s') : '-'}}</td>
                     <td>
-                        @if($ijinsiswa->filex != 'Surat Salah')	
-                        {{$ijinsiswa->filex}}
-                        @else
- <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#uploadUlangModal{{ $ijinsiswa->id }}">
-                            Upload Ulang
+                      @if($ijinsiswa->filex == 'Surat Salah')	
+                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#uploadUlangModal{{ $ijinsiswa->id }}">
+                          Upload Ulang
                         </button>
+                      @else
+                        <span class="badge {{ $ijinsiswa->filex == 'Surat Sesuai' ? 'bg-success' : 'bg-secondary' }}">
+                          {{ $ijinsiswa->filex ?: 'Menunggu Verifikasi' }}
+                        </span>
+                      @endif
+                    </td>
 
 
 
