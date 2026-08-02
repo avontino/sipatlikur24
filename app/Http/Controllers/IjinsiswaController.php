@@ -507,10 +507,19 @@ public function suratsalah(Request $request, $id)
             $ijinsiswa->nama = $request->input('nama');
             $ijinsiswa->kelas = $request->input('kelas');
             $ijinsiswa->ketijin = $request->input('ijin');
-            $ijinsiswa->ok_pembina = 'belum';
-            $ijinsiswa->ok_kurikulum = 'belum';
-            $ijinsiswa->ok_walikelas = 'belum';
-            $ijinsiswa->ok_kesehatan = 'belum';
+
+            if (\Schema::hasColumn('ijinsiswa', 'ok_pembina')) {
+                $ijinsiswa->ok_pembina = 'belum';
+                $ijinsiswa->ok_kurikulum = 'belum';
+                $ijinsiswa->ok_walikelas = 'belum';
+                $ijinsiswa->ok_kesehatan = 'belum';
+            } else {
+                $ijinsiswa->oksis = 'belum';
+                $ijinsiswa->okkur = 'belum';
+                $ijinsiswa->okbin = 'belum';
+                $ijinsiswa->okas = 'belum';
+            }
+
             $ijinsiswa->filex = 'Surat Sesuai';
             $ijinsiswa->tahun_ajaran = session('tahun_ajaran') ?: '2026/2027';
 
