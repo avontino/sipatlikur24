@@ -155,8 +155,6 @@
                 <th>Jam ke-7</th>
                 <th>Jam ke-8</th>
                 <th>Jam ke-9</th>
-                <th>Jam ke-10</th>
-                <th>Jam ke-11</th>
                 <th>Absensi Siswa</th>
                 <th>Absensi Guru</th>
                 <th>Tanggal</th>
@@ -167,7 +165,7 @@
             @foreach ($jurnalhs as $jurnalh)
             <tr>
             <td>{{ $jurnalh->kelas }}</td>
-            @for ($i = 1; $i <= 11; $i++)
+            @for ($i = 1; $i <= 9; $i++)
     @php
         $columnData = $jurnalh->{'j'.$i} ?? '';
         $displayContent = '';
