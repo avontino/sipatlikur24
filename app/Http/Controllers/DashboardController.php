@@ -199,7 +199,7 @@ class DashboardController extends Controller
     ->selectRaw("count(case when j10 = '0' then 1 end) as n10")
     ->selectRaw("count(case when j11 = '0' then 1 end) as n11")
     ->first();
-    $totalkosong=$kosong->n1+$kosong->n2+$kosong->n3+$kosong->n4+$kosong->n5+$kosong->n6+$kosong->n7+$kosong->n8+$kosong->n9+$kosong->n10+$kosong->n11;
+    $totalkosong = $kosong ? ($kosong->n1+$kosong->n2+$kosong->n3+$kosong->n4+$kosong->n5+$kosong->n6+$kosong->n7+$kosong->n8+$kosong->n9+$kosong->n10+$kosong->n11) : 0;
 
 
     $ok = DB::table('jrekap')->where('kelas',auth()->user()->name)
@@ -215,7 +215,7 @@ class DashboardController extends Controller
     ->selectRaw("count(case when j10 = 'ok' then 1 end) as n10")
     ->selectRaw("count(case when j11 = 'ok' then 1 end) as n11")
     ->first();
-    $totalok=$ok->n1+$ok->n2+$ok->n3+$ok->n4+$ok->n5+$ok->n6+$ok->n7+$ok->n8+$ok->n9+$ok->n10+$ok->n11;
+    $totalok = $ok ? ($ok->n1+$ok->n2+$ok->n3+$ok->n4+$ok->n5+$ok->n6+$ok->n7+$ok->n8+$ok->n9+$ok->n10+$ok->n11) : 0;
 
         $data_jrekap= \App\Models\Jrekap::where('kelas',auth()->user()->name)
         ->orderBy('created_at','desc')->get();
@@ -275,7 +275,7 @@ class DashboardController extends Controller
     ->selectRaw("count(case when j10 = '0' then 1 end) as n10")
     ->selectRaw("count(case when j11 = '0' then 1 end) as n11")
     ->first();
-    $totalkosong=$kosong->n1+$kosong->n2+$kosong->n3+$kosong->n4+$kosong->n5+$kosong->n6+$kosong->n7+$kosong->n8+$kosong->n9+$kosong->n10+$kosong->n11;
+    $totalkosong = $kosong ? ($kosong->n1+$kosong->n2+$kosong->n3+$kosong->n4+$kosong->n5+$kosong->n6+$kosong->n7+$kosong->n8+$kosong->n9+$kosong->n10+$kosong->n11) : 0;
 
 
     $ok = DB::table('jrekap')
@@ -291,7 +291,7 @@ class DashboardController extends Controller
     ->selectRaw("count(case when j10 = 'ok' then 1 end) as n10")
     ->selectRaw("count(case when j11 = 'ok' then 1 end) as n11")
     ->first();
-    $totalok=$ok->n1+$ok->n2+$ok->n3+$ok->n4+$ok->n5+$ok->n6+$ok->n7+$ok->n8+$ok->n9+$ok->n10+$ok->n11;
+    $totalok = $ok ? ($ok->n1+$ok->n2+$ok->n3+$ok->n4+$ok->n5+$ok->n6+$ok->n7+$ok->n8+$ok->n9+$ok->n10+$ok->n11) : 0;
 
     //S/I/A
 
@@ -434,7 +434,7 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
     ->selectRaw("count(case when j10 = '0' then 1 end) as n10")
     ->selectRaw("count(case when j11 = '0' then 1 end) as n11")
     ->first();
-    $totalkosong=$kosong->n1+$kosong->n2+$kosong->n3+$kosong->n4+$kosong->n5+$kosong->n6+$kosong->n7+$kosong->n8+$kosong->n9+$kosong->n10+$kosong->n11;
+    $totalkosong = $kosong ? ($kosong->n1+$kosong->n2+$kosong->n3+$kosong->n4+$kosong->n5+$kosong->n6+$kosong->n7+$kosong->n8+$kosong->n9+$kosong->n10+$kosong->n11) : 0;
 
 
     $ok = DB::table('jrekap')
@@ -450,7 +450,7 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
     ->selectRaw("count(case when j10 = 'ok' then 1 end) as n10")
     ->selectRaw("count(case when j11 = 'ok' then 1 end) as n11")
     ->first();
-    $totalok=$ok->n1+$ok->n2+$ok->n3+$ok->n4+$ok->n5+$ok->n6+$ok->n7+$ok->n8+$ok->n9+$ok->n10+$ok->n11;
+    $totalok = $ok ? ($ok->n1+$ok->n2+$ok->n3+$ok->n4+$ok->n5+$ok->n6+$ok->n7+$ok->n8+$ok->n9+$ok->n10+$ok->n11) : 0;
 
     //S/I/A
 
