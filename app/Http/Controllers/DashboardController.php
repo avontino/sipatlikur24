@@ -572,6 +572,18 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
                     $table->integer('total')->default(0);
                 });
             }
+
+            // Fix legacy columns like 'jam_ke' or 'jamke' that are NOT NULL without a default value
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('verifikasi_absensi', 'jam_ke')) {
+                    DB::statement("ALTER TABLE `verifikasi_absensi` MODIFY `jam_ke` VARCHAR(255) NULL DEFAULT NULL");
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('verifikasi_absensi', 'jamke')) {
+                    DB::statement("ALTER TABLE `verifikasi_absensi` MODIFY `jamke` VARCHAR(255) NULL DEFAULT NULL");
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Fix verifikasi_absensi legacy columns: ' . $e->getMessage());
+            }
         }
     }
 
@@ -635,6 +647,13 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
                 'verified_by' => $user->id,
                 'updated_at'  => now(),
             ];
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('verifikasi_absensi', 'jam_ke')) {
+                $updateData['jam_ke'] = null;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('verifikasi_absensi', 'jamke')) {
+                $updateData['jamke'] = null;
+            }
 
             if ($existing) {
                 // Update record yang sudah ada (tanpa mengubah created_at)
