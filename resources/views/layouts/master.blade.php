@@ -1731,7 +1731,7 @@ function fetchAndSendToken() {
 
   try {
     const messaging = firebase.messaging();
-    const vapidKey = "{{ env('FIREBASE_VAPID_KEY', '') }}";
+    const vapidKey = "{{ env('FIREBASE_VAPID_KEY', 'BLKbgGABY4Nzxe3NZliOfeK7LjPvE7Ws1RkBWjEVRek_vWkOyOBe_agnmRK-kDEUXrYVxzGoWHoMJ0ZUDmkM-W8') }}";
     const getTokenOptions = vapidKey ? { vapidKey: vapidKey } : {};
     
     messaging.onMessage(function(payload) {
