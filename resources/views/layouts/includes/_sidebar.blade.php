@@ -339,7 +339,7 @@
 
 
     <!-- CATEGORY: WALI KELAS -->
-    @if(auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas)
+    @if((auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas) && auth()->user()->role !== 'siswa')
     <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #86efac !important;">Menu Wali Kelas</li>
 
     <li class="nav-item">
