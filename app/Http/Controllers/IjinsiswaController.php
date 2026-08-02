@@ -300,10 +300,23 @@ public function suratsalah(Request $request, $id)
 
     public function tambah()
     {   
-        $siswa=Siswa::where('nama',auth()->user()->name)->where('tahun_ajaran', session('tahun_ajaran'))->first();
-        $data_ijinsiswa=Ijinsiswa::where('nama',auth()->user()->name)->where('tahun_ajaran', session('tahun_ajaran'))->orderBy('created_at','desc')->get();
+        $user = auth()->user();
+        $tahunAjaran = session('tahun_ajaran') ?: '2026/2027';
+        $siswa = Siswa::where('nama', $user->name)->where('tahun_ajaran', $tahunAjaran)->first();
+        if (!$siswa) {
+            $siswa = Siswa::where('nis', $user->username)->orWhere('nama', $user->name)->first();
+        }
+
+        if (!$siswa) {
+            $siswa = (object)[
+                'kelas' => $user->kelas ?? '-',
+                'nama' => $user->name
+            ];
+        }
+
+        $data_ijinsiswa = Ijinsiswa::where('nama', $user->name)->orderBy('created_at', 'desc')->get();
        
-        return view('ijinsiswa.tambahijinsiswa',compact('siswa','data_ijinsiswa'));
+        return view('ijinsiswa.tambahijinsiswa', compact('siswa', 'data_ijinsiswa'));
     }
 
 
