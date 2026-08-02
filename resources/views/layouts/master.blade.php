@@ -1812,11 +1812,14 @@ function enableNotificationManual() {
 }
 
 function initFCMToken() {
-  if (!('Notification' in window)) return;
+  fetchAndSendToken();
 
-  if (Notification.permission === 'granted') {
-    $('#iosNotifBanner').hide();
-    fetchAndSendToken();
+  if (typeof Notification !== 'undefined') {
+    if (Notification.permission === 'granted') {
+      $('#iosNotifBanner').hide();
+    } else if (Notification.permission === 'default') {
+      $('#iosNotifBanner').slideDown();
+    }
   } else {
     $('#iosNotifBanner').slideDown();
   }
