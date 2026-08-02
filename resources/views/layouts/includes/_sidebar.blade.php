@@ -337,6 +337,12 @@
       </a>
     </li>
     <li class="nav-item">
+      <a href="/jadwal" class="nav-link {{ Request::is('jadwal*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-calendar-alt text-primary"></i>
+        <p>Jadwal Pelajaran Saya</p>
+      </a>
+    </li>
+    <li class="nav-item">
       <a href="/history-poin" class="nav-link {{ Request::is('history-poin*') ? 'active' : '' }}">
         <i class="nav-icon fas fa-exclamation-triangle text-danger"></i>
         <p>Poin Pelanggaran Saya</p>

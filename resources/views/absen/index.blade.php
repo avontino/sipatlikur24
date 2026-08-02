@@ -94,7 +94,7 @@
                                         <button type="submit" class="btn btn-primary" name="action" value="tanggal">Filter Tanggal</button>
                                     </div>
                                     
-                                    @if(!$isWaliView)
+                                    @if(!$isWaliView && auth()->user()->role != 'siswa')
                                         <div class="input-group input-group-sm" style="width: auto;">
                                             <select name="kelas" class="form-select">
                                                 @foreach($ke_las as $kelas)
@@ -113,9 +113,11 @@
                                      </button>
                                      @endif
                                     
+                                    @if(auth()->user()->role != 'siswa')
                                     <button type="button" class="btn btn-sm btn-success text-white" data-bs-toggle="modal" data-bs-target="#exportAbsenModal">
                                          <i class="fas fa-file-excel me-1"></i> Export Data
                                      </button>
+                                    @endif
                                 </form>
                             </div>
                         </div>

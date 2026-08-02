@@ -186,6 +186,10 @@ class AbsenController extends Controller
 
     public function export(Request $request) 
     {
+        if (auth()->user()->role == 'siswa') {
+            return redirect()->back()->with('gagal', 'Siswa tidak memiliki akses untuk mengekspor data absensi.');
+        }
+
         $request->validate([
             'start_date' => 'nullable|date',
             'end_date'   => 'nullable|date',

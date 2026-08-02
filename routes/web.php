@@ -44,7 +44,7 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			Route::post('/susulan/absensusulan','JurnalbaruController@absensusulan');
 
 			//route jadwal viewing
-			Route::get('/jadwal','JadwalController@index')->middleware('role:admin,guru,lihat');
+			Route::get('/jadwal','JadwalController@index')->middleware('role:admin,guru,lihat,siswa');
 			Route::get('/jadwal/export','JadwalController@export')->middleware('role:admin,guru,lihat');
 
 			//route absen

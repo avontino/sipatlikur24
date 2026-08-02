@@ -26,6 +26,20 @@ class JadwalController extends Controller
             $query = \App\Models\Jadwal::where('tahun_ajaran', session('tahun_ajaran'))
                 ->where('semester', session('semester'));
 
+            if (auth()->user()->role == 'siswa') {
+                $siswa = \App\Models\Siswa::where('tahun_ajaran', session('tahun_ajaran'))
+                    ->where(function($q) {
+                        $q->where('nama', auth()->user()->name)
+                          ->orWhere('nis', auth()->user()->username);
+                    })->first();
+                $kelasSiswa = $siswa ? $siswa->kelas : null;
+                if ($kelasSiswa) {
+                    $query->where('kelas', $kelasSiswa);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            }
+
             $totalRecords = $query->count();
 
             if ($searchValue = $request->input('search.value')) {
