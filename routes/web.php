@@ -15,7 +15,7 @@ Route::namespace('App\Http\Controllers')->group(function () {
 */
 
 Route::get('/', function () {
-    return view('home');
+    return redirect('/dashboard');
 })->middleware('auth');
 
 Route::get('/login','AuthController@login')->name('login');
