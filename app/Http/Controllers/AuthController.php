@@ -69,7 +69,7 @@ class AuthController extends Controller
                     'fcm_token' => $request->fcm_token,
                 ],
                 [
-                    'device_type' => $request->input('device_type', 'android'),
+                    'device_info' => $request->input('device_info', 'Android/Web Browser'),
                     'updated_at' => now(),
                     'created_at' => now(),
                 ]
