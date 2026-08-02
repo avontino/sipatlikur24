@@ -168,11 +168,11 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			});
 
 			// Student points rekap & SP printing routes
-			Route::get('/poin-siswa', 'PoinSiswaController@inputPoin')->middleware('role:admin,guru,lihat');
-			Route::post('/poin-siswa/create', 'PoinSiswaController@create')->middleware('role:admin,guru,lihat');
+			Route::get('/poin-siswa', 'PoinSiswaController@inputPoin')->middleware('role:admin,guru,lihat,walikelas,ketuakelas');
+			Route::post('/poin-siswa/create', 'PoinSiswaController@create')->middleware('role:admin,guru,lihat,walikelas,ketuakelas');
 			Route::get('/history-poin', 'PoinSiswaController@index');
 			Route::get('/history-poin/{id}/delete', 'PoinSiswaController@delete');
-			Route::get('/poin-siswa/{id}/cetak-sp/{level}', 'PoinSiswaController@cetakSP')->middleware('role:admin,guru,lihat');
+			Route::get('/poin-siswa/{id}/cetak-sp/{level}', 'PoinSiswaController@cetakSP')->middleware('role:admin,guru,lihat,walikelas,ketuakelas');
 
 			//route disposisi surat
 			Route::get('/surat','SuratController@surat');
