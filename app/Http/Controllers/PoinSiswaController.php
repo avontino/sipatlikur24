@@ -11,7 +11,19 @@ class PoinSiswaController extends Controller
 {
     public function index(Request $request)
     {
-        $data_poin = PoinSiswa::with(['siswa', 'kategoriPoin'])->orderBy('created_at', 'desc')->get();
+        $user = auth()->user();
+        $query = PoinSiswa::with(['siswa', 'kategoriPoin'])->orderBy('created_at', 'desc');
+
+        if ($user->role == 'siswa') {
+            $siswa = Siswa::where('nama', $user->name)->orWhere('nis', $user->username)->first();
+            if ($siswa) {
+                $query->where('siswa_id', $siswa->id);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        $data_poin = $query->get();
         return view('poin.index', compact('data_poin'));
     }
 

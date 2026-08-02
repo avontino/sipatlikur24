@@ -29,7 +29,9 @@
 												<th>TEMPAT</th>
 												<th>PELAPOR</th>
 												<th>WAKTU</th>
+												@if(auth()->user()->role != 'siswa')
 												<th>AKSI</th>
+												@endif
 											</tr>
 										</thead>
 										<tbody>
@@ -52,9 +54,11 @@
 												<td>{{$poin->tempat}}</td>
 												<td>{{$poin->pelapor}}</td>
 												<td>{{$poin->created_at->format('d M Y H:i')}}</td>
+												@if(auth()->user()->role != 'siswa')
 												<td>
 													<a href="/history-poin/{{$poin->id}}/delete" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus history poin ini?')">Hapus</a>
 												</td>
+												@endif
 											</tr>
 											@endforeach
 										</tbody>

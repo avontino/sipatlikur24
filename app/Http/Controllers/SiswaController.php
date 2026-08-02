@@ -17,10 +17,16 @@ class SiswaController extends Controller
     {	
         $ke_las=Kelas::all();
         $tahun_ajaran = session('tahun_ajaran');
-        $cari = $request->input('cari');
+        $user = auth()->user();
 
         $query = \App\Models\Siswa::with('user')
             ->where('tahun_ajaran', $tahun_ajaran);
+
+        if ($user->role == 'siswa') {
+            $query->where(function($q) use ($user) {
+                $q->where('nama', $user->name)->orWhere('nis', $user->username);
+            });
+        }
 
         if ($request->filled('cari')) {
             $query->where(function($q) use ($cari) {

@@ -201,6 +201,7 @@
     @endif
 
     {{-- Presensi Guru (Disembunyikan) --}}
+    @if(auth()->user()->role !== 'siswa' && !auth()->user()->hasRole('siswa'))
     <li class="nav-item">
       <a href="/jurnalh" class="nav-link {{ Request::is('jurnalh*') && !request()->filled('view') ? 'active' : '' }}">
         <i class="nav-icon fas fa-calendar-day text-success"></i>
@@ -213,6 +214,7 @@
         <p>Riwayat Jurnal Saya</p>
       </a>
     </li>
+    @endif
 
 
     <!-- CATEGORY: GURU / STAF -->
@@ -334,7 +336,18 @@
         <p>Riwayat Izin Saya</p>
       </a>
     </li>
-    {{-- Garjas Siswa (Disembunyikan) --}}
+    <li class="nav-item">
+      <a href="/history-poin" class="nav-link {{ Request::is('history-poin*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-exclamation-triangle text-danger"></i>
+        <p>Poin Pelanggaran Saya</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/absen" class="nav-link {{ Request::is('absen*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-user-check text-success"></i>
+        <p>Absensi Saya</p>
+      </a>
+    </li>
     @endif
 
 
