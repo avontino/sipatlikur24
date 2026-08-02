@@ -204,15 +204,8 @@ class IjinsiswaController extends Controller
         return view('ijinsiswa.index', ['data_ijinsiswa' => collect()]);
     }
 
-    public function verifikasi(Request $request, $id)
-{   
-    // Ambil data ijin siswa berdasarkan ID
-    $ijinsiswa = Ijinsiswa::find($id);
-    if (!$ijinsiswa) {
-        return redirect('/ijinsiswa')->with('gagal', 'Data ijin tidak ditemukan');
-    }
 
-public function verifikasi(Request $request, $id)
+    public function verifikasi(Request $request, $id)
 {
     $ijinsiswa = Ijinsiswa::find($id);
     if (!$ijinsiswa) {
