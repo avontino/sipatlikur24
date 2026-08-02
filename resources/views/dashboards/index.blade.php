@@ -35,7 +35,7 @@
                     <h6 class="alert-heading font-weight-bold mb-1" style="font-size: 14px; color: #0f5132;">Absensi Pagi Kelas Terverifikasi!</h6>
                     <p class="mb-0 small" style="font-size: 12px;">Status Kehadiran Hari Ini: <strong>{{ $todayVerification->status == 'NIHIL' ? 'NIHIL (Hadir Semua)' : 'ADA ABSEN' }}</strong></p>
                     <p class="mb-0 small mt-1" style="font-size: 12px; opacity: 0.85;">Rincian Kehadiran: {{ $currentDetailStr }}</p>
-                    <p class="mb-0 small" style="font-size: 11px; opacity: 0.75;">Diverifikasi oleh: {{ \App\Models\User::find($todayVerification->verified_by)->name ?? 'Sistem' }} pada {{ \Carbon\Carbon::parse($todayVerification->updated_at)->format('H:i') }} WIB</p>
+                    <p class="mb-0 small" style="font-size: 11px; opacity: 0.75;">Diverifikasi oleh: {{ optional(\App\Models\User::find($todayVerification->verified_by))->name ?? 'Sistem' }} pada {{ \Carbon\Carbon::parse($todayVerification->updated_at)->format('H:i') }} WIB</p>
                   </div>
                 </div>
                 

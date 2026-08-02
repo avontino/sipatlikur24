@@ -87,9 +87,11 @@ class DashboardController extends Controller
                 
                 $status = ($dOfWeek == 7) ? 'libur' : 'alpha';
 
-                $presensi = \App\Models\PresensiGuru::where('nama', auth()->user()->name)
-                    ->whereDate('tanggal', $dateStr)
-                    ->first();
+                $presensi = \Illuminate\Support\Facades\Schema::hasTable('presensi_guru')
+                    ? \App\Models\PresensiGuru::where('nama', auth()->user()->name)
+                        ->whereDate('tanggal', $dateStr)
+                        ->first()
+                    : null;
 
                 if ($presensi) {
                     $status = ($presensi->status_datang == 'Terlambat') ? 'terlambat' : 'tepat_waktu';
@@ -115,10 +117,12 @@ class DashboardController extends Controller
         $currentDetailStr = null;
 
         if ($managedClass) {
-            $todayVerification = DB::table('verifikasi_absensi')
-                ->where('kelas', $managedClass)
-                ->whereDate('tanggal', $todayStr)
-                ->first();
+            $todayVerification = \Illuminate\Support\Facades\Schema::hasTable('verifikasi_absensi')
+                ? DB::table('verifikasi_absensi')
+                    ->where('kelas', $managedClass)
+                    ->whereDate('tanggal', $todayStr)
+                    ->first()
+                : null;
                 
             $currentAbsen = \App\Models\Absen::where('kelas', $managedClass)
                 ->whereDate('created_at', $todayStr)
@@ -149,10 +153,12 @@ class DashboardController extends Controller
             $allClasses = \App\Models\Kelas::pluck('kelas')->toArray();
             $totalClasses = count($allClasses);
             
-            $verifikasiToday = DB::table('verifikasi_absensi')
-                ->whereDate('tanggal', $todayStr)
-                ->get()
-                ->keyBy('kelas');
+            $verifikasiToday = \Illuminate\Support\Facades\Schema::hasTable('verifikasi_absensi')
+                ? DB::table('verifikasi_absensi')
+                    ->whereDate('tanggal', $todayStr)
+                    ->get()
+                    ->keyBy('kelas')
+                : collect();
                 
             foreach ($allClasses as $c) {
                 $v = $verifikasiToday->get($c);
@@ -162,7 +168,7 @@ class DashboardController extends Controller
                         'kelas' => $c,
                         'status' => 'Sudah Verifikasi',
                         'detail' => ($v->status == 'NIHIL') ? "NIHIL (Hadir Semua - {$v->total} Siswa)" : "{$v->sakit} Sakit, {$v->izin} Izin, {$v->alpha} Alpha, {$v->dispen} Terlambat, {$v->hadir} Hadir dari {$v->total} Siswa",
-                        'verified_by' => \App\Models\User::find($v->verified_by)->name ?? 'Sistem',
+                        'verified_by' => optional(\App\Models\User::find($v->verified_by))->name ?? 'Sistem',
                         'time' => \Carbon\Carbon::parse($v->updated_at)->format('H:i')
                     ];
                 } else {
