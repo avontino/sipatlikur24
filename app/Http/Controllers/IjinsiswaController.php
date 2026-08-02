@@ -485,48 +485,57 @@ public function suratsalah(Request $request, $id)
 
     public function create(Request $request)
     {
-        $request->validate([
-            'nama' => 'required',
-            'kelas' => 'required',
-            'ijin' => 'required',
-            'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
-        ], [
-            'file.required' => 'Wajib melampirkan foto / bukti surat izin!',
-            'file.image' => 'File yang diunggah harus berupa foto / gambar (JPG, PNG)!',
-        ]);
+        try {
+            $request->validate([
+                'nama' => 'required',
+                'kelas' => 'required',
+                'ijin' => 'required',
+                'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+            ], [
+                'file.required' => 'Wajib melampirkan foto / bukti surat izin!',
+                'file.image' => 'File yang diunggah harus berupa foto / gambar (JPG, PNG)!',
+            ]);
 
-        $ijinsiswa = new IjinSiswa();
-        $ijinsiswa->nama = $request->input('nama');
-        $ijinsiswa->kelas = $request->input('kelas');
-        $ijinsiswa->ketijin = $request->input('ijin');
-        $ijinsiswa->ok_pembina = 'belum';
-        $ijinsiswa->ok_kurikulum = 'belum';
-        $ijinsiswa->ok_walikelas = 'belum';
-        $ijinsiswa->ok_kesehatan = 'belum';
-        $ijinsiswa->filex = 'Surat Sesuai';
-        $ijinsiswa->tahun_ajaran = session('tahun_ajaran') ?: '2026/2027';
+            $ijinsiswa = new IjinSiswa();
+            $ijinsiswa->nama = $request->input('nama');
+            $ijinsiswa->kelas = $request->input('kelas');
+            $ijinsiswa->ketijin = $request->input('ijin');
+            $ijinsiswa->ok_pembina = 'belum';
+            $ijinsiswa->ok_kurikulum = 'belum';
+            $ijinsiswa->ok_walikelas = 'belum';
+            $ijinsiswa->ok_kesehatan = 'belum';
+            $ijinsiswa->filex = 'Surat Sesuai';
+            $ijinsiswa->tahun_ajaran = session('tahun_ajaran') ?: '2026/2027';
 
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $uploadDir = public_path('storage/uploads');
-            if (!\File::exists($uploadDir)) {
-                \File::makeDirectory($uploadDir, 0777, true, true);
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $uploadDir = public_path('uploads');
+                if (!\File::exists($uploadDir)) {
+                    \File::makeDirectory($uploadDir, 0777, true, true);
+                }
+
+                $imageName = 'file_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move($uploadDir, $imageName);
+                $ijinsiswa->file_path = '/uploads/' . $imageName;
+            } else {
+                $ijinsiswa->file_path = '';
             }
 
-            $imageName = 'file_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move($uploadDir, $imageName);
-            $ijinsiswa->file_path = '/storage/uploads/' . $imageName;
-        }
+            $ijinsiswa->save();
 
-        $ijinsiswa->save();
+            try {
+                $this->dispatchIjinNotification($ijinsiswa->id);
+            } catch (\Throwable $e) {
+                \Log::error("Failed to dispatch Ijin notification: " . $e->getMessage());
+            }
 
-        try {
-            $this->dispatchIjinNotification($ijinsiswa->id);
+            return redirect()->back()->with('sukses', 'Ijin siswa berhasil ditambahkan!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Throwable $e) {
-            \Log::error("Failed to dispatch Ijin notification: " . $e->getMessage());
+            \Log::error("Error adding student permission: " . $e->getMessage());
+            return redirect()->back()->with('gagal', 'Gagal menyimpan data ijin: ' . $e->getMessage());
         }
-
-        return redirect()->back()->with('sukses', 'Ijin siswa berhasil ditambahkan!');
     }
     
     public function uploadUlang(Request $request, $id)
