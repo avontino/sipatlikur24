@@ -63,6 +63,38 @@ class JurnalbaruController extends Controller
             ->where('hari', '=', $skr)
             ->get();  
 
+        $managedClass = $user->getManagedClass();
+        $todayVerification = null;
+        $currentDetailStr = null;
+
+        if ($managedClass) {
+            $todayVerification = \Illuminate\Support\Facades\Schema::hasTable('verifikasi_absensi')
+                ? DB::table('verifikasi_absensi')
+                    ->where('kelas', $managedClass)
+                    ->whereDate('tanggal', $todayStr)
+                    ->first()
+                : null;
+                
+            $currentAbsen = \App\Models\Absen::where('kelas', $managedClass)
+                ->whereDate('created_at', $todayStr)
+                ->get();
+            
+            $currentSakit = $currentAbsen->where('ket', 'Sakit')->count();
+            $currentIzin = $currentAbsen->where('ket', 'Ijin')->count();
+            $currentAlpha = $currentAbsen->where('ket', 'Alpha')->count();
+            $currentDispen = $currentAbsen->where('ket', 'Dispen')->count();
+            
+            $totalSiswa = \App\Models\Siswa::where('kelas', $managedClass)
+                ->where('tahun_ajaran', $tahun_ajaran)
+                ->count();
+                
+            $currentHadir = max(0, $totalSiswa - ($currentSakit + $currentIzin + $currentAlpha + $currentDispen));
+            
+            $currentDetailStr = ($currentSakit + $currentIzin + $currentAlpha + $currentDispen == 0)
+                ? "NIHIL (Hadir Semua - {$totalSiswa} Siswa)"
+                : "{$currentSakit} Sakit, {$currentIzin} Izin, {$currentAlpha} Alpha, {$currentDispen} Terlambat, {$currentHadir} Hadir dari {$totalSiswa} Siswa";
+        }
+
         // Cek apakah jurnal harian sudah disinkronkan untuk kelas user hari ini
         $jurnalhSynced = false;
         if ($myClass) {
@@ -77,7 +109,7 @@ class JurnalbaruController extends Controller
 
     	return view('jurnalbaru.index',
             ['data_jadwal' => $data_jadwal],
-            compact('ab_sen', 'sis_wa', 'jurnalhSynced', 'myClass')
+            compact('ab_sen', 'sis_wa', 'jurnalhSynced', 'myClass', 'managedClass', 'todayVerification', 'currentDetailStr')
         );
     }
 

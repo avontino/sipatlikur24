@@ -182,6 +182,59 @@
 
 
           </div>
+
+<!-- Verifikasi Absensi Pagi Widget (Wali Kelas & Ketua Kelas) -->
+@if(isset($managedClass) && $managedClass)
+  <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; background: #ffffff;">
+    <div class="card-header py-3" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border-radius: 12px 12px 0 0;">
+      <h5 class="card-title m-0 text-white fw-bold fs-6 d-flex align-items-center">
+        <i class="fas fa-clipboard-check me-2"></i> Verifikasi Absensi Pagi — Kelas {{ $managedClass }}
+      </h5>
+    </div>
+    <div class="card-body p-4">
+      @if($todayVerification)
+        <div class="alert alert-success d-flex align-items-center mb-0 p-3 shadow-sm border-0" role="alert" style="background-color: #d1e7dd; border-left: 5px solid #198754 !important; border-radius: 10px; color: #0f5132;">
+          <i class="fas fa-check-circle me-3" style="font-size: 28px; color: #198754;"></i>
+          <div class="flex-grow-1">
+            <h6 class="alert-heading fw-bold mb-1" style="font-size: 15px; color: #0f5132;">Absensi Pagi Kelas Terverifikasi!</h6>
+            <p class="mb-1 small" style="font-size: 13px;">Status Kehadiran Hari Ini: <strong>{{ $todayVerification->status == 'NIHIL' ? 'NIHIL (Hadir Semua)' : 'ADA ABSEN' }}</strong></p>
+            <p class="mb-1 small text-muted" style="font-size: 12px;">Rincian Kehadiran: {{ $currentDetailStr }}</p>
+            <p class="mb-0 small text-secondary" style="font-size: 11px;">Diverifikasi oleh: <strong>{{ optional(\App\Models\User::find($todayVerification->verified_by))->name ?? 'Sistem' }}</strong> pada {{ \Carbon\Carbon::parse($todayVerification->updated_at)->format('H:i') }} WIB</p>
+          </div>
+          <div class="ms-3 text-end">
+            <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0">
+              @csrf
+              <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-3 py-2 shadow-sm" style="border-radius: 8px;">
+                <i class="fas fa-sync me-1"></i> Perbarui Verifikasi
+              </button>
+            </form>
+          </div>
+        </div>
+      @else
+        <div class="alert alert-warning d-flex align-items-center mb-3 p-3 shadow-sm border-0" role="alert" style="background-color: #fff3cd; border-left: 5px solid #ffc107 !important; border-radius: 10px; color: #664d03;">
+          <i class="fas fa-exclamation-triangle me-3" style="font-size: 28px; color: #ffc107;"></i>
+          <div class="flex-grow-1">
+            <h6 class="alert-heading fw-bold mb-1" style="font-size: 15px; color: #664d03;">Pemberitahuan: Belum Verifikasi Kehadiran Pagi</h6>
+            <p class="mb-1 small" style="font-size: 13px;">Kelas Anda (<strong>Kelas {{ $managedClass }}</strong>) belum melakukan verifikasi absensi pagi untuk hari ini.</p>
+            <p class="mb-0 small text-muted" style="font-size: 12px;">Rincian Data Saat Ini: {{ $currentDetailStr }}</p>
+          </div>
+          <div class="ms-3 text-end">
+            <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0">
+              @csrf
+              <button type="submit" class="btn btn-warning btn-md fw-bold text-dark px-4 py-2 shadow-sm" style="border-radius: 8px; font-size: 14px;">
+                <i class="fas fa-check-circle me-1"></i> Verifikasi Absensi Pagi
+              </button>
+            </form>
+          </div>
+        </div>
+        <p class="text-muted small mb-0 ms-1" style="font-size: 11px; font-style: italic;">
+          *Jika terdapat siswa yang Sakit, Izin, Terlambat, atau Alpha hari ini, harap input absensi mereka terlebih dahulu di tabel <strong>Absen Siswa</strong> di bawah sebelum mengeklik verifikasi.
+        </p>
+      @endif
+    </div>
+  </div>
+@endif
+
 <!--Tabel Absen SIswa-->
 <div class="card">
 
