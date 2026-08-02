@@ -13,7 +13,8 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $todayStr = now()->toDateString();
+        try {
+            $todayStr = now()->toDateString();
         $classesNotFilled = [];
         $waliClassNotFilled = false;
         $todayJurnalFilled = true;
@@ -315,10 +316,12 @@ class DashboardController extends Controller
 
             $data_absen= \App\Models\Absen::whereDate('created_at',now())->orderBy('created_at','desc')->get();
 
-            $absenguru= DB::table('ijin')
-                        ->where('guru',auth()->user()->name)
-                        ->whereBetween('created_at',['2020-01-02', now()])
-                        ->sum('jumlah');   
+            $absenguru = \Illuminate\Support\Facades\Schema::hasColumn('ijin', 'jumlah')
+                ? DB::table('ijin')
+                    ->where('guru',auth()->user()->name)
+                    ->whereBetween('created_at',['2020-01-02', now()])
+                    ->sum('jumlah')
+                : 0;
       
       $ijinpesiar= Ijinsiswa::
                 where('ketijin','Ijin Pesiar')->whereDate('created_at',now())
@@ -489,16 +492,53 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
              ->count();
 
             $data_ijin= \App\Models\Ijinsiswa::whereDate('created_at',now())->orderBy('created_at','desc')->get();
-            $absenguru= DB::table('ijin')->select('guru',DB::raw('SUM(jumlah) as total_absen'))
-                        ->groupBy('guru')
-                        ->whereDate('created_at',now())
-                        ->get();   
+            $absenguru = \Illuminate\Support\Facades\Schema::hasColumn('ijin', 'jumlah')
+                ? DB::table('ijin')->select('guru',DB::raw('SUM(jumlah) as total_absen'))
+                    ->groupBy('guru')
+                    ->whereDate('created_at',now())
+                    ->get()
+                : collect();
 
         return view('dashboards.index')->with('ijinpesiar', $ijinpesiar)->with('ijinbermalamwajib', $ijinbermalamwajib)
         ->with('ijinjalan', $ijinjalan)->with('ijinbermalamresmi', $ijinbermalamresmi)->with('ijinkhusus', $ijinkhusus)
         // ->with('totalok', $totalok)
         ->with('sakit',$sakit)->with('ijin',$ijin)->with('alpha',$alpha)->with('absenguru',$absenguru);
+        }
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error('Dashboard Error: ' . $e->getMessage() . ' on line ' . $e->getLine());
 
+        view()->share([
+            'classesNotFilled' => [],
+            'waliClassNotFilled' => false,
+            'todayJurnalFilled' => true,
+            'guruScheduleNotFilled' => [],
+            'attendanceData' => [],
+            'unreadNotifications' => auth()->user()->unreadNotifications ?? collect(),
+            'managedClass' => auth()->user()->getManagedClass(),
+            'todayVerification' => null,
+            'currentDetailStr' => null,
+            'verifikasiRekap' => [],
+            'totalClasses' => 0,
+            'totalVerified' => 0,
+            'totalUnverified' => 0,
+        ]);
+
+        return view('dashboards.index', [
+            'totalkosong' => 0,
+            'totalok' => 0,
+            'sakit' => 0,
+            'ijin' => 0,
+            'alpha' => 0,
+            'absenguru' => collect(),
+            'ijinpesiar' => 0,
+            'ijinbermalamwajib' => 0,
+            'ijinjalan' => 0,
+            'ijinbermalamresmi' => 0,
+            'ijinkhusus' => 0,
+            'status' => 'MASUK',
+            'tagihan_komite' => 'Rp. 0',
+            'tagihan_lain' => 'Rp. 0',
+        ]);
     }
 }
 
