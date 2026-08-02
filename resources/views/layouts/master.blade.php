@@ -1778,37 +1778,36 @@ function fetchAndSendToken() {
 }
 
 function enableNotificationManual() {
-  if (!('Notification' in window)) {
+  fetchAndSendToken();
+
+  if (typeof Notification !== 'undefined' && Notification.requestPermission) {
+    Notification.requestPermission().then(function(permission) {
+      if (permission === 'granted') {
+        $('#iosNotifBanner').slideUp();
+        fetchAndSendToken();
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Notifikasi Berhasil Diaktifkan! 🎉',
+            text: 'HP Anda siap menerima Push Notification dari SIPATLIKUR.',
+            timer: 3000,
+            showConfirmButton: false
+          });
+        }
+      }
+    });
+  } else {
+    $('#iosNotifBanner').slideUp();
     if (typeof Swal !== 'undefined') {
-      Swal.fire('Informasi', 'Browser ini belum mendukung Notifikasi Web Push.', 'info');
+      Swal.fire({
+        icon: 'success',
+        title: 'Notifikasi FCM Diaktifkan! 🎉',
+        text: 'Perangkat Anda didaftarkan ke sistem Notifikasi SIPATLIKUR.',
+        timer: 3000,
+        showConfirmButton: false
+      });
     }
-    return;
   }
-  
-  Notification.requestPermission().then(function(permission) {
-    if (permission === 'granted') {
-      $('#iosNotifBanner').slideUp();
-      fetchAndSendToken();
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: 'success',
-          title: 'Notifikasi Berhasil Diaktifkan! 🎉',
-          text: 'HP Anda siap menerima Push Notification dari SIPATLIKUR.',
-          timer: 3000,
-          showConfirmButton: false
-        });
-      }
-    } else if (permission === 'denied') {
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Notifikasi Diblokir di iPhone',
-          html: 'Izin notifikasi diblokir di setelan iPhone Anda.<br><br><b>Cara Mengaktifkan:</b><br>1. Buka <b>Pengaturan (Settings)</b> iPhone<br>2. Pilih <b>Pemberitahuan (Notifications)</b><br>3. Pilih <b>Safari / SIPATLIKUR</b><br>4. Aktifkan <b>Izinkan Pemberitahuan</b>',
-          confirmButtonColor: '#009638'
-        });
-      }
-    }
-  });
 }
 
 function initFCMToken() {
@@ -1819,9 +1818,11 @@ function initFCMToken() {
       $('#iosNotifBanner').hide();
     } else if (Notification.permission === 'default') {
       $('#iosNotifBanner').slideDown();
+    } else {
+      $('#iosNotifBanner').hide();
     }
   } else {
-    $('#iosNotifBanner').slideDown();
+    $('#iosNotifBanner').hide();
   }
 }
 
