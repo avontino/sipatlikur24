@@ -185,7 +185,7 @@
             <!-- small box -->
             <div class="small-box bg-primary">
               <div class="inner">
-                <h3>{{$absenguru}} <sup style="font-size: 20px">Hari</sup></h3>
+                <h3>{{ is_numeric($absenguru) ? $absenguru : 0 }} <sup style="font-size: 20px">Hari</sup></h3>
 
                 <p>{{auth()->user()->name}} Tidak Masuk</p>
               </div>
@@ -332,8 +332,6 @@
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           @endif
-        @endif
-
         @endif
 
       </div>
