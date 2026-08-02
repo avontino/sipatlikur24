@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         columns: [
             @foreach($cols as $col)
-            { data: '{{ $col }}', name: '{{ $col }}', orderable: false, searchable: true },
+            { data: '{{ $col }}', name: '{{ $col }}', orderable: {{ in_array($col, ['nama', 'kelas', 'ketijin', 'created_at', 'filex']) ? 'true' : 'false' }}, searchable: true },
             @endforeach
         ],
         order: [],

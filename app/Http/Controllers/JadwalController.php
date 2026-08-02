@@ -53,17 +53,45 @@ class JadwalController extends Controller
                 });
             }
 
-            // Order by Day of Week (Senin..Sabtu/Minggu) then JamKe
-            $query->orderByRaw("CASE LOWER(hari) 
-                WHEN 'senin' THEN 1 
-                WHEN 'selasa' THEN 2 
-                WHEN 'rabu' THEN 3 
-                WHEN 'kamis' THEN 4 
-                WHEN 'jumat' THEN 5 
-                WHEN 'sabtu' THEN 6 
-                WHEN 'minggu' THEN 7 
-                ELSE 8 END ASC")
-            ->orderByRaw("CAST(jamke AS UNSIGNED) ASC");
+            // Order by column header click, or default to Day of Week (Monday..Sunday / Senin..Minggu) then JamKe
+            if ($request->has('order') && count($request->input('order')) > 0) {
+                $order = $request->input('order');
+                $columnIndex = intval($order[0]['column']);
+                $columnDir = strtolower($order[0]['dir']) === 'desc' ? 'desc' : 'asc';
+                $columnName = $request->input("columns.{$columnIndex}.name");
+
+                $columnsMap = [
+                    'kelas'     => 'kelas',
+                    'jamke'     => 'CAST(jamke AS UNSIGNED)',
+                    'jumlahjam' => 'CAST(jumlahjam AS UNSIGNED)',
+                    'mapel'     => 'mapel',
+                    'guru'      => 'guru',
+                    'hari'      => "CASE LOWER(hari) 
+                        WHEN 'monday' THEN 1 WHEN 'senin' THEN 1 
+                        WHEN 'tuesday' THEN 2 WHEN 'selasa' THEN 2 
+                        WHEN 'wednesday' THEN 3 WHEN 'rabu' THEN 3 
+                        WHEN 'thursday' THEN 4 WHEN 'kamis' THEN 4 
+                        WHEN 'friday' THEN 5 WHEN 'jumat' THEN 5 
+                        WHEN 'saturday' THEN 6 WHEN 'sabtu' THEN 6 
+                        WHEN 'sunday' THEN 7 WHEN 'minggu' THEN 7 
+                        ELSE 8 END",
+                ];
+
+                if ($columnName && isset($columnsMap[$columnName])) {
+                    $query->orderByRaw("{$columnsMap[$columnName]} {$columnDir}");
+                }
+            } else {
+                $query->orderByRaw("CASE LOWER(hari) 
+                    WHEN 'monday' THEN 1 WHEN 'senin' THEN 1 
+                    WHEN 'tuesday' THEN 2 WHEN 'selasa' THEN 2 
+                    WHEN 'wednesday' THEN 3 WHEN 'rabu' THEN 3 
+                    WHEN 'thursday' THEN 4 WHEN 'kamis' THEN 4 
+                    WHEN 'friday' THEN 5 WHEN 'jumat' THEN 5 
+                    WHEN 'saturday' THEN 6 WHEN 'sabtu' THEN 6 
+                    WHEN 'sunday' THEN 7 WHEN 'minggu' THEN 7 
+                    ELSE 8 END ASC")
+                ->orderByRaw("CAST(jamke AS UNSIGNED) ASC");
+            }
 
             $filteredRecords = $query->count();
             $start = intval($request->input('start', 0));
@@ -76,6 +104,23 @@ class JadwalController extends Controller
             }
 
             $isAdminOrKurikulum = (auth()->user()->role=='admin' || auth()->user()->role=='kurikulum');
+
+            $hariMap = [
+                'monday'    => 'Senin',
+                'tuesday'   => 'Selasa',
+                'wednesday' => 'Rabu',
+                'thursday'  => 'Kamis',
+                'friday'    => 'Jumat',
+                'saturday'  => 'Sabtu',
+                'sunday'    => 'Minggu',
+                'senin'     => 'Senin',
+                'selasa'    => 'Selasa',
+                'rabu'      => 'Rabu',
+                'kamis'     => 'Kamis',
+                'jumat'     => 'Jumat',
+                'sabtu'     => 'Sabtu',
+                'minggu'    => 'Minggu',
+            ];
 
             $resultData = [];
             foreach ($data as $jadwal) {
@@ -90,7 +135,8 @@ class JadwalController extends Controller
                 $row['jumlahjam'] = e($jadwal->jumlahjam);
                 $row['mapel'] = e($jadwal->mapel);
                 $row['guru'] = e($jadwal->guru);
-                $row['hari'] = e($jadwal->hari);
+                $hLower = strtolower(trim($jadwal->hari ?? ''));
+                $row['hari'] = e(isset($hariMap[$hLower]) ? $hariMap[$hLower] : $jadwal->hari);
 
                 if ($isAdminOrKurikulum) {
                     $row['aksi'] = '<button type="button" class="btn btn-warning btn-sm edit-btn text-dark me-1" 

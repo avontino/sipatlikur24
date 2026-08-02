@@ -48,7 +48,30 @@ class IjinsiswaController extends Controller
             $start  = intval($request->input('start', 0));
             $length = intval($request->input('length', 10));
 
-            $rows = $query->orderBy('created_at', 'desc')->skip($start)->take($length)->get();
+            if ($request->has('order') && count($request->input('order')) > 0) {
+                $order = $request->input('order');
+                $columnIndex = intval($order[0]['column']);
+                $columnDir = strtolower($order[0]['dir']) === 'asc' ? 'asc' : 'desc';
+                $columnName = $request->input("columns.{$columnIndex}.name");
+
+                $columnsMap = [
+                    'nama'        => 'nama',
+                    'kelas'       => 'kelas',
+                    'ketijin'     => 'ketijin',
+                    'created_at'  => 'created_at',
+                    'filex'       => 'filex',
+                ];
+
+                if ($columnName && isset($columnsMap[$columnName])) {
+                    $query->orderBy($columnsMap[$columnName], $columnDir);
+                } else {
+                    $query->orderBy('created_at', 'desc');
+                }
+            } else {
+                $query->orderBy('created_at', 'desc');
+            }
+
+            $rows = $query->skip($start)->take($length)->get();
 
             $isAdmin    = $user->hasRole('admin')    || $user->role == 'admin';
             // All teachers (guru) act as Guru Piket per school rule
