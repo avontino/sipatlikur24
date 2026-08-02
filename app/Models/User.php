@@ -252,6 +252,12 @@ class User extends Authenticatable
             if ($this->walikelas_kelas) {
                 return $this->walikelas_kelas;
             }
+            $siswaClass = \App\Models\Siswa::where('username', $this->username)
+                ->orWhere('nama', $this->name)
+                ->value('kelas');
+            if ($siswaClass) {
+                return $siswaClass;
+            }
             return $this->name;
         }
         if ($this->hasRole('guru') && $this->walikelas_kelas) {

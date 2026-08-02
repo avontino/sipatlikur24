@@ -25,14 +25,14 @@ class AbsenController extends Controller
             
         $view = $request->query('view');
         $isWali = auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas;
-        $isKetuaKelas = auth()->user()->role === 'ketuakelas';
+        $isKetuaKelas = auth()->user()->hasRole('ketuakelas');
         $isOnlyWaliOrKetua = ($isWali || $isKetuaKelas) && !(auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('lihat'));
 
         $isWaliView = ($view === 'walikelas' || $isOnlyWaliOrKetua);
 
         // Jika dalam mode Wali Kelas / Ketua Kelas, paksa filter hanya kelas perwaliannya saja
         if ($isWaliView) {
-            $kelas = $isKetuaKelas ? auth()->user()->name : (auth()->user()->walikelas_kelas ?: auth()->user()->name);
+            $kelas = auth()->user()->getManagedClass() ?: auth()->user()->name;
             
             $sis_wa = Siswa::where('tahun_ajaran', $tahun_ajaran)->where('kelas', $kelas)->orderBy('nama','asc')->get();
             $ke_las = Kelas::where('kelas', $kelas)->get();
