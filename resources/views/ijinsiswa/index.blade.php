@@ -137,7 +137,14 @@ document.addEventListener('DOMContentLoaded', function() {
             zeroRecords: "Data ijin tidak ditemukan"
         },
         columnDefs: [
-            { targets: '_all', defaultContent: '-', render: function(data, type, row) { return data || '-'; } }
+            { 
+                targets: '_all', 
+                defaultContent: '-', 
+                render: function(data, type, row) { 
+                    if (type === 'display') return data || '-';
+                    return data || '-'; 
+                } 
+            }
         ]
     });
 

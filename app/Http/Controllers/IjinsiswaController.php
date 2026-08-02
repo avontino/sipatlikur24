@@ -87,11 +87,11 @@ class IjinsiswaController extends Controller
                     $row['kepala_aksi'] = $aksiKepala;
                 }
 
-                // Pembina status
-                $row['ok_pembina'] = $ij->ok_pembina == 'belum'
-                    ? '<td style="background-color:#ff0000" align="center"><span class="fas fa-minus-square"></span></td>'
-                    : '<td style="background-color:#32CD32" align="center"><span class="fas fa-check-square"></span></td>';
-                $row['ok_pembina_status'] = $ij->ok_pembina;
+                // Pembina/Guru Piket status — colored cell with icon
+                $piketIsOk = ($ij->ok_pembina == 'ok' || $ij->oksis == 'ok');
+                $row['ok_pembina_status'] = $piketIsOk
+                    ? '<div style="background-color:#32CD32;color:#fff;text-align:center;padding:4px;border-radius:4px;"><span class="fas fa-check-square"></span></div>'
+                    : '<div style="background-color:#ff0000;color:#fff;text-align:center;padding:4px;border-radius:4px;"><span class="fas fa-minus-square"></span></div>';
                 // Show verifikator piket name if already approved
                 $row['verifikator_piket_name'] = $ij->verifikator_piket ?? '-';
 
@@ -120,8 +120,11 @@ class IjinsiswaController extends Controller
                     $row['kurikulum_aksi'] = $aksi;
                 }
 
-                // Wali Kelas status
-                $row['ok_walikelas_status'] = $ij->ok_walikelas;
+                // Wali Kelas status — colored cell with icon
+                $waliIsOk = ($ij->ok_walikelas == 'ok' || $ij->okbin == 'ok');
+                $row['ok_walikelas_status'] = $waliIsOk
+                    ? '<div style="background-color:#32CD32;color:#fff;text-align:center;padding:4px;border-radius:4px;"><span class="fas fa-check-square"></span></div>'
+                    : '<div style="background-color:#ff0000;color:#fff;text-align:center;padding:4px;border-radius:4px;"><span class="fas fa-minus-square"></span></div>';
                 // Show verifikator walikelas name if already approved
                 $row['verifikator_walikelas_name'] = $ij->verifikator_walikelas ?? '-';
                 if ($showWali) {
@@ -169,13 +172,15 @@ class IjinsiswaController extends Controller
                 // Status surat: derive from actual approval flags (OR logic for day school)
                 if ($ij->filex == 'Surat Salah') {
                     $displayStatus = 'Surat Salah';
+                    $row['filex'] = '<span class="badge bg-danger">Surat Salah</span>';
                 } elseif ($ij->ok_pembina == 'ok' || $ij->ok_walikelas == 'ok'
                        || $ij->oksis == 'ok' || $ij->okbin == 'ok') {
                     $displayStatus = 'Surat Disetujui';
+                    $row['filex'] = '<span class="badge bg-success">Surat Disetujui</span>';
                 } else {
                     $displayStatus = 'Menunggu Verifikasi';
+                    $row['filex'] = '<span class="badge bg-secondary">Menunggu Verifikasi</span>';
                 }
-                $row['filex'] = e($displayStatus);
 
                 // Aksi
                 $aksiHtml = '';
