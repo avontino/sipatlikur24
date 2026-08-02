@@ -576,6 +576,48 @@ $existingJurnalh->save();
         }
     }
 
+    public function delete($id)
+    {
+        $absen = \App\Models\Absen::find($id);
+        if (!$absen) {
+            return redirect('/jurnalbaru')->with('gagal', 'Data absen tidak ditemukan.');
+        }
+
+        $user = auth()->user();
+        $managedClass = $user->getManagedClass();
+        if ($managedClass && $absen->kelas !== $managedClass) {
+            return redirect('/jurnalbaru')->with('gagal', 'Anda hanya dapat menghapus absensi untuk kelas perwalian Anda sendiri.');
+        }
+
+        $tahun_ajaran = session('tahun_ajaran');
+        if (empty($tahun_ajaran)) {
+            $activeTa = DB::table('tahun_ajaran')->where('status', 1)->first();
+            $tahun_ajaran = $activeTa ? $activeTa->tahun_ajaran : null;
+        }
+
+        $jumlahawal = DB::table('siswa')
+            ->where('nama', 'LIKE', '%'.$absen->nama.'%')
+            ->when($tahun_ajaran, function($q) use ($tahun_ajaran) {
+                return $q->where('tahun_ajaran', $tahun_ajaran);
+            })
+            ->first();
+
+        if ($jumlahawal) {
+            if ($absen->ket == 'Sakit') {
+                DB::table('siswa')->where('id', $jumlahawal->id)->update(['sakit' => max(0, $jumlahawal->sakit - 1)]);
+            } elseif ($absen->ket == 'Ijin') {
+                DB::table('siswa')->where('id', $jumlahawal->id)->update(['ijin' => max(0, $jumlahawal->ijin - 1)]);
+            } elseif ($absen->ket == 'Alpha') {
+                DB::table('siswa')->where('id', $jumlahawal->id)->update(['alpha' => max(0, $jumlahawal->alpha - 1)]);
+            } elseif ($absen->ket == 'Dispen') {
+                DB::table('siswa')->where('id', $jumlahawal->id)->update(['dispen' => max(0, $jumlahawal->dispen - 1)]);
+            }
+        }
+
+        $absen->delete();
+        return redirect('/jurnalbaru')->with('sukses', 'Absen siswa berhasil dihapus.');
+    }
+
     // Fungsi untuk memformat materi, jika ada link maka tampilkan dengan badge hijau
     private function formatMateri($materi)
     {
