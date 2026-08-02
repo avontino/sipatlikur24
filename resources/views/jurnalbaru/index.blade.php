@@ -185,6 +185,9 @@
 
 <!-- Verifikasi Absensi Pagi Widget (Wali Kelas & Ketua Kelas) -->
 @if(isset($managedClass) && $managedClass)
+  @php
+    $isNihil = ($ab_sen->count() == 0);
+  @endphp
   <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; background: #ffffff;">
     <div class="card-header py-3" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border-radius: 12px 12px 0 0;">
       <h5 class="card-title m-0 text-white fw-bold fs-6 d-flex align-items-center">
@@ -202,7 +205,7 @@
             <p class="mb-0 small text-secondary" style="font-size: 11px;">Diverifikasi oleh: <strong>{{ optional(\App\Models\User::find($todayVerification->verified_by))->name ?? 'Sistem' }}</strong> pada {{ \Carbon\Carbon::parse($todayVerification->updated_at)->format('H:i') }} WIB</p>
           </div>
           <div class="ms-3 text-end">
-            <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0">
+            <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0" onsubmit="return confirmVerifikasiNihil(event, {{ $isNihil ? 'true' : 'false' }});">
               @csrf
               <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-3 py-2 shadow-sm" style="border-radius: 8px;">
                 <i class="fas fa-sync me-1"></i> Perbarui Verifikasi
@@ -219,7 +222,7 @@
             <p class="mb-0 small text-muted" style="font-size: 12px;">Rincian Data Saat Ini: {{ $currentDetailStr }}</p>
           </div>
           <div class="ms-3 text-end">
-            <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0">
+            <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0" onsubmit="return confirmVerifikasiNihil(event, {{ $isNihil ? 'true' : 'false' }});">
               @csrf
               <button type="submit" class="btn btn-warning btn-md fw-bold text-dark px-4 py-2 shadow-sm" style="border-radius: 8px; font-size: 14px;">
                 <i class="fas fa-check-circle me-1"></i> Verifikasi Absensi Pagi
@@ -233,6 +236,38 @@
       @endif
     </div>
   </div>
+
+  <script>
+    function confirmVerifikasiNihil(e, isNihil) {
+      if (isNihil) {
+        e.preventDefault();
+        var form = e.target;
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Konfirmasi Absensi NIHIL',
+            html: 'Apakah Anda <strong>YAKIN</strong> bahwa hari ini statusnya <strong>NIHIL</strong>?<br><span class="text-muted small">(Semua siswa Kelas {{ $managedClass }} hadir tanpa ada yang Sakit, Izin, Alpha, atau Terlambat)</span>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-check-circle me-1"></i> Ya, Yakin NIHIL',
+            cancelButtonText: '<i class="fas fa-times me-1"></i> Batal (Input Absen Dulu)',
+            reverseButtons: true
+          }).then(function(result) {
+            if (result.isConfirmed) {
+              form.submit();
+            }
+          });
+        } else {
+          if (confirm('Apakah Anda YAKIN bahwa hari ini statusnya NIHIL (semua siswa hadir)?')) {
+            form.submit();
+          }
+        }
+        return false;
+      }
+      return true;
+    }
+  </script>
 @endif
 
 <!--Tabel Absen SIswa-->

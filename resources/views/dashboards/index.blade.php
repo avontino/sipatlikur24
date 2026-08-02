@@ -40,10 +40,7 @@
                 </div>
                 
                 <div class="mt-2 text-end">
-                  <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-success btn-sm text-xs py-1 px-2"><i class="fas fa-sync me-1"></i> Perbarui Verifikasi</button>
-                  </form>
+                  <a href="/jurnalbaru" class="btn btn-outline-success btn-sm text-xs py-1 px-2"><i class="fas fa-sync me-1"></i> Perbarui Verifikasi</a>
                 </div>
               @else
                 <div class="alert alert-warning d-flex align-items-center mb-2 p-3" role="alert" style="background-color: #fff3cd; border-color: #ffecb5; color: #664d03; border-left: 5px solid #ffc107;">
@@ -57,10 +54,7 @@
                 <p class="text-muted small mb-2" style="font-size: 11px; font-style: italic;">*Jika terdapat siswa yang Sakit, Izin, Terlambat (Dispen), atau Alpha hari ini, harap input absensi mereka terlebih dahulu di menu <strong>Absensi Siswa</strong> sebelum mengeklik verifikasi.</p>
                 
                 <div class="text-end">
-                  <form action="{{ route('dashboard.verifikasi') }}" method="POST" class="d-inline m-0">
-                    @csrf
-                    <button type="submit" class="btn btn-warning btn-sm font-weight-bold text-dark px-3 py-1 text-xs"><i class="fas fa-check-circle me-1"></i> Verifikasi Absensi Pagi</button>
-                  </form>
+                  <a href="/jurnalbaru" class="btn btn-warning btn-sm font-weight-bold text-dark px-3 py-1 text-xs"><i class="fas fa-check-circle me-1"></i> Verifikasi Absensi Pagi</a>
                 </div>
               @endif
             </div>
