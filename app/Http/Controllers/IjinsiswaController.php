@@ -212,263 +212,87 @@ class IjinsiswaController extends Controller
         return redirect('/ijinsiswa')->with('gagal', 'Data ijin tidak ditemukan');
     }
 
-    // Ambil data siswa terkait
-    $siswa = Siswa::where('nama', $ijinsiswa->nama)->where('tahun_ajaran', session('tahun_ajaran'))->first();
-    if (!$siswa) {
-        return redirect('/ijinsiswa')->with('gagal', 'Data siswa tidak ditemukan');
+public function verifikasi(Request $request, $id)
+{
+    $ijinsiswa = Ijinsiswa::find($id);
+    if (!$ijinsiswa) {
+        return redirect()->back()->with('gagal', 'Data ijin tidak ditemukan');
     }
 
-    $role = $request->query('as_role', auth()->user()->role);
-    if ($role === 'guru' && auth()->user()->walikelas_kelas) {
-        $role = 'walikelas';
+    $user = auth()->user();
+    $asRole = $request->query('as_role');
+
+    // Admin / Kepala Sekolah can approve all levels directly
+    if ($user->role === 'admin' || $user->role === 'kepala' || $user->hasRole('admin') || $user->hasRole('kepala') || $asRole === 'kepala') {
+        Ijinsiswa::where('id', $id)->update([
+            'ok_walikelas' => 'ok',
+            'okbin' => 'ok',
+            'ok_pembina' => 'ok',
+            'oksis' => 'ok',
+            'ok_kurikulum' => 'ok',
+            'okkur' => 'ok',
+            'ok_kesehatan' => 'ok',
+            'okas' => 'ok',
+            'filex' => 'Surat Sesuai',
+        ]);
+        try { $this->dispatchIjinNotification($id); } catch (\Throwable $e) {}
+        return redirect()->back()->with('sukses', 'Verifikasi Izin Berhasil (Disetujui)');
     }
 
-    $success = false;
-    $errorMsg = null;
-
-    switch ($ijinsiswa->ketijin) {
-        case 'Ijin Pesiar':
-            switch ($role) {
-                case 'pembina':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_pembina' => 'ok',
-                        'ok_kurikulum' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                case 'kesehatan':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_walikelas' => 'ok',
-                        'ok_kesehatan' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                default:
-                    $errorMsg = 'Peran tidak sesuai untuk jenis ijin ini';
-            }
-            break;
-            
-        case 'Ijin Bermalam':
-            switch ($role) {
-                case 'walikelas':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_walikelas' => 'ok',
-                        'ok_kesehatan' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                case 'kurikulum':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_kurikulum' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                case 'pembina':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_pembina' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                default:
-                    $errorMsg = 'Peran tidak sesuai untuk jenis ijin ini';
-            }
-            break;
-            
-        case 'Ijin Bermalam Resmi':
-            switch ($role) {
-                case 'walikelas':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_walikelas' => 'ok',
-                        'ok_kesehatan' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                case 'kurikulum':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_kurikulum' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                case 'pembina':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_pembina' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                default:
-                    $errorMsg = 'Peran tidak sesuai untuk jenis ijin ini';
-            }
-            break;
-            
-        case 'Ijin Jalan':
-            switch ($role) {
-                case 'walikelas':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_walikelas' => 'ok',
-                        'ok_kesehatan' => 'ok',
-                        'ok_kurikulum' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                case 'kurikulum':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_kurikulum' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                case 'pembina':
-                    Ijinsiswa::where('id', $id)->update([
-                        'ok_pembina' => 'ok',
-                    ]);
-                    $success = true;
-                    break;
-                default:
-                    $errorMsg = 'Peran tidak sesuai untuk jenis ijin ini';
-            }
-            break;
-            
-        case 'Ijin Khusus':
-            if ($role === 'kepala' || auth()->user()->role === 'kepala') {
-                Ijinsiswa::where('id', $id)->update([
-                    'ok_pembina' => 'ok',
-                    'ok_kurikulum' => 'ok',
-                    'ok_walikelas' => 'ok',
-                    'ok_kesehatan' => 'ok',
-                ]);
-                $success = true;
-            } else {
-                switch ($role) {
-                    case 'walikelas':
-                        Ijinsiswa::where('id', $id)->update([
-                            'ok_walikelas' => 'ok',
-                        ]);
-                        $success = true;
-                        break;
-                    case 'kurikulum':
-                        Ijinsiswa::where('id', $id)->update([
-                            'ok_kurikulum' => 'ok',
-                        ]);
-                        $success = true;
-                        break;
-                    case 'pembina':
-                        Ijinsiswa::where('id', $id)->update([
-                            'ok_pembina' => 'ok',
-                        ]);
-                        $success = true;
-                        break;
-                    case 'kesehatan':
-                        Ijinsiswa::where('id', $id)->update([
-                            'ok_kesehatan' => 'ok',
-                        ]);
-                        $success = true;
-                        break;
-                    default:
-                        $errorMsg = 'Peran tidak sesuai untuk jenis ijin ini';
-                }
-            }
-            break;
-    
-        default:
-            if ($role === 'kepala' || $role === 'admin' || auth()->user()->role === 'kepala' || auth()->user()->role === 'admin') {
-                Ijinsiswa::where('id', $id)->update([
-                    'ok_pembina' => 'ok',
-                    'ok_kurikulum' => 'ok',
-                    'ok_walikelas' => 'ok',
-                    'ok_kesehatan' => 'ok',
-                ]);
-                $success = true;
-            } else {
-                switch ($role) {
-                    case 'walikelas':
-                        Ijinsiswa::where('id', $id)->update(['ok_walikelas' => 'ok']);
-                        $success = true;
-                        break;
-                    case 'kurikulum':
-                        Ijinsiswa::where('id', $id)->update(['ok_kurikulum' => 'ok']);
-                        $success = true;
-                        break;
-                    case 'pembina':
-                    case 'piket':
-                    case 'guru_piket':
-                        Ijinsiswa::where('id', $id)->update(['ok_pembina' => 'ok']);
-                        $success = true;
-                        break;
-                    case 'kesehatan':
-                    case 'kesiswaan':
-                        Ijinsiswa::where('id', $id)->update(['ok_kesehatan' => 'ok']);
-                        $success = true;
-                        break;
-                    default:
-                        $errorMsg = 'Peran tidak sesuai untuk jenis ijin ini';
-                }
-            }
-            break;
+    // All teachers act as Guru Piket by default, or Wali Kelas if they are Wali Kelas for that student's class
+    if ($asRole === 'walikelas' || ($user->walikelas_kelas && $user->walikelas_kelas == $ijinsiswa->kelas && $asRole !== 'piket')) {
+        Ijinsiswa::where('id', $id)->update([
+            'ok_walikelas' => 'ok',
+            'okbin' => 'ok',
+        ]);
+    } else {
+        // All teachers (role 'guru'), piket, pembina approve as Guru Piket
+        Ijinsiswa::where('id', $id)->update([
+            'ok_pembina' => 'ok',
+            'oksis' => 'ok',
+        ]);
     }
 
-    if ($success) {
+    // If both Wali Kelas and Guru Piket have approved, automatically mark Surat Sesuai
+    $ijinUpdated = Ijinsiswa::find($id);
+    $walikelasOk = (($ijinUpdated->ok_walikelas ?? $ijinUpdated->okbin) === 'ok');
+    $piketOk     = (($ijinUpdated->ok_pembina ?? $ijinUpdated->oksis) === 'ok');
+
+    if ($walikelasOk && $piketOk) {
+        Ijinsiswa::where('id', $id)->update(['filex' => 'Surat Sesuai']);
+    }
+
+    try {
         $this->dispatchIjinNotification($id);
-        return redirect('/ijinsiswa')->with('sukses', 'Verifikasi Berhasil');
+    } catch (\Throwable $e) {
+        \Log::error("Failed to dispatch notification: " . $e->getMessage());
     }
 
-    return redirect('/ijinsiswa')->with('gagal', $errorMsg ?: 'Verifikasi Gagal');
+    return redirect()->back()->with('sukses', 'Verifikasi Izin Berhasil Disimpan');
 }
 
 public function suratsalah(Request $request, $id)
 {   
-    // Ambil data ijin siswa berdasarkan ID
     $ijinsiswa = Ijinsiswa::find($id);
     if (!$ijinsiswa) {
-        return redirect('/ijinsiswa')->with('gagal', 'Data ijin tidak ditemukan');
+        return redirect()->back()->with('gagal', 'Data ijin tidak ditemukan');
     }
 
-    // Ambil data siswa terkait
-    $siswa = Siswa::where('nama', $ijinsiswa->nama)->where('tahun_ajaran', session('tahun_ajaran'))->first();
-    if (!$siswa) {
-        return redirect('/ijinsiswa')->with('gagal', 'Data siswa tidak ditemukan');
-    }
+    Ijinsiswa::where('id', $id)->update(['filex' => 'Surat Salah']);
 
-    // Tentukan field status berdasarkan peran pengguna
-    $statusField = '';
-    $role = $request->query('as_role', auth()->user()->role);
-    if ($role === 'guru' && auth()->user()->walikelas_kelas) {
-        $role = 'walikelas';
-    }
-
-    switch ($role) {
-         case 'kepala':
-            $statusField = 'filex';
-            break;  
-      case 'pembina':
-            $statusField = 'filex';
-            break;
-        case 'kurikulum':
-            $statusField = 'filex';
-            break;
-        case 'walikelas':
-            $statusField = 'filex';
-            break;
-        case 'kesehatan':
-            $statusField = 'filex';
-            break;
-        default:
-            return redirect('/ijinsiswa')->with('gagal', 'Peran tidak dikenal');
-    }
-
-    // Update status verifikasi sesuai dengan peran pengguna
-    Ijinsiswa::where('id', $id)->update([$statusField => 'Surat Salah']);
-    
-    // Kirim notifikasi surat salah ke siswa
     $student = \App\Models\User::where('role', 'siswa')->where('name', $ijinsiswa->nama)->first();
     if ($student) {
-        $student->sendNotification(
-            "Izin Ditolak (Surat Salah)",
-            "Pengajuan {$ijinsiswa->ketijin} Anda ditolak (Surat Salah) oleh " . strtoupper($role) . ". Harap perbaiki pengajuan Anda.",
-            '/ijinsiswa/tambah',
-            'ijin'
-        );
+        try {
+            $student->sendNotification(
+                "Izin Ditolak (Surat Salah)",
+                "Pengajuan {$ijinsiswa->ketijin} Anda ditolak (Surat Salah). Harap perbaiki / unggah ulang bukti surat.",
+                '/ijinsiswa/tambah',
+                'ijin'
+            );
+        } catch (\Throwable $e) {}
     }
     
-    return redirect('/ijinsiswa')->with('sukses', 'Verifikasi Berhasil');
+    return redirect()->back()->with('sukses', 'Pengajuan Izin Ditandai Surat Salah');
 }
 
     
