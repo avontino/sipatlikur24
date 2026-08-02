@@ -58,9 +58,10 @@
                 <span id="sisaText"></span>
               </div>
 
-              <div class="form-group" id="fileUploadGroup" style="display: none;">
-                <label for="file">Upload File (Gambar JPG/JPEG/PNG)</label>
-                <input type="file" name="file" id="fileUploadInput" class="form-control" accept=".jpg, .jpeg, .png">
+              <div class="form-group mt-3" id="fileUploadGroup" style="display: none;">
+                <label for="file" class="form-label font-weight-bold">Upload Foto / Surat Bukti Izin <span class="text-danger">* (Wajib Foto)</span></label>
+                <input type="file" name="file" id="fileUploadInput" class="form-control" accept=".jpg, .jpeg, .png, .gif, .webp" required>
+                <small class="text-muted">Harap lampirkan foto surat dokter / foto bukti surat izin (JPG, PNG).</small>
               </div>
 
               <button type="submit" class="btn btn-primary">Tambah</button>

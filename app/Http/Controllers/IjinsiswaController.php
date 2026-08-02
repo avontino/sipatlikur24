@@ -489,6 +489,10 @@ public function suratsalah(Request $request, $id)
             'nama' => 'required',
             'kelas' => 'required',
             'ijin' => 'required',
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+        ], [
+            'file.required' => 'Wajib melampirkan foto / bukti surat izin!',
+            'file.image' => 'File yang diunggah harus berupa foto / gambar (JPG, PNG)!',
         ]);
 
         $ijinsiswa = new IjinSiswa();
@@ -510,8 +514,6 @@ public function suratsalah(Request $request, $id)
             $imageName = 'file_' . time() . '.' . $file->getClientOriginalExtension();
             \File::put(public_path('/storage/uploads/' . $imageName), base64_decode($base64File));
             $ijinsiswa->file_path = '/storage/uploads/' . $imageName;
-        } else {
-            $ijinsiswa->file_path = '';
         }
 
         $ijinsiswa->save();
