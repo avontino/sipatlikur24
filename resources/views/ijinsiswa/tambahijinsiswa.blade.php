@@ -120,13 +120,21 @@
 
                     <td>{{$ijinsiswa->created_at ? $ijinsiswa->created_at->format('d M Y - H:i:s') : '-'}}</td>
                     <td>
-                      @if($ijinsiswa->filex == 'Surat Salah')	
+                      @php
+                        $displayStatus = 'Menunggu Verifikasi';
+                        if ($ijinsiswa->filex == 'Surat Salah') {
+                            $displayStatus = 'Surat Salah';
+                        } elseif (($ijinsiswa->ok_pembina ?? 'belum') == 'ok' && ($ijinsiswa->ok_walikelas ?? 'belum') == 'ok') {
+                            $displayStatus = 'Surat Sesuai';
+                        }
+                      @endphp
+                      @if($displayStatus == 'Surat Salah')
                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#uploadUlangModal{{ $ijinsiswa->id }}">
                           Upload Ulang
                         </button>
                       @else
-                        <span class="badge {{ $ijinsiswa->filex == 'Surat Sesuai' ? 'bg-success' : 'bg-secondary' }}">
-                          {{ $ijinsiswa->filex ?: 'Menunggu Verifikasi' }}
+                        <span class="badge {{ $displayStatus == 'Surat Sesuai' ? 'bg-success' : 'bg-secondary' }}">
+                          {{ $displayStatus }}
                         </span>
                       @endif
                     </td>

@@ -51,14 +51,16 @@ class IjinsiswaController extends Controller
             $rows = $query->orderBy('created_at', 'desc')->skip($start)->take($length)->get();
 
             $isAdmin    = $user->hasRole('admin')    || $user->role == 'admin';
-            $isPembina  = $user->hasRole('pembina')  || $user->role == 'pembina';
+            // All teachers (guru) act as Guru Piket per school rule
+            $isPembina  = $user->hasRole('pembina')  || $user->role == 'pembina' || $user->role == 'guru';
             $isKurikulum= $user->hasRole('kurikulum')|| $user->role == 'kurikulum';
             $isWali     = $user->hasRole('walikelas')|| $user->walikelas_kelas;
             $isKesehatan= $user->hasRole('kesehatan')|| $user->role == 'kesehatan';
             $isKepala   = $user->hasRole('kepala')   || $user->role == 'kepala';
             $isSiswa    = $user->role == 'siswa';
             $isSatpam   = $user->role == 'satpam';
-            $showPembina    = ($isPembina || $isAdmin) && !$isSiswa && (!$request->filled('view') || $view === 'pembina');
+            // For day school: any non-siswa staff can see Guru Piket column
+            $showPembina    = ($isPembina || $isAdmin || $isKepala) && !$isSiswa && !$isSatpam;
             $showKurikulum  = ($isKurikulum || $isAdmin) && !$isSiswa && (!$request->filled('view') || $view === 'kurikulum');
             $showWali       = ($isWali || $isAdmin) && !$isSiswa && (!$request->filled('view') || $view === 'walikelas');
             $showKesehatan  = ($isKesehatan || $isAdmin) && !$isSiswa && (!$request->filled('view') || $view === 'kesehatan');
@@ -93,10 +95,15 @@ class IjinsiswaController extends Controller
 
                 if ($showPembina) {
                     $aksi = '';
-                    if ($ij->filex != 'Surat Salah') {
+                    // Show Ijinkan button if not yet approved by piket and surat not rejected
+                    if ($ij->filex != 'Surat Salah' && $ij->ok_pembina != 'ok') {
                         $aksi .= '<a href="/ijinsiswa/'.$ij->id.'/verifikasi?as_role=pembina" class="btn btn-success btn-sm">Ijinkan</a> ';
+                    } elseif ($ij->ok_pembina == 'ok') {
+                        $aksi .= '<span class="badge bg-success">Sudah Disetujui</span> ';
                     }
-                    $aksi .= '<a href="/ijinsiswa/'.$ij->id.'/suratsalah?as_role=pembina" class="btn btn-danger btn-sm">Surat Salah</a>';
+                    if ($ij->filex != 'Surat Salah') {
+                        $aksi .= '<a href="/ijinsiswa/'.$ij->id.'/suratsalah?as_role=pembina" class="btn btn-danger btn-sm">Tolak</a>';
+                    }
                     $row['pembina_aksi'] = $aksi;
                 }
 
@@ -143,8 +150,8 @@ class IjinsiswaController extends Controller
                     $row['lihat_surat'] = '<span class="text">Tidak Ada</span>';
                 }
 
-                // Berangkat
-                $allOk = ($ij->ok_pembina=='ok' && $ij->ok_kurikulum=='ok' && $ij->ok_walikelas=='ok' && $ij->ok_kesehatan=='ok');
+                // Berangkat — only need Guru Piket (ok_pembina) AND Wali Kelas (ok_walikelas) for day school
+                $allOk = ($ij->ok_pembina == 'ok' && $ij->ok_walikelas == 'ok') || $ij->filex == 'Surat Sesuai';
                 if ($allOk) {
                     if ($isSatpam) {
                         $row['berangkat'] = !$ij->cekout
@@ -180,7 +187,15 @@ class IjinsiswaController extends Controller
                 // Keterangan & overtime & surat
                 $row['keterangan'] = e($ij->keterangan ?? '-');
                 $row['overtime']   = e($ij->overtime ?? '-');
-                $row['filex']      = e($ij->filex ?? '-');
+                // Derive displayed status from actual approval flags (not just filex string)
+                if ($ij->filex == 'Surat Salah') {
+                    $displayStatus = 'Surat Salah';
+                } elseif ($ij->ok_pembina == 'ok' && $ij->ok_walikelas == 'ok') {
+                    $displayStatus = 'Surat Sesuai';
+                } else {
+                    $displayStatus = 'Menunggu Verifikasi';
+                }
+                $row['filex'] = e($displayStatus);
 
                 // Aksi
                 $aksiHtml = '';
