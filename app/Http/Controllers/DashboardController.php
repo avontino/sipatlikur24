@@ -542,103 +542,146 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
     }
 }
 
+    private function ensureVerifikasiTableExists()
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('verifikasi_absensi')) {
+            \Illuminate\Support\Facades\Schema::create('verifikasi_absensi', function ($table) {
+                $table->id();
+                $table->string('kelas');
+                $table->date('tanggal');
+                $table->string('status');
+                $table->integer('sakit')->default(0);
+                $table->integer('izin')->default(0);
+                $table->integer('alpha')->default(0);
+                $table->integer('dispen')->default(0);
+                $table->integer('hadir')->default(0);
+                $table->integer('total')->default(0);
+                $table->unsignedBigInteger('verified_by')->nullable();
+                $table->timestamps();
+
+                $table->unique(['kelas', 'tanggal']);
+            });
+        }
+    }
+
     public function verifikasiAbsensi(Request $request)
     {
-        $user = auth()->user();
-        $managedClass = $user->getManagedClass();
-        if (!$managedClass) {
-            return redirect()->back()->with('gagal', 'Anda tidak memiliki otoritas untuk memverifikasi absensi kelas.');
-        }
+        try {
+            $user = auth()->user();
+            $managedClass = $user->getManagedClass();
+            if (!$managedClass) {
+                return redirect()->back()->with('gagal', 'Anda tidak memiliki otoritas untuk memverifikasi absensi kelas.');
+            }
 
-        $todayStr = now()->toDateString();
-        $tahun_ajaran = session('tahun_ajaran');
-        $semester = session('semester');
+            $this->ensureVerifikasiTableExists();
 
-        // Hitung detail kehadiran dari tabel absen untuk kelas ini hari ini
-        $absenToday = \App\Models\Absen::where('kelas', $managedClass)
-            ->whereDate('created_at', $todayStr)
-            ->get();
+            $todayStr = now()->toDateString();
+            $tahun_ajaran = session('tahun_ajaran');
+            $semester = session('semester');
 
-        $sakit  = $absenToday->where('ket', 'Sakit')->count();
-        $izin   = $absenToday->where('ket', 'Ijin')->count();
-        $alpha  = $absenToday->where('ket', 'Alpha')->count();
-        $dispen = $absenToday->where('ket', 'Dispen')->count();
+            if (empty($tahun_ajaran) || empty($semester)) {
+                $activeTa = DB::table('tahun_ajaran')->where('status', 1)->first();
+                if ($activeTa) {
+                    $tahun_ajaran = $activeTa->tahun_ajaran;
+                    $semester = $activeTa->semester;
+                }
+            }
 
-        // Get total students in this class
-        $totalSiswa = \App\Models\Siswa::where('kelas', $managedClass)
-            ->where('tahun_ajaran', $tahun_ajaran)
-            ->count();
+            // Hitung detail kehadiran dari tabel absen untuk kelas ini hari ini
+            $absenToday = \App\Models\Absen::where('kelas', $managedClass)
+                ->whereDate('created_at', $todayStr)
+                ->get();
 
-        $hadir  = max(0, $totalSiswa - ($sakit + $izin + $alpha + $dispen));
-        $status = ($sakit + $izin + $alpha + $dispen == 0) ? 'NIHIL' : 'ADA_ABSEN';
+            $sakit  = $absenToday->where('ket', 'Sakit')->count();
+            $izin   = $absenToday->where('ket', 'Ijin')->count();
+            $alpha  = $absenToday->where('ket', 'Alpha')->count();
+            $dispen = $absenToday->where('ket', 'Dispen')->count();
 
-        // Cek apakah sudah ada record verifikasi hari ini
-        $existing = DB::table('verifikasi_absensi')
-            ->where('kelas', $managedClass)
-            ->whereDate('tanggal', $todayStr)
-            ->first();
+            // Get total students in this class
+            $totalSiswa = \App\Models\Siswa::where('kelas', $managedClass)
+                ->when($tahun_ajaran, function($q) use ($tahun_ajaran) {
+                    return $q->where('tahun_ajaran', $tahun_ajaran);
+                })
+                ->count();
 
-        $updateData = [
-            'status'      => $status,
-            'sakit'       => $sakit,
-            'izin'        => $izin,
-            'alpha'       => $alpha,
-            'dispen'      => $dispen,
-            'hadir'       => $hadir,
-            'total'       => $totalSiswa,
-            'verified_by' => $user->id,
-            'updated_at'  => now(),
-        ];
+            $hadir  = max(0, $totalSiswa - ($sakit + $izin + $alpha + $dispen));
+            $status = ($sakit + $izin + $alpha + $dispen == 0) ? 'NIHIL' : 'ADA_ABSEN';
 
-        if ($existing) {
-            // Update record yang sudah ada (tanpa mengubah created_at)
-            DB::table('verifikasi_absensi')
+            // Cek apakah sudah ada record verifikasi hari ini
+            $existing = DB::table('verifikasi_absensi')
                 ->where('kelas', $managedClass)
                 ->whereDate('tanggal', $todayStr)
-                ->update($updateData);
-        } else {
-            // Insert baru
-            DB::table('verifikasi_absensi')->insert(array_merge($updateData, [
-                'kelas'      => $managedClass,
-                'tanggal'    => $todayStr,
-                'created_at' => now(),
-            ]));
-        }
+                ->first();
 
-        // Kirim Notifikasi
-        $detail = ($status == 'NIHIL')
-            ? "NIHIL (Hadir Semua - {$totalSiswa} Siswa)"
-            : "{$sakit} Sakit, {$izin} Izin, {$alpha} Alpha, {$dispen} Terlambat, {$hadir} Hadir dari {$totalSiswa} Siswa";
-        $title   = "Absensi Pagi Kelas {$managedClass} Terverifikasi";
-        $message = "Kelas {$managedClass} telah diverifikasi absensi pagi oleh "
-            . ($user->role == 'ketuakelas' ? 'Ketua Kelas' : 'Wali Kelas')
-            . " ({$detail}).";
+            $updateData = [
+                'status'      => $status,
+                'sakit'       => $sakit,
+                'izin'        => $izin,
+                'alpha'       => $alpha,
+                'dispen'      => $dispen,
+                'hadir'       => $hadir,
+                'total'       => $totalSiswa,
+                'verified_by' => $user->id,
+                'updated_at'  => now(),
+            ];
 
-        $kurikulumAndAdmin = \App\Models\User::whereIn('role', ['admin', 'kurikulum', 'kepala'])->get();
-        foreach ($kurikulumAndAdmin as $u) {
-            $u->sendNotification($title, $message, '/dashboard', 'absen');
-        }
-
-        if ($user->role == 'ketuakelas') {
-            $wk = \App\Models\User::where(function($q) use ($managedClass) {
-                $q->where('role', 'walikelas')->where('name', $managedClass);
-            })->orWhere(function($q) use ($managedClass) {
-                $q->where('role', 'guru')->where('walikelas_kelas', $managedClass);
-            })->get();
-            foreach ($wk as $w) {
-                $w->sendNotification($title, "Ketua kelas Anda telah memverifikasi absensi pagi: {$detail}.", '/dashboard', 'absen');
+            if ($existing) {
+                // Update record yang sudah ada (tanpa mengubah created_at)
+                DB::table('verifikasi_absensi')
+                    ->where('kelas', $managedClass)
+                    ->whereDate('tanggal', $todayStr)
+                    ->update($updateData);
+            } else {
+                // Insert baru
+                DB::table('verifikasi_absensi')->insert(array_merge($updateData, [
+                    'kelas'      => $managedClass,
+                    'tanggal'    => $todayStr,
+                    'created_at' => now(),
+                ]));
             }
-        }
 
-        if ($user->role == 'walikelas' || ($user->role == 'guru' && $user->walikelas_kelas)) {
-            $kk = \App\Models\User::where('role', 'ketuakelas')->where('name', $managedClass)->get();
-            foreach ($kk as $k) {
-                $k->sendNotification($title, "Wali kelas Anda telah memverifikasi absensi pagi hari ini: {$detail}.", '/dashboard', 'absen');
+            // Kirim Notifikasi (dengan try-catch agar aman dari koneksi FCM)
+            try {
+                $detail = ($status == 'NIHIL')
+                    ? "NIHIL (Hadir Semua - {$totalSiswa} Siswa)"
+                    : "{$sakit} Sakit, {$izin} Izin, {$alpha} Alpha, {$dispen} Terlambat, {$hadir} Hadir dari {$totalSiswa} Siswa";
+                $title   = "Absensi Pagi Kelas {$managedClass} Terverifikasi";
+                $message = "Kelas {$managedClass} telah diverifikasi absensi pagi oleh "
+                    . ($user->role == 'ketuakelas' ? 'Ketua Kelas' : 'Wali Kelas')
+                    . " ({$detail}).";
+
+                $kurikulumAndAdmin = \App\Models\User::whereIn('role', ['admin', 'kurikulum', 'kepala'])->get();
+                foreach ($kurikulumAndAdmin as $u) {
+                    $u->sendNotification($title, $message, '/dashboard', 'absen');
+                }
+
+                if ($user->role == 'ketuakelas') {
+                    $wk = \App\Models\User::where(function($q) use ($managedClass) {
+                        $q->where('role', 'walikelas')->where('name', $managedClass);
+                    })->orWhere(function($q) use ($managedClass) {
+                        $q->where('role', 'guru')->where('walikelas_kelas', $managedClass);
+                    })->get();
+                    foreach ($wk as $w) {
+                        $w->sendNotification($title, "Ketua kelas Anda telah memverifikasi absensi pagi: {$detail}.", '/dashboard', 'absen');
+                    }
+                }
+
+                if ($user->role == 'walikelas' || ($user->role == 'guru' && $user->walikelas_kelas)) {
+                    $kk = \App\Models\User::where('role', 'ketuakelas')->where('name', $managedClass)->get();
+                    foreach ($kk as $k) {
+                        $k->sendNotification($title, "Wali kelas Anda telah memverifikasi absensi pagi hari ini: {$detail}.", '/dashboard', 'absen');
+                    }
+                }
+            } catch (\Throwable $ne) {
+                \Illuminate\Support\Facades\Log::warning('Verifikasi notification error: ' . $ne->getMessage());
             }
-        }
 
-        $verb = $existing ? 'Diperbarui' : 'Tersimpan';
-        return redirect('/dashboard')->with('sukses', "Absensi Pagi Berhasil {$verb}!");
+            $verb = $existing ? 'Diperbarui' : 'Tersimpan';
+            return redirect()->back()->with('sukses', "Absensi Pagi Berhasil {$verb}!");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Verifikasi absensi error: ' . $e->getMessage());
+            return redirect()->back()->with('gagal', 'Gagal memverifikasi absensi: ' . $e->getMessage());
+        }
     }
 
     public function readNotification($id)
@@ -660,22 +703,27 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
 
     public function batalVerifikasi(Request $request)
     {
-        $user = auth()->user();
-        $managedClass = $user->getManagedClass();
-        if (!$managedClass) {
-            return redirect()->back()->with('gagal', 'Anda tidak memiliki otoritas untuk membatalkan verifikasi absensi.');
-        }
+        try {
+            $user = auth()->user();
+            $managedClass = $user->getManagedClass();
+            if (!$managedClass) {
+                return redirect()->back()->with('gagal', 'Anda tidak memiliki otoritas untuk membatalkan verifikasi absensi.');
+            }
 
-        $todayStr = now()->toDateString();
-        
-        if (\Illuminate\Support\Facades\Schema::hasTable('verifikasi_absensi')) {
-            DB::table('verifikasi_absensi')
-                ->where('kelas', $managedClass)
-                ->whereDate('tanggal', $todayStr)
-                ->delete();
-        }
+            $todayStr = now()->toDateString();
+            
+            if (\Illuminate\Support\Facades\Schema::hasTable('verifikasi_absensi')) {
+                DB::table('verifikasi_absensi')
+                    ->where('kelas', $managedClass)
+                    ->whereDate('tanggal', $todayStr)
+                    ->delete();
+            }
 
-        return redirect()->back()->with('sukses', 'Verifikasi Absensi Pagi berhasil dibatalkan/direset.');
+            return redirect()->back()->with('sukses', 'Verifikasi Absensi Pagi berhasil dibatalkan/direset.');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Batal verifikasi error: ' . $e->getMessage());
+            return redirect()->back()->with('gagal', 'Gagal membatalkan verifikasi: ' . $e->getMessage());
+        }
     }
 }
 
