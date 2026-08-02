@@ -130,15 +130,6 @@
                         </span>
                       @endif
                     </td>
-
-
-
-
-
-
-
-                        @endif
-                    </td>
                     <td>
 										@if($ijinsiswa->file_path !=null)	
                        <!-- Tombol untuk melihat file -->
