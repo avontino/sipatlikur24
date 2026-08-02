@@ -56,20 +56,23 @@ class JurnalhController extends Controller
 
         // Memeriksa jika tombol "sinkron" ditekan
         if ($request->has('action') && $request->action == 'sinkron') {
-            // Get the date to synchronize (fall back to today)
-            $targetDateStr = $request->input('tanggal_sinkron', Carbon::now()->toDateString());
-            $targetCarbon = Carbon::parse($targetDateStr);
-            $today = $targetCarbon->format('l');  // English day name e.g. "Friday"
-            $currentDate = $targetCarbon->toDateString();
+            try {
+                // Get the date to synchronize (fall back to today)
+                $targetDateStr = $request->input('tanggal_sinkron', Carbon::now()->toDateString());
+                $targetCarbon = Carbon::parse($targetDateStr);
+                $today = $targetCarbon->format('l');  // English day name e.g. "Friday"
+                $currentDate = $targetCarbon->toDateString();
 
-            // ── Cari Tahun Ajaran & Semester yang COCOK dengan jadwal ──
-            // Tidak pakai session karena bisa beda/stale. Cari TA yang jadwalnya ada untuk hari ini.
-            $taFromJadwal = DB::table('jadwal')
-                ->where('hari', $today)
-                ->select('tahun_ajaran', 'semester')
-                ->groupBy('tahun_ajaran', 'semester')
-                ->orderByRaw("FIELD(tahun_ajaran, ?) DESC", [$tahun_ajaran]) // prioritaskan TA session jika ada
-                ->first();
+                // ── Cari Tahun Ajaran & Semester yang COCOK dengan jadwal ──
+                $queryTa = DB::table('jadwal')
+                    ->where('hari', $today)
+                    ->select('tahun_ajaran', 'semester')
+                    ->groupBy('tahun_ajaran', 'semester');
+
+                if (!empty($tahun_ajaran)) {
+                    $queryTa->orderByRaw("CASE WHEN tahun_ajaran = ? THEN 0 ELSE 1 END", [$tahun_ajaran]);
+                }
+                $taFromJadwal = $queryTa->first();
 
             if ($taFromJadwal) {
                 $tahun_ajaran = $taFromJadwal->tahun_ajaran;
@@ -386,6 +389,10 @@ class JurnalhController extends Controller
     }
 
     return redirect()->back()->with('sukses', 'Data berhasil disinkronkan!');
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error('Sinkron error: ' . $e->getMessage());
+        return redirect()->back()->with('gagal', 'Gagal melakukan sinkronisasi: ' . $e->getMessage());
+    }
     } // end if sinkron action
 
     // Menampilkan data jurnalh yang sudah ada untuk admin/kurikulum

@@ -229,10 +229,14 @@ class User extends Authenticatable
         ]);
 
         // Triger push notification ke perangkat HP Android via FCM jika token terdaftar
-        \App\Helpers\FcmHelper::sendToUser($this->id, $title, $message, [
-            'action_url' => $actionUrl ?? '/dashboard',
-            'category' => $category
-        ]);
+        try {
+            \App\Helpers\FcmHelper::sendToUser($this->id, $title, $message, [
+                'action_url' => $actionUrl ?? '/dashboard',
+                'category' => $category
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('FCM Push Notification failed: ' . $e->getMessage());
+        }
 
         return $inserted;
     }
