@@ -561,6 +561,17 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
 
                 $table->unique(['kelas', 'tanggal']);
             });
+        } else {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('verifikasi_absensi', 'sakit')) {
+                \Illuminate\Support\Facades\Schema::table('verifikasi_absensi', function ($table) {
+                    $table->integer('sakit')->default(0);
+                    $table->integer('izin')->default(0);
+                    $table->integer('alpha')->default(0);
+                    $table->integer('dispen')->default(0);
+                    $table->integer('hadir')->default(0);
+                    $table->integer('total')->default(0);
+                });
+            }
         }
     }
 
