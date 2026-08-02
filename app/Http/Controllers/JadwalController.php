@@ -53,11 +53,27 @@ class JadwalController extends Controller
                 });
             }
 
+            // Order by Day of Week (Senin..Sabtu/Minggu) then JamKe
+            $query->orderByRaw("CASE LOWER(hari) 
+                WHEN 'senin' THEN 1 
+                WHEN 'selasa' THEN 2 
+                WHEN 'rabu' THEN 3 
+                WHEN 'kamis' THEN 4 
+                WHEN 'jumat' THEN 5 
+                WHEN 'sabtu' THEN 6 
+                WHEN 'minggu' THEN 7 
+                ELSE 8 END ASC")
+            ->orderByRaw("CAST(jamke AS UNSIGNED) ASC");
+
             $filteredRecords = $query->count();
             $start = intval($request->input('start', 0));
             $length = intval($request->input('length', 10));
 
-            $data = $query->skip($start)->take($length)->get();
+            if (auth()->user()->role == 'siswa' || $length < 0) {
+                $data = $query->get();
+            } else {
+                $data = $query->skip($start)->take($length)->get();
+            }
 
             $isAdminOrKurikulum = (auth()->user()->role=='admin' || auth()->user()->role=='kurikulum');
 

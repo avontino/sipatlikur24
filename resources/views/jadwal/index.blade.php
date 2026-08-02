@@ -414,10 +414,14 @@
             cols.push({ data: 'aksi', name: 'aksi', orderable: false, searchable: false });
         }
 
+        const isSiswa = {{ auth()->user()->role == 'siswa' ? 'true' : 'false' }};
+
         const tableJadwal = $('#tableJadwal').DataTable({
             processing: true,
             serverSide: true,
             scrollX: true,
+            pageLength: isSiswa ? -1 : 10,
+            lengthMenu: isSiswa ? [[-1, 10, 25, 50], ["Semua", 10, 25, 50]] : [[10, 25, 50, 100], [10, 25, 50, 100]],
             ajax: {
                 url: "{{ url('/jadwal') }}"
             },
