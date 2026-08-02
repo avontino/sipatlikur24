@@ -508,11 +508,13 @@ public function suratsalah(Request $request, $id)
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $fileContents = file_get_contents($file->getRealPath());
-            $base64File = base64_encode($fileContents);
+            $uploadDir = public_path('storage/uploads');
+            if (!\File::exists($uploadDir)) {
+                \File::makeDirectory($uploadDir, 0777, true, true);
+            }
 
-            $imageName = 'file_' . time() . '.' . $file->getClientOriginalExtension();
-            \File::put(public_path('/storage/uploads/' . $imageName), base64_decode($base64File));
+            $imageName = 'file_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move($uploadDir, $imageName);
             $ijinsiswa->file_path = '/storage/uploads/' . $imageName;
         }
 
@@ -527,36 +529,33 @@ public function suratsalah(Request $request, $id)
         return redirect()->back()->with('sukses', 'Ijin siswa berhasil ditambahkan!');
     }
     
-   public function uploadUlang(Request $request, $id)
-{
-    $request->validate([
-        'file' => 'required|mimes:jpg,jpeg,png|max:10240', // Limit file size to 10MB
-    ]);
+    public function uploadUlang(Request $request, $id)
+    {
+        $request->validate([
+            'file' => 'required|mimes:jpg,jpeg,png,gif,webp|max:10240',
+        ]);
 
-    $ijinsiswa = IjinSiswa::find($id);
+        $ijinsiswa = IjinSiswa::find($id);
 
-    if ($request->file('file')) {
-        $file = $request->file('file');
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $uploadDir = public_path('storage/uploads');
+            if (!\File::exists($uploadDir)) {
+                \File::makeDirectory($uploadDir, 0777, true, true);
+            }
 
-        // Check file size in bytes (10MB = 10 * 1024 * 1024 = 10485760 bytes)
-        if ($file->getSize() > 10485760) {
-            return redirect()->back()->with('gagal', 'File terlalu besar, maksimal ukuran file adalah 10MB.');
+            $imageName = 'file_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move($uploadDir, $imageName);
+
+            $ijinsiswa->filex = 'Surat Sesuai';
+            $ijinsiswa->file_path = '/storage/uploads/' . $imageName;
+            $ijinsiswa->save();      
+
+            return redirect()->back()->with('sukses', 'File ijin berhasil diunggah ulang!');
         }
 
-      
-		$fileContents = file_get_contents($file->getRealPath());
-        $base64File = base64_encode($fileContents);
-        $imageName = 'file_' . time() . '.' . $file->getClientOriginalExtension();
-            \File::put(public_path('/storage/uploads/' . $imageName), base64_decode($base64File));
-      	$ijinsiswa->filex = 'Surat Sesuai';
-        $ijinsiswa->file_path = '/storage/uploads/' . $imageName;
-        $ijinsiswa->save();      
-
-        return redirect()->back()->with('sukses', 'File ijin berhasil diunggah ulang!');
+        return redirect()->back()->with('gagal', 'File gagal diunggah ulang!');
     }
-
-    return redirect()->back()->with('gagal', 'File gagal diunggah ulang!');
-}
 
 
 
