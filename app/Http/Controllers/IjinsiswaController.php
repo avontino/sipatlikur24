@@ -490,11 +490,18 @@ public function suratsalah(Request $request, $id)
                 'nama' => 'required',
                 'kelas' => 'required',
                 'ijin' => 'required',
-                'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
-            ], [
-                'file.required' => 'Wajib melampirkan foto / bukti surat izin!',
-                'file.image' => 'File yang diunggah harus berupa foto / gambar (JPG, PNG)!',
             ]);
+
+            if (!$request->hasFile('file')) {
+                return redirect()->back()->with('gagal', 'Wajib melampirkan foto / bukti surat izin!');
+            }
+
+            $file = $request->file('file');
+            $ext = strtolower($file->getClientOriginalExtension() ?: '');
+            $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            if (!in_array($ext, $allowedExts)) {
+                return redirect()->back()->with('gagal', 'File yang diunggah harus berupa foto / gambar (JPG, JPEG, PNG)!');
+            }
 
             $ijinsiswa = new IjinSiswa();
             $ijinsiswa->nama = $request->input('nama');
@@ -507,19 +514,14 @@ public function suratsalah(Request $request, $id)
             $ijinsiswa->filex = 'Surat Sesuai';
             $ijinsiswa->tahun_ajaran = session('tahun_ajaran') ?: '2026/2027';
 
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $uploadDir = public_path('uploads');
-                if (!\File::exists($uploadDir)) {
-                    \File::makeDirectory($uploadDir, 0777, true, true);
-                }
-
-                $imageName = 'file_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $file->move($uploadDir, $imageName);
-                $ijinsiswa->file_path = '/uploads/' . $imageName;
-            } else {
-                $ijinsiswa->file_path = '';
+            $uploadDir = public_path('uploads');
+            if (!\File::exists($uploadDir)) {
+                \File::makeDirectory($uploadDir, 0777, true, true);
             }
+
+            $imageName = 'file_' . time() . '_' . uniqid() . '.' . ($ext ?: 'jpg');
+            $file->move($uploadDir, $imageName);
+            $ijinsiswa->file_path = '/uploads/' . $imageName;
 
             $ijinsiswa->save();
 
