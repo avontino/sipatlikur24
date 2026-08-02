@@ -88,6 +88,7 @@
                     <th>JENIS IJIN</th>
                     <th>WALI KELAS</th>
                     <th>GURU PIKET</th>
+                    <th>VERIFIKATOR</th>
                     <th>WAKTU IJIN</th>
                     <th>STATUS SURAT</th>
                     <th>FILE BUKTI</th>
@@ -119,6 +120,12 @@
                     @endif
 
                     <td>{{$ijinsiswa->created_at ? $ijinsiswa->created_at->format('d M Y - H:i:s') : '-'}}</td>
+                    @php
+                      $verif = [];
+                      if ($ijinsiswa->verifikator_piket) $verif[] = $ijinsiswa->verifikator_piket . ' (Guru Piket)';
+                      if ($ijinsiswa->verifikator_walikelas) $verif[] = $ijinsiswa->verifikator_walikelas . ' (Wali Kelas)';
+                    @endphp
+                    <td>{{ count($verif) ? implode(', ', $verif) : '-' }}</td>
                     <td>
                       @php
                         $displayStatus = 'Menunggu Verifikasi';

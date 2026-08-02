@@ -92,6 +92,8 @@ class IjinsiswaController extends Controller
                     ? '<td style="background-color:#ff0000" align="center"><span class="fas fa-minus-square"></span></td>'
                     : '<td style="background-color:#32CD32" align="center"><span class="fas fa-check-square"></span></td>';
                 $row['ok_pembina_status'] = $ij->ok_pembina;
+                // Show verifikator piket name if already approved
+                $row['verifikator_piket_name'] = $ij->verifikator_piket ?? '-';
 
                 if ($showPembina) {
                     $aksi = '';
@@ -120,6 +122,8 @@ class IjinsiswaController extends Controller
 
                 // Wali Kelas status
                 $row['ok_walikelas_status'] = $ij->ok_walikelas;
+                // Show verifikator walikelas name if already approved
+                $row['verifikator_walikelas_name'] = $ij->verifikator_walikelas ?? '-';
                 if ($showWali) {
                     $aksi = '';
                     if ($ij->filex != 'Surat Salah') {
@@ -227,12 +231,14 @@ class IjinsiswaController extends Controller
         Ijinsiswa::where('id', $id)->update([
             'ok_walikelas' => 'ok',
             'okbin' => 'ok',
+            'verifikator_walikelas' => $user->name,
         ]);
     } else {
         // All teachers (role 'guru'), piket, pembina approve as Guru Piket
         Ijinsiswa::where('id', $id)->update([
             'ok_pembina' => 'ok',
             'oksis' => 'ok',
+            'verifikator_piket' => $user->name,
         ]);
     }
 
@@ -370,30 +376,47 @@ public function suratsalah(Request $request, $id)
     
     public function uploadUlang(Request $request, $id)
     {
-        $request->validate([
-            'file' => 'required|mimes:jpg,jpeg,png,gif,webp|max:10240',
-        ]);
+        try {
+            $ijinsiswa = IjinSiswa::find($id);
+            if (!$ijinsiswa) {
+                return redirect()->back()->with('gagal', 'Data ijin tidak ditemukan!');
+            }
 
-        $ijinsiswa = IjinSiswa::find($id);
+            if (!$request->hasFile('file')) {
+                return redirect()->back()->with('gagal', 'Harap pilih file foto terlebih dahulu!');
+            }
 
-        if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $uploadDir = public_path('storage/uploads');
+            $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+            $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            if (!in_array($ext, $allowedExts)) {
+                return redirect()->back()->with('gagal', 'File harus berupa gambar (JPG, PNG, WEBP)!');
+            }
+
+            $uploadDir = public_path('uploads');
             if (!\File::exists($uploadDir)) {
                 \File::makeDirectory($uploadDir, 0777, true, true);
             }
 
-            $imageName = 'file_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $imageName = 'file_' . time() . '_' . uniqid() . '.' . $ext;
             $file->move($uploadDir, $imageName);
 
-            $ijinsiswa->filex = 'Surat Sesuai';
-            $ijinsiswa->file_path = '/storage/uploads/' . $imageName;
-            $ijinsiswa->save();      
+            // Reset back to waiting verification after re-upload
+            $ijinsiswa->file_path = '/uploads/' . $imageName;
+            $ijinsiswa->filex = 'Menunggu Verifikasi';
+            $ijinsiswa->ok_pembina = 'belum';
+            $ijinsiswa->ok_walikelas = 'belum';
+            $ijinsiswa->oksis = 'belum';
+            $ijinsiswa->okbin = 'belum';
+            $ijinsiswa->verifikator_piket = null;
+            $ijinsiswa->verifikator_walikelas = null;
+            $ijinsiswa->save();
 
-            return redirect()->back()->with('sukses', 'File ijin berhasil diunggah ulang!');
+            return redirect()->back()->with('sukses', 'Surat berhasil diunggah ulang! Menunggu verifikasi kembali.');
+        } catch (\Throwable $e) {
+            \Log::error('uploadUlang error: ' . $e->getMessage());
+            return redirect()->back()->with('gagal', 'Gagal mengunggah ulang surat: ' . $e->getMessage());
         }
-
-        return redirect()->back()->with('gagal', 'File gagal diunggah ulang!');
     }
 
 

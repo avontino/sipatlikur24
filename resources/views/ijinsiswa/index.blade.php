@@ -51,10 +51,12 @@
                                         @if(auth()->user()->role !== 'siswa' && !in_array(auth()->user()->role, ['satpam']))
                                         <th>STATUS GURU PIKET</th>
                                         @endif
+                                        <th>VERIFIKATOR PIKET</th>
                                         <th>WALI KELAS</th>
                                         @if((auth()->user()->walikelas_kelas || auth()->user()->hasRole('admin')) && auth()->user()->role !== 'siswa')
                                         <th>STATUS WALI KELAS</th>
                                         @endif
+                                        <th>VERIFIKATOR WALIKELAS</th>
                                         <th>WAKTU IJIN</th>
                                         <th>LIHAT SURAT</th>
                                         <th>STATUS SURAT</th>
@@ -93,9 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Guru Piket status (all non-siswa see status; all guru/staff get action button)
         $cols[] = 'ok_pembina_status';
         if ($isGuruOrStaff) { $cols[] = 'pembina_aksi'; }
+        $cols[] = 'verifikator_piket_name';
         // Wali Kelas status
         $cols[] = 'ok_walikelas_status';
         if (($isWaliKelas || $isAdmin) && !$isSiswa) { $cols[] = 'walikelas_aksi'; }
+        $cols[] = 'verifikator_walikelas_name';
         // Time & document
         $cols[] = 'created_at';
         $cols[] = 'lihat_surat';
