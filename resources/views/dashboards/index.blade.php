@@ -21,6 +21,54 @@
     <section class="content">
       <div class="container-fluid">
         
+        <!-- Peringatan Jurnal Mengajar Guru (Baris Atas Sendiri) -->
+        @if(auth()->user()->hasRole('guru'))
+          @if(count($guruScheduleNotFilled) > 0)
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px; background: #fff3cd; color: #856404;">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Peringatan Jurnal Mengajar:</strong> Anda memiliki jadwal mengajar hari ini untuk kelas berikut tetapi belum mengisi jurnal mengajar harian: 
+              <strong>{{ implode(', ', $guruScheduleNotFilled) }}</strong>.
+              <a href="/jurnal" class="btn btn-warning btn-sm text-dark ms-2 fw-bold"><i class="fas fa-edit me-1"></i> Isi Jurnal</a>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          @endif
+        @endif
+
+        <!-- Peringatan Jurnal Admin / Kurikulum / Lihat -->
+        @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('lihat'))
+          @if(count($classesNotFilled) > 0)
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px; background: #fff3cd; color: #856404;">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Peringatan Jurnal Harian:</strong> Terdapat {{ count($classesNotFilled) }} kelas yang belum mengisi jurnal harian hari ini: 
+              <strong>{{ implode(', ', $classesNotFilled) }}</strong>.
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          @endif
+        @endif
+
+        <!-- Peringatan Jurnal Wali Kelas -->
+        @if(auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas)
+          @if($waliClassNotFilled)
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 text-white" role="alert" style="border-radius: 12px; background-color: #dc3545;">
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <strong>Peringatan Jurnal Kelas:</strong> Kelas perwalian Anda (<strong>{{ auth()->user()->walikelas_kelas ?: auth()->user()->name }}</strong>) belum mengisi jurnal harian hari ini! Harap hubungi Ketua Kelas Anda.
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          @endif
+        @endif
+
+        <!-- Peringatan Jurnal Ketua Kelas -->
+        @if(auth()->user()->hasRole('ketuakelas'))
+          @if(!$todayJurnalFilled)
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 text-white" role="alert" style="border-radius: 12px; background-color: #dc3545;">
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <strong>Peringatan Jurnal:</strong> Kelas Anda belum mengisi jurnal harian hari ini! 
+              <a href="/jurnalbaru" class="btn btn-light btn-sm text-danger ms-2 fw-bold"><i class="fas fa-edit me-1"></i> Isi Jurnal Sekarang</a>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          @endif
+        @endif
+
         <!-- Verification Widget (Wali Kelas and Ketua Kelas) -->
         @if(isset($managedClass))
           <div class="card shadow mb-4">
@@ -281,51 +329,6 @@
             }
           }
           </script>
-        @endif
-
-        <!-- Warning Jurnal Harian -->
-        @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('lihat'))
-          @if(count($classesNotFilled) > 0)
-            <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px; background: #fff3cd; color: #856404;">
-              <i class="fas fa-exclamation-triangle me-2"></i>
-              <strong>Peringatan Jurnal Harian:</strong> Terdapat {{ count($classesNotFilled) }} kelas yang belum mengisi jurnal harian hari ini: 
-              <strong>{{ implode(', ', $classesNotFilled) }}</strong>.
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          @endif
-        @endif
-
-        @if(auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas)
-          @if($waliClassNotFilled)
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 text-white" role="alert" style="border-radius: 12px; background-color: #dc3545;">
-              <i class="fas fa-exclamation-circle me-2"></i>
-              <strong>Peringatan Jurnal Kelas:</strong> Kelas perwalian Anda (<strong>{{ auth()->user()->walikelas_kelas ?: auth()->user()->name }}</strong>) belum mengisi jurnal harian hari ini! Harap hubungi Ketua Kelas Anda.
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          @endif
-        @endif
-
-        @if(auth()->user()->hasRole('ketuakelas'))
-          @if(!$todayJurnalFilled)
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 text-white" role="alert" style="border-radius: 12px; background-color: #dc3545;">
-              <i class="fas fa-exclamation-circle me-2"></i>
-              <strong>Peringatan Jurnal:</strong> Kelas Anda belum mengisi jurnal harian hari ini! 
-              <a href="/jurnalbaru" class="btn btn-light btn-sm text-danger ms-2 fw-bold"><i class="fas fa-edit me-1"></i> Isi Jurnal Sekarang</a>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          @endif
-        @endif
-
-        @if(auth()->user()->hasRole('guru'))
-          @if(count($guruScheduleNotFilled) > 0)
-            <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px; background: #fff3cd; color: #856404;">
-              <i class="fas fa-exclamation-triangle me-2"></i>
-              <strong>Peringatan Jurnal Mengajar:</strong> Anda memiliki jadwal mengajar hari ini untuk kelas berikut tetapi belum mengisi jurnal mengajar harian: 
-              <strong>{{ implode(', ', $guruScheduleNotFilled) }}</strong>.
-              <a href="/jurnalbaru" class="btn btn-warning btn-sm text-dark ms-2 fw-bold"><i class="fas fa-edit me-1"></i> Isi Jurnal</a>
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          @endif
         @endif
 
       </div>
