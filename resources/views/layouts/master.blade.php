@@ -1761,6 +1761,7 @@ function fetchAndSendToken() {
           type: 'POST',
           data: {
             fcm_token: token,
+            device_info: 'Android Browser/FCM Web',
             _token: $('meta[name="csrf-token"]').attr('content')
           },
           success: function(res) {
@@ -1768,12 +1769,42 @@ function fetchAndSendToken() {
             $('#iosNotifBanner').slideUp();
           }
         });
+      } else {
+        sendApkFallbackToken();
       }
     }).catch(function(err) {
       console.error('FCM getToken error:', err);
+      sendApkFallbackToken();
     });
   } catch(e) {
     console.error('FCM messaging error:', e);
+    sendApkFallbackToken();
+  }
+}
+
+function sendApkFallbackToken() {
+  try {
+    let apkToken = localStorage.getItem('sipatlikur_apk_token');
+    if (!apkToken) {
+      apkToken = 'apk_device_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+      localStorage.setItem('sipatlikur_apk_token', apkToken);
+    }
+
+    $.ajax({
+      url: '/update-fcm-token',
+      type: 'POST',
+      data: {
+        fcm_token: apkToken,
+        device_info: 'APK Android WebView',
+        _token: $('meta[name="csrf-token"]').attr('content')
+      },
+      success: function(res) {
+        console.log('APK WebView device token registered on server');
+        $('#iosNotifBanner').slideUp();
+      }
+    });
+  } catch (err) {
+    console.error('sendApkFallbackToken error:', err);
   }
 }
 
