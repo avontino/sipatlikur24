@@ -740,14 +740,149 @@ $existingJurnalh->save();
 
     public function update(Request $request)
     {
-        $jurnal=Jurnal::findorFail($request->jurnalid);
-        $user=DB::table('users')->where('name','LIKE','%'.$request->guru.'%')->first();
-        
-        // $jurnal=\App\Models\Jurnal::find($id);
-        // $jurnal->update($request->all());
+        $jurnal = Jurnal::findorFail($request->jurnalid);
+        $user = DB::table('users')->where('name', 'LIKE', '%' . $request->guru . '%')->first();
 
-    $jurnal->update(['ket_guru_mapel'=>$request->ket_guru_mapel,'penugasan'=>$request->penugasan,'jamke'=>$request->jamke,'jumlahjam'=>$request->jumlahjam,'mapel'=>$request->mapel,'guru'=>$request->guru,'materi'=>$request->materi,'catatan'=>$request->catatan,'guru_id'=>$user->id,'updated_at'=>now()]);
-        return redirect('/jurnal')->with('sukses','Jurnal Berhasil Diupdate');
+        // 1. Update tabel jurnal dulu
+        $jurnal->update([
+            'ket_guru_mapel' => $request->ket_guru_mapel,
+            'penugasan'      => $request->penugasan,
+            'jamke'          => $request->jamke,
+            'jumlahjam'      => $request->jumlahjam,
+            'mapel'          => $request->mapel,
+            'guru'           => $request->guru,
+            'materi'         => $request->materi,
+            'catatan'        => $request->catatan,
+            'guru_id'        => $user ? $user->id : $jurnal->guru_id,
+            'updated_at'     => now(),
+        ]);
+
+        // 2. Sync ke jurnalh - update kolom jamke yg sesuai
+        try {
+            // Ambil tanggal dari jurnal (bukan now() agar sesuai tanggal jurnal)
+            $tanggalJurnal = $jurnal->created_at->toDateString();
+
+            $existingJurnalh = Jurnalh::where('kelas', $request->kelas)
+                ->whereDate('created_at', $tanggalJurnal)
+                ->first();
+
+            if ($existingJurnalh) {
+                // Bentuk nilai untuk kolom jurnalh (sama dengan updates())
+                if ($request->penugasan == 'Ada') {
+                    $jurnalValue = $request->guru . "<hr>" . $request->mapel . "<hr>" . $this->formatMateri($request->materi) . "<hr>" . "<span class='badge badge-danger'>KBM Tanpa Guru</span>";
+                } else {
+                    $jurnalValue = $request->guru . "<hr>" . $request->mapel . "<hr>" . $this->formatMateri($request->materi);
+                }
+
+                // Hitung range jamke (misal "7-9" → 7,8,9)
+                $jamkeParts = explode('-', $request->jamke);
+                $startJamke = (int)($jamkeParts[0] ?? 1);
+                $endJamke   = (int)($jamkeParts[1] ?? $startJamke);
+
+                for ($i = $startJamke; $i <= $endJamke; $i++) {
+                    if ($i >= 1 && $i <= 11) {
+                        $col = 'j' . $i;
+                        $existingValue = $existingJurnalh->{$col};
+
+                        // Gunakan fungsi updateJurnalColumn yang sudah ada di updates()
+                        // Bentuk manual karena fungsi tersebut adalah local function
+                        $updatedValue = $this->updateJurnalhColumn($existingValue, $jurnalValue, $request->guru, $request->mapel);
+                        $existingJurnalh->{$col} = $updatedValue;
+                    }
+                }
+
+                $existingJurnalh->updated_at = now();
+                $existingJurnalh->save();
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal sync jurnal ke jurnalh: ' . $e->getMessage());
+        }
+
+        return redirect('/jurnal')->with('sukses', 'Jurnal Berhasil Diupdate');
+    }
+
+    /**
+     * Helper: update satu kolom jurnalh (j1-j11) dengan mengganti entri guru/mapel yang cocok.
+     */
+    private function updateJurnalhColumn($existingValue, $newValue, $targetGuru, $targetMapel)
+    {
+        if (empty($existingValue)) {
+            return $newValue;
+        }
+
+        $cleanedValue = preg_replace('/<hr>+/', '<hr>', $existingValue);
+        $cleanedValue = trim($cleanedValue, '<hr>');
+        $segments     = explode('<hr>', $cleanedValue);
+        $updatedSegments = [];
+        $found = false;
+
+        $newSegments     = explode('<hr>', $newValue);
+        $newGuruSegment  = $newSegments[0] ?? '';
+        $newMapelSegment = $newSegments[1] ?? '';
+        $newMateriSegment = $newSegments[2] ?? '';
+        $newBadgeSegment = $newSegments[3] ?? '';
+
+        for ($i = 0; $i < count($segments);) {
+            if (isset($segments[$i], $segments[$i + 1], $segments[$i + 2])) {
+                $guruSegment  = trim($segments[$i]);
+                $mapelSegment = trim($segments[$i + 1]);
+                $materiSegment = trim($segments[$i + 2]);
+
+                $badgeSegment = '';
+                $currentSegmentSize = 3;
+                if (isset($segments[$i + 3]) && (strpos($segments[$i + 3], 'badge') !== false || strpos($segments[$i + 3], 'KBM') !== false)) {
+                    $badgeSegment = trim($segments[$i + 3]);
+                    $currentSegmentSize = 4;
+                }
+
+                $cleanGuru  = trim(strip_tags($guruSegment));
+                $cleanMapel = trim(strip_tags($mapelSegment));
+
+                $normCleanGuru  = preg_replace('/\s+/', ' ', strtoupper($cleanGuru));
+                $normTargetGuru = preg_replace('/\s+/', ' ', strtoupper(trim($targetGuru)));
+                $normCleanMapel  = preg_replace('/\s+/', ' ', strtoupper($cleanMapel));
+                $normTargetMapel = preg_replace('/\s+/', ' ', strtoupper(trim($targetMapel)));
+
+                if ($normCleanGuru === $normTargetGuru && $normCleanMapel === $normTargetMapel) {
+                    $updatedSegments[] = $newGuruSegment;
+                    $updatedSegments[] = $newMapelSegment;
+                    $updatedSegments[] = $newMateriSegment;
+                    if (!empty($newBadgeSegment)) {
+                        $updatedSegments[] = $newBadgeSegment;
+                    }
+                    $found = true;
+                } else {
+                    $updatedSegments[] = $guruSegment;
+                    $updatedSegments[] = $mapelSegment;
+                    $updatedSegments[] = $materiSegment;
+                    if (!empty($badgeSegment)) {
+                        $updatedSegments[] = $badgeSegment;
+                    }
+                }
+
+                $i += $currentSegmentSize;
+            } else {
+                if (isset($segments[$i])) {
+                    $updatedSegments[] = $segments[$i];
+                }
+                $i++;
+            }
+        }
+
+        if (!$found) {
+            $updatedSegments[] = $newGuruSegment;
+            $updatedSegments[] = $newMapelSegment;
+            $updatedSegments[] = $newMateriSegment;
+            if (!empty($newBadgeSegment)) {
+                $updatedSegments[] = $newBadgeSegment;
+            }
+        }
+
+        $updatedSegments = array_values(array_filter($updatedSegments, function ($s) {
+            return !empty(trim($s));
+        }));
+
+        return implode('<hr>', $updatedSegments);
     }
 
     public function delete($id)
