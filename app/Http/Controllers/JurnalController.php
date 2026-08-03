@@ -96,17 +96,8 @@ class JurnalController extends Controller
 
             // Jika view=walikelas dan user adalah ketuakelas (baik role utama maupun additional)
             if ($request->query('view') === 'walikelas' && $isKetuaKelas) {
-                // Cari kelas yang dikelola sebagai ketua kelas
-                $kelasKetua = $user->walikelas_kelas
-                    ?? ($user->getManagedClass() ?: null);
-
-                if (!$kelasKetua && $isSiswa) {
-                    // Fallback: ambil dari tabel siswa
-                    $siswaData = Siswa::where('nis', $user->username)
-                        ->orWhere('nama', $user->name)
-                        ->first();
-                    $kelasKetua = $siswaData ? $siswaData->kelas : null;
-                }
+                // Cari kelas yang dikelola sebagai ketua kelas (otomatis ambil kelas TA aktif terbaru)
+                $kelasKetua = $user->getManagedClass() ?: $user->walikelas_kelas;
 
                 $query->where('kelas', $kelasKetua);
 
@@ -115,9 +106,16 @@ class JurnalController extends Controller
                 }
 
             } elseif ($isSiswa) {
-                // Siswa biasa — lihat jurnal kelasnya sendiri
-                $siswa = Siswa::where('nama', $user->name)->orWhere('nis', $user->username)->first();
-                $kelasSiswa = $siswa ? $siswa->kelas : null;
+                // Siswa biasa — lihat jurnal kelasnya sendiri (otomatis ambil kelas TA aktif terbaru)
+                $kelasSiswa = $user->getManagedClass();
+                if (!$kelasSiswa) {
+                    $siswa = Siswa::where(function($q) use ($user) {
+                            $q->where('nama', $user->name)->orWhere('nis', $user->username);
+                        })
+                        ->orderBy('id', 'desc')
+                        ->first();
+                    $kelasSiswa = $siswa ? $siswa->kelas : null;
+                }
                 $query->where('kelas', $kelasSiswa);
             } elseif ($isKetuaOnly) {
                 $kelas = $user->getManagedClass() ?: $user->name;

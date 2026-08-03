@@ -34,13 +34,7 @@ class JurnalbaruController extends Controller
         }
 
         $user = auth()->user();
-        $myClass = $user->walikelas_kelas;
-        if (!$myClass) {
-            $myClass = Siswa::where('nis', $user->username)->orWhere('nama', $user->name)->value('kelas');
-        }
-        if (!$myClass) {
-            $myClass = $user->name;
-        }
+        $myClass = $user->getManagedClass() ?: ($user->walikelas_kelas ?: $user->name);
 
         $todayStr = now()->toDateString();
         

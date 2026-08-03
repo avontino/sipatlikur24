@@ -510,10 +510,7 @@ class JurnalhController extends Controller
             $isWali = ($user->role=='walikelas' || ($user->role=='guru' && $user->walikelas_kelas) || $user->hasRole('walikelas'));
             $isKetua = ($user->role=='ketuakelas' || $user->hasRole('ketuakelas'));
 
-            $myClass = $user->walikelas_kelas;
-            if (!$myClass) {
-                $myClass = \App\Models\Siswa::where('nis', $user->username)->orWhere('nama', $user->name)->value('kelas');
-            }
+            $myClass = $user->getManagedClass() ?: $user->walikelas_kelas;
 
             $isExplicitWaliView = ($view === 'walikelas');
 

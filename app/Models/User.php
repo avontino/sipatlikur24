@@ -255,17 +255,24 @@ class User extends Authenticatable
 
         if ($this->hasRole('ketuakelas') || $this->hasRole('walikelas')) {
             // Prioritas 2: Cari kelas dari tabel siswa berdasarkan tahun ajaran AKTIF
-            // Sehingga siswa yang naik kelas otomatis dapat kelas baru
-            $activeTa = \Illuminate\Support\Facades\DB::table('tahun_ajaran')
+            $rawTa = \Illuminate\Support\Facades\DB::table('tahun_ajaran')
                 ->where('status', 1)
                 ->value('tahun_ajaran');
 
-            if ($activeTa) {
+            if ($rawTa) {
+                $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
+                $firstYear = explode('/', $cleanTa)[0] ?? $cleanTa;
+
                 $siswaClass = \App\Models\Siswa::where(function ($q) {
                         $q->where('nis', $this->username)
                           ->orWhere('nama', $this->name);
                     })
-                    ->where('tahun_ajaran', 'LIKE', '%' . $activeTa . '%')
+                    ->where(function ($q) use ($rawTa, $cleanTa, $firstYear) {
+                        $q->where('tahun_ajaran', $rawTa)
+                          ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
+                          ->orWhere('tahun_ajaran', 'LIKE', '%' . $firstYear . '%')
+                          ->orWhereNull('tahun_ajaran');
+                    })
                     ->orderBy('id', 'desc')
                     ->value('kelas');
 
@@ -275,8 +282,10 @@ class User extends Authenticatable
             }
 
             // Prioritas 3: Fallback — ambil data siswa terbaru (id terbesar)
-            $siswaClass = \App\Models\Siswa::where('nis', $this->username)
-                ->orWhere('nama', $this->name)
+            $siswaClass = \App\Models\Siswa::where(function ($q) {
+                    $q->where('nis', $this->username)
+                      ->orWhere('nama', $this->name);
+                })
                 ->orderBy('id', 'desc')
                 ->value('kelas');
 
