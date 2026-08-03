@@ -501,54 +501,65 @@ class JurnalhController extends Controller
     return view('jurnalh.index', compact('jurnalhs'));
     } else {
         // NOT ADMIN/KURIKULUM: Wali Kelas, Ketua Kelas, Siswa, or Guru
-        $user = auth()->user();
-        $isWali = ($user->role=='walikelas' || ($user->role=='guru' && $user->walikelas_kelas));
-        $isKetua = ($user->role=='ketuakelas' || $user->hasRole('ketuakelas'));
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return redirect('/login');
+            }
+            $isWali = ($user->role=='walikelas' || ($user->role=='guru' && $user->walikelas_kelas) || $user->hasRole('walikelas'));
+            $isKetua = ($user->role=='ketuakelas' || $user->hasRole('ketuakelas'));
 
-        $myClass = $user->walikelas_kelas;
-        if (!$myClass) {
-            $myClass = \App\Models\Siswa::where('username', $user->username)->orWhere('nama', $user->name)->value('kelas');
-        }
+            $myClass = $user->walikelas_kelas;
+            if (!$myClass) {
+                $myClass = \App\Models\Siswa::where('username', $user->username)->orWhere('nama', $user->name)->value('kelas');
+            }
 
-        $isExplicitWaliView = ($view === 'walikelas');
+            $isExplicitWaliView = ($view === 'walikelas');
 
-        if ($isKetua || $user->role==='siswa' || $isExplicitWaliView) {
-            $kelasToSearch = $myClass ?: $user->name;
-            $targetDate = $request->input('tanggal', date('Y-m-d'));
+            if ($isKetua || $user->role==='siswa' || $isExplicitWaliView) {
+                $kelasToSearch = $myClass ?: $user->name;
+                $targetDate = $request->input('tanggal', date('Y-m-d'));
 
-            $jurnalhs = Jurnalh::where('kelas', $kelasToSearch)
-                           ->when($tahun_ajaran, function($q) use ($tahun_ajaran) { return $q->where('tahun_ajaran', $tahun_ajaran); })
-                           ->when($semester, function($q) use ($semester) { return $q->where('semester', $semester); })
-                           ->whereDate('created_at', $targetDate)
-                           ->get();
+                $jurnalhs = Jurnalh::where('kelas', $kelasToSearch)
+                               ->when($tahun_ajaran, function($q) use ($tahun_ajaran) { return $q->where('tahun_ajaran', $tahun_ajaran); })
+                               ->when($semester, function($q) use ($semester) { return $q->where('semester', $semester); })
+                               ->whereDate('created_at', $targetDate)
+                               ->get();
 
-            return view('jurnalh.index', compact('jurnalhs', 'myClass', 'targetDate'));
+                return view('jurnalh.index', compact('jurnalhs', 'myClass', 'targetDate'));
 
-        } elseif ($user->role==='guru' || $user->hasRole('guru') || $user->role==='walikelas' || $user->hasRole('walikelas')) {
-            $guruNama = $user->name; 
-            $guruNip  = $user->username;
-            $cleanGuruNama = trim(preg_replace('/,.*$/', '', $guruNama));
-            $targetDate = $request->input('tanggal', date('Y-m-d'));
+            } else {
+                $guruNama = $user->name; 
+                $guruNip  = $user->username;
+                $cleanGuruNama = trim(preg_replace('/,.*$/', '', $guruNama));
+                $targetDate = $request->input('tanggal', date('Y-m-d'));
 
-            $jurnalhs = Jurnalh::when($tahun_ajaran, function($q) use ($tahun_ajaran) { return $q->where('tahun_ajaran', $tahun_ajaran); })
-                ->when($semester, function($q) use ($semester) { return $q->where('semester', $semester); })
-                ->whereDate('created_at', $targetDate)
-                ->where(function ($query) use ($guruNama, $cleanGuruNama, $guruNip) {
-                    for ($i = 1; $i <= 11; $i++) {
-                        $query->orWhere('j' . $i, 'like', '%' . $guruNama . '%')
-                              ->orWhere('j' . $i, 'like', '%' . $cleanGuruNama . '%');
-                        if ($guruNip) {
-                            $query->orWhere('j' . $i, 'like', '%' . $guruNip . '%');
+                $jurnalhs = Jurnalh::when($tahun_ajaran, function($q) use ($tahun_ajaran) { return $q->where('tahun_ajaran', $tahun_ajaran); })
+                    ->when($semester, function($q) use ($semester) { return $q->where('semester', $semester); })
+                    ->whereDate('created_at', $targetDate)
+                    ->where(function ($query) use ($guruNama, $cleanGuruNama, $guruNip) {
+                        for ($i = 1; $i <= 11; $i++) {
+                            $query->orWhere('j' . $i, 'like', '%' . $guruNama . '%')
+                                  ->orWhere('j' . $i, 'like', '%' . $cleanGuruNama . '%');
+                            if ($guruNip) {
+                                $query->orWhere('j' . $i, 'like', '%' . $guruNip . '%');
+                            }
                         }
-                    }
-                })
-                ->orderBy('created_at', 'desc')
-                ->get();
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->get();
 
-            return view('jurnalh.index', compact('jurnalhs', 'myClass', 'targetDate'));
-        } else {
+                return view('jurnalh.index', compact('jurnalhs', 'myClass', 'targetDate'));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Error in non-admin JurnalhController@index: " . $e->getMessage());
             $jurnalhs = collect();
-            return view('jurnalh.index', compact('jurnalhs'));
+            return view('jurnalh.index', [
+                'jurnalhs' => $jurnalhs,
+                'myClass' => null,
+                'targetDate' => date('Y-m-d'),
+                'errorMessage' => $e->getMessage()
+            ]);
         }
     } // end else (not admin/kurikulum)
     } // end index()
