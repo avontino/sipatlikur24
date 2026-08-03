@@ -1,8 +1,4 @@
 <?php
-// Script debug - jalankan di browser: https://sipatlikur.smpn24-mlg.sch.id/debug-jurnal
-// Letakkan di public/debug-jurnal.php
-
-// Bypass Laravel auth untuk debugging
 require __DIR__ . '/../vendor/autoload.php';
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
@@ -10,84 +6,103 @@ $kernel->bootstrap();
 
 use Illuminate\Support\Facades\DB;
 
-// Cek struktur tabel jurnal
-echo "<h2>1. Struktur Tabel Jurnal (beberapa baris pertama)</h2>";
-$cols = DB::select("SHOW COLUMNS FROM jurnal");
-echo "<table border=1><tr><th>Field</th><th>Type</th><th>Null</th></tr>";
-foreach ($cols as $col) {
-    echo "<tr><td>{$col->Field}</td><td>{$col->Type}</td><td>{$col->Null}</td></tr>";
-}
-echo "</table>";
+echo "<style>body{font-family:monospace;font-size:13px;} pre{background:#f4f4f4;padding:8px;border-radius:4px;} h2{color:#333;border-bottom:1px solid #ccc;padding-bottom:5px;}</style>";
 
-// Ambil contoh data
-echo "<h2>2. Contoh 5 Data Jurnal Terbaru</h2>";
-$rows = DB::table('jurnal')->orderBy('id', 'desc')->limit(5)->get();
-foreach ($rows as $row) {
-    echo "<pre>";
-    echo "ID: {$row->id}\n";
-    echo "Guru: {$row->guru}\n";
-    echo "Guru ID: " . ($row->guru_id ?? 'NULL') . "\n";
-    echo "Kelas: {$row->kelas}\n";
-    echo "Mapel: {$row->mapel}\n";
-    echo "Tahun Ajaran: " . ($row->tahun_ajaran ?? 'NULL') . "\n";
-    echo "Semester: " . ($row->semester ?? 'NULL') . "\n";
-    echo "Created At: {$row->created_at}\n";
-    echo "</pre><hr>";
-}
-
-// Cek user Avo Satriyatma
-echo "<h2>3. Data User 'Avo Satriyatma'</h2>";
-$user = DB::table('users')->where('name', 'LIKE', '%Avo%')->orWhere('name', 'LIKE', '%Satriyatma%')->get();
-foreach ($user as $u) {
-    echo "<pre>";
-    echo "ID: {$u->id}\n";
-    echo "Name: {$u->name}\n";
-    echo "Username: {$u->username}\n";
-    echo "Role: {$u->role}\n";
-    echo "Additional Roles: " . ($u->additional_roles ?? 'NULL') . "\n";
-    echo "Walikelas Kelas: " . ($u->walikelas_kelas ?? 'NULL') . "\n";
-    echo "</pre>";
-}
-
-// Cek jurnal yang mengandung nama guru tsb
-echo "<h2>4. Jurnal yang mengandung nama 'Avo' atau 'Satriyatma'</h2>";
-$jurnals = DB::table('jurnal')
-    ->where('guru', 'LIKE', '%Avo%')
-    ->orWhere('guru', 'LIKE', '%Satriyatma%')
-    ->limit(5)
+// Cek data Avo di 2026/2027
+echo "<h2>1. Semua data Avo Satriyatma di 2026/2027</h2>";
+$rows = DB::table('jurnal')
+    ->where(function($q) {
+        $q->where('guru', 'LIKE', '%Avo%')
+          ->orWhere('guru', 'LIKE', '%Satriyatma%')
+          ->orWhere('guru_id', 197);
+    })
+    ->where('tahun_ajaran', 'LIKE', '%2026%')
     ->get();
-if ($jurnals->isEmpty()) {
-    echo "<b style='color:red'>TIDAK ADA DATA - Nama guru tidak cocok!</b>";
+
+if ($rows->isEmpty()) {
+    echo "<b style='color:red'>❌ TIDAK ADA data Avo di 2026/2027 sama sekali!</b>";
+    echo "<br>Kemungkinan: sinkron belum dilakukan atau jadwal Avo belum ada.";
 } else {
-    foreach ($jurnals as $j) {
-        echo "<pre>Guru: {$j->guru} | Kelas: {$j->kelas} | Mapel: {$j->mapel} | TA: " . ($j->tahun_ajaran ?? 'NULL') . " | Sem: " . ($j->semester ?? 'NULL') . "</pre>";
+    foreach ($rows as $r) {
+        echo "<pre>Guru: {$r->guru} | guru_id: {$r->guru_id} | Kelas: {$r->kelas} | Mapel: {$r->mapel} | TA: {$r->tahun_ajaran} | Sem: {$r->semester} | Tgl: {$r->created_at}</pre>";
     }
 }
 
-// Cek data jurnal tahun ajaran aktif
-echo "<h2>5. Tahun Ajaran yang ada di tabel jurnal (distinct)</h2>";
-$tas = DB::table('jurnal')->select('tahun_ajaran', 'semester')->distinct()->orderBy('tahun_ajaran', 'desc')->limit(10)->get();
-foreach ($tas as $ta) {
-    echo "<pre>Tahun Ajaran: '" . ($ta->tahun_ajaran ?? 'NULL') . "' | Semester: '" . ($ta->semester ?? 'NULL') . "'</pre>";
-}
+// Cek jadwal Avo untuk hari ini
+echo "<h2>2. Jadwal Avo Satriyatma di tabel jadwal (TA 2026/2027)</h2>";
+$jadwals = DB::table('jadwal')
+    ->where(function($q) {
+        $q->where('guru', 'LIKE', '%Avo%')
+          ->orWhere('guru', 'LIKE', '%Satriyatma%');
+    })
+    ->where('tahun_ajaran', 'LIKE', '%2026%')
+    ->get();
 
-// Cek Tahun Ajaran Aktif
-echo "<h2>6. Tahun Ajaran Aktif di Tabel 'tahun_ajaran'</h2>";
-$activeTa = DB::table('tahun_ajaran')->where('status', 1)->first();
-if ($activeTa) {
-    echo "<pre>";
-    echo "ID: {$activeTa->id}\n";
-    echo "Tahun Ajaran: {$activeTa->tahun_ajaran}\n";
-    echo "Semester: {$activeTa->semester}\n";
-    echo "Status: {$activeTa->status}\n";
-    echo "</pre>";
+if ($jadwals->isEmpty()) {
+    echo "<b style='color:red'>❌ Tidak ada jadwal Avo di TA 2026/2027!</b>";
 } else {
-    echo "<b style='color:red'>TIDAK ADA tahun ajaran aktif!</b>";
+    echo "<b style='color:green'>✅ Jadwal ditemukan: " . $jadwals->count() . " entri</b>";
+    foreach ($jadwals as $j) {
+        echo "<pre>Hari: {$j->hari} | Kelas: {$j->kelas} | Jamke: {$j->jamke} | Mapel: {$j->mapel} | TA: {$j->tahun_ajaran} | Sem: {$j->semester}</pre>";
+    }
 }
 
-// Cek seluruh nama guru unik di jurnal
-echo "<h2>7. Semua Guru Unik di Tabel Jurnal (10 sample)</h2>";
-$gurus = DB::table('jurnal')->select('guru')->distinct()->limit(10)->get();
-foreach ($gurus as $g) {
-    echo "<pre>" . $g->guru . "</pre>";
+// Cek hari ini apa dan apakah ada jadwal
+$hariIni = date('l'); // English
+echo "<h2>3. Hari ini: <b>{$hariIni}</b> | Tanggal: " . date('Y-m-d') . "</h2>";
+
+$jadwalHariIni = DB::table('jadwal')
+    ->where(function($q) {
+        $q->where('guru', 'LIKE', '%Avo%')
+          ->orWhere('guru', 'LIKE', '%Satriyatma%');
+    })
+    ->where('hari', $hariIni)
+    ->where('tahun_ajaran', 'LIKE', '%2026%')
+    ->get();
+
+if ($jadwalHariIni->isEmpty()) {
+    echo "<b style='color:orange'>⚠️ Tidak ada jadwal Avo untuk hari {$hariIni} - mungkin tidak ada kelas hari ini</b>";
+} else {
+    echo "<b style='color:green'>✅ Ada jadwal hari ini!</b>";
+    foreach ($jadwalHariIni as $j) {
+        echo "<pre>Kelas: {$j->kelas} | Jamke: {$j->jamke} | Mapel: {$j->mapel}</pre>";
+    }
+}
+
+// Cek apakah jurnalh untuk hari ini sudah disinkron
+echo "<h2>4. Jurnalh yang sudah disinkron hari ini</h2>";
+$today = date('Y-m-d');
+$jurnalh = DB::table('jurnalh')
+    ->whereDate('created_at', $today)
+    ->select('kelas', 'tahun_ajaran', 'semester', 'created_at')
+    ->get();
+
+if ($jurnalh->isEmpty()) {
+    echo "<b style='color:red'>❌ Belum ada sinkron jurnal harian hari ini!</b>";
+} else {
+    echo "<b style='color:green'>✅ Sudah ada sinkron: " . $jurnalh->count() . " kelas</b>";
+    foreach ($jurnalh as $jh) {
+        echo "<pre>Kelas: {$jh->kelas} | TA: {$jh->tahun_ajaran} | Sem: {$jh->semester}</pre>";
+    }
+}
+
+// Cek jurnal hari ini
+echo "<h2>5. Data jurnal yang dibuat hari ini ({$today})</h2>";
+$jurnalHariIni = DB::table('jurnal')->whereDate('created_at', $today)->count();
+echo "<pre>Total entri jurnal hari ini: <b>{$jurnalHariIni}</b></pre>";
+
+// Cek nama Avo di jadwal (semua TA) untuk validasi nama
+echo "<h2>6. Format nama Avo di tabel jadwal (semua TA)</h2>";
+$namaAvoJadwal = DB::table('jadwal')
+    ->where('guru', 'LIKE', '%Avo%')
+    ->orWhere('guru', 'LIKE', '%Satriyatma%')
+    ->distinct()
+    ->pluck('guru');
+
+if ($namaAvoJadwal->isEmpty()) {
+    echo "<b style='color:red'>❌ Nama 'Avo' atau 'Satriyatma' tidak ditemukan di jadwal sama sekali!</b>";
+} else {
+    foreach ($namaAvoJadwal as $n) {
+        echo "<pre>'{$n}'</pre>";
+    }
 }
