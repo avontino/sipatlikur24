@@ -51,13 +51,8 @@
 											</tr>
 										</thead>
 										<tbody>
-											@if($data_ijin->isEmpty())
-												<tr>
-													<td colspan="11" class="text-center text-muted py-4">Tidak ada data ijin tersedia</td>
-												</tr>
-											@else
-												@foreach($data_ijin as $ijin)
-												<tr>
+											@foreach($data_ijin as $ijin)
+											<tr>
 													<td>{{$ijin->tglmasuk}}</td>
 													<td>{{$ijin->guru}}</td>
 													<td>{{$ijin->mapel}}</td>
@@ -139,7 +134,6 @@
 													</td>
 												</tr>
 												@endforeach
-											@endif
 										</tbody>
 									</table>
 								</div>
