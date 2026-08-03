@@ -130,18 +130,24 @@ class JurnalController extends Controller
                     $query->where('kelas', $user->walikelas_kelas);
                 } else {
                     $fullName = $user->name;
-                    $cleanName = trim(preg_replace('/,.*$/', '', $fullName));
-                    $words = array_filter(explode(' ', $cleanName), function($w) {
-                        return strlen(trim($w)) >= 3;
-                    });
+                    // Hapus gelar (S.Pd., M.Pd., Dra., Drs., S.Ag, dll) agar tidak salah mencocokkan "S.Pd" ke semua guru
+                    $cleanName = trim(preg_replace('/,?\s*(S\.Pd|M\.Pd|S\.Pd\.I|M\.Pd\.I|S\.Ag|S\.Kom|S\.Si|S\.T|S\.SE|S\.Sos|S\.H|Dra\.|Drs\.|H\.|Hj\.|M\.T|M\.Si)\.?/i', '', $fullName));
+                    $cleanName = trim(preg_replace('/[.,]/', ' ', $cleanName));
+                    $cleanName = trim(preg_replace('/\s+/', ' ', $cleanName));
 
-                    $query->where(function($q) use ($user, $fullName, $cleanName, $words) {
+                    $nameParts = explode(' ', $cleanName);
+                    $firstTwoWords = implode(' ', array_slice($nameParts, 0, min(2, count($nameParts))));
+
+                    $query->where(function($q) use ($user, $fullName, $cleanName, $firstTwoWords) {
                         $q->where('guru_id', $user->id)
-                          ->orWhere('guru', 'LIKE', '%' . $fullName . '%')
-                          ->orWhere('guru', 'LIKE', '%' . $cleanName . '%');
-                        
-                        foreach ($words as $word) {
-                            $q->orWhere('guru', 'LIKE', '%' . trim($word) . '%');
+                          ->orWhere('guru', 'LIKE', '%' . $fullName . '%');
+
+                        if (!empty($cleanName) && strlen($cleanName) >= 3) {
+                            $q->orWhere('guru', 'LIKE', '%' . $cleanName . '%');
+                        }
+
+                        if (!empty($firstTwoWords) && strlen($firstTwoWords) >= 5) {
+                            $q->orWhere('guru', 'LIKE', '%' . $firstTwoWords . '%');
                         }
 
                         if ($user->username) {
