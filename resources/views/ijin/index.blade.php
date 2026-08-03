@@ -106,13 +106,13 @@
 													</td>
 													<td>
 														<div class="d-flex gap-1 flex-wrap">
-															@if(auth()->user()->role == 'admin')
-																@if($ijin->approval_status == 'pending')
-																	<form action="{{ route('ijin.approve', $ijin->id) }}" method="POST" class="d-inline">
+															@if(auth()->user()->role == 'admin' || auth()->user()->hasRole('admin'))
+																@if(($ijin->approval_status ?? 'approved') == 'pending')
+																	<form action="/ijin/{{ $ijin->id }}/approve" method="POST" class="d-inline">
 																		@csrf
 																		<button type="submit" class="btn btn-xs btn-success text-white" title="Setujui"><i class="fas fa-check"></i></button>
 																	</form>
-																	<form action="{{ route('ijin.reject', $ijin->id) }}" method="POST" class="d-inline">
+																	<form action="/ijin/{{ $ijin->id }}/reject" method="POST" class="d-inline">
 																		@csrf
 																		<button type="submit" class="btn btn-xs btn-danger text-white" title="Tolak"><i class="fas fa-times"></i></button>
 																	</form>

@@ -79,11 +79,15 @@ class IjinController extends Controller
     public function index(Request $request)
     {
         try {
+            $user = auth()->user();
+            if (!$user) {
+                return redirect('/login');
+            }
+
             $ma_pel = Mapel::all();
             $gu_ru  = Guru::all();
             $ke_las = Kelas::all();
 
-            $user = auth()->user();
             $userRole = strtolower($user->role ?? '');
             $isGuru = ($userRole == 'guru');
 
