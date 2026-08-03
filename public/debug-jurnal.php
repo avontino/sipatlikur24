@@ -4,33 +4,42 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-echo "<style>body{font-family:monospace;font-size:12px;} pre{background:#1e1e1e;color:#fff;padding:12px;border-radius:4px;overflow-x:auto;} h2{color:#333;border-bottom:1px solid #ccc;}</style>";
+use Illuminate\Support\Facades\DB;
 
-echo "<h2>1. Cek isi storage/logs/laravel.log Terbaru</h2>";
+echo "<style>body{font-family:monospace;font-size:13px;} pre{background:#f4f4f4;padding:8px;border-radius:4px;} h2{color:#333;border-bottom:1px solid #ccc;}</style>";
 
-$logFile = storage_path('logs/laravel.log');
-if (file_exists($logFile)) {
-    $lines = file($logFile);
-    $lastLines = array_slice($lines, -60);
-    echo "<pre>" . htmlspecialchars(implode("", $lastLines)) . "</pre>";
+$user = DB::table('users')->where('name', 'LIKE', '%Maria Ignatia%')->first();
+
+echo "<h2>1. User Record Maria Ignatia</h2>";
+if ($user) {
+    echo "<pre>";
+    echo "ID: {$user->id}\nName: {$user->name}\nUsername: {$user->username}\nRole: {$user->role}\nWalikelas Kelas: " . ($user->walikelas_kelas ?? 'NULL') . "\nAdditional Roles: " . ($user->additional_roles ?? 'NULL');
+    echo "</pre>";
+    
+    $uObj = \App\Models\User::find($user->id);
+    echo "getManagedClass(): '{$uObj->getManagedClass()}'<br>";
 } else {
-    echo "<b style='color:red'>File storage/logs/laravel.log tidak ditemukan!</b>";
+    echo "<b style='color:red'>User Maria Ignatia tidak ditemukan!</b>";
 }
 
-echo "<h2>2. Cek Exception saat Panggil Route /ijin</h2>";
-try {
-    $request = \Illuminate\Http\Request::create('/ijin', 'GET');
-    $response = $app->handle($request);
-    echo "HTTP Status Code: " . $response->getStatusCode() . "<br>";
-    if ($response->getStatusCode() === 500) {
-        echo "<b style='color:red'>HTTP 500 Detected!</b><br>";
-        if (isset($response->exception)) {
-            echo "<pre>Exception: " . $response->exception->getMessage() . "\nFile: " . $response->exception->getFile() . ":" . $response->exception->getLine() . "\n\nTrace:\n" . $response->exception->getTraceAsString() . "</pre>";
-        }
-    } else {
-        echo "<b style='color:green'>HTTP Status " . $response->getStatusCode() . " OK!</b>";
-    }
-} catch (\Throwable $e) {
-    echo "<b style='color:red'>Caught Throwable during handle:</b><br>";
-    echo "<pre>" . $e->getMessage() . "\nFile: " . $e->getFile() . ":" . $e->getLine() . "\n\n" . $e->getTraceAsString() . "</pre>";
+echo "<h2>2. Tes Query Jurnal untuk Maria (view=walikelas)</h2>";
+$ta = session('tahun_ajaran') ?? '2026/2027';
+echo "TA: '{$ta}'<br>";
+
+$query = DB::table('jurnal')
+    ->where('kelas', $uObj ? $uObj->getManagedClass() : '9A');
+
+if ($ta) {
+    $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $ta));
+    $query->where(function($q) use ($ta, $cleanTa) {
+        $q->where('tahun_ajaran', $ta)
+          ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
+          ->orWhereNull('tahun_ajaran');
+    });
+}
+
+$rows = $query->orderBy('created_at', 'desc')->get();
+echo "Total Rows untuk Kelas 9A: " . $rows->count() . "<br>";
+foreach ($rows as $r) {
+    echo "<pre>ID: {$r->id} | Kelas: {$r->kelas} | Mapel: {$r->mapel} | Guru: {$r->guru} | TA: {$r->tahun_ajaran} | Tgl: {$r->created_at}</pre>";
 }
