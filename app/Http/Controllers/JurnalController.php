@@ -89,8 +89,33 @@ class JurnalController extends Controller
             $userRole = strtolower($user->role ?? '');
             $isSiswa = ($userRole === 'siswa');
             $isKetuaOnly = ($userRole === 'ketuakelas' && !$user->hasRole('guru'));
-            
-            if ($isSiswa) {
+
+            // Cek apakah siswa juga punya role ketuakelas (additional_roles)
+            $isKetuaKelas = $user->hasRole('ketuakelas')
+                || ($user->additional_roles && str_contains($user->additional_roles, 'ketuakelas'));
+
+            // Jika view=walikelas dan user adalah ketuakelas (baik role utama maupun additional)
+            if ($request->query('view') === 'walikelas' && $isKetuaKelas) {
+                // Cari kelas yang dikelola sebagai ketua kelas
+                $kelasKetua = $user->walikelas_kelas
+                    ?? ($user->getManagedClass() ?: null);
+
+                if (!$kelasKetua && $isSiswa) {
+                    // Fallback: ambil dari tabel siswa
+                    $siswaData = Siswa::where('nis', $user->username)
+                        ->orWhere('nama', $user->name)
+                        ->first();
+                    $kelasKetua = $siswaData ? $siswaData->kelas : null;
+                }
+
+                $query->where('kelas', $kelasKetua);
+
+                if ($request->filled('crtgl')) {
+                    $query->whereDate('created_at', $request->crtgl);
+                }
+
+            } elseif ($isSiswa) {
+                // Siswa biasa — lihat jurnal kelasnya sendiri
                 $siswa = Siswa::where('nama', $user->name)->orWhere('nis', $user->username)->first();
                 $kelasSiswa = $siswa ? $siswa->kelas : null;
                 $query->where('kelas', $kelasSiswa);
