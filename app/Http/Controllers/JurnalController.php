@@ -50,11 +50,31 @@ class JurnalController extends Controller
 // Role Siswa
         // Check if request is AJAX / DataTables Server-Side request
         if ($request->ajax() || $request->has('draw')) {
-            $query = Jurnal::when(session('tahun_ajaran'), function($q) { return $q->where('tahun_ajaran', session('tahun_ajaran')); })
-                ->when(session('semester'), function($q) { return $q->where('semester', session('semester')); });
+            $rawTa = session('tahun_ajaran');
+            $rawSem = session('semester');
+
+            $query = Jurnal::query();
+
+            if (!empty($rawTa)) {
+                $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
+                $query->where(function($q) use ($rawTa, $cleanTa) {
+                    $q->where('tahun_ajaran', $rawTa)
+                      ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
+                      ->orWhereNull('tahun_ajaran')
+                      ->orWhere('tahun_ajaran', '');
+                });
+            }
+
+            if (!empty($rawSem)) {
+                $query->where(function($q) use ($rawSem) {
+                    $q->where('semester', $rawSem)
+                      ->orWhereNull('semester')
+                      ->orWhere('semester', '');
+                });
+            }
 
             if (auth()->user()->role == 'siswa') {
-                $siswa = Siswa::where('nama', auth()->user()->name)->where('tahun_ajaran', session('tahun_ajaran'))->first();
+                $siswa = Siswa::where('nama', auth()->user()->name)->first();
                 $kelasSiswa = $siswa ? $siswa->kelas : null;
                 $query->where('kelas', $kelasSiswa);
             } elseif (auth()->user()->role == 'walikelas' || auth()->user()->role == 'ketuakelas') {
@@ -66,11 +86,20 @@ class JurnalController extends Controller
                 }
             } elseif (auth()->user()->hasRole('guru') || auth()->user()->role == 'guru') {
                 $teacherUser = auth()->user();
-                $cleanTeacherName = trim(preg_replace('/,.*$/', '', $teacherUser->name));
-                $query->where(function($q) use ($teacherUser, $cleanTeacherName) {
+                $fullName = $teacherUser->name;
+                $cleanName = trim(preg_replace('/,.*$/', '', $fullName));
+                $nameParts = explode(' ', $cleanName);
+                $firstWord = $nameParts[0] ?? '';
+                $secondWord = $nameParts[1] ?? '';
+                $twoWords = trim($firstWord . ' ' . $secondWord);
+
+                $query->where(function($q) use ($teacherUser, $fullName, $cleanName, $twoWords) {
                     $q->where('guru_id', $teacherUser->id)
-                      ->orWhere('guru', 'LIKE', '%' . $teacherUser->name . '%')
-                      ->orWhere('guru', 'LIKE', '%' . $cleanTeacherName . '%');
+                      ->orWhere('guru', 'LIKE', '%' . $fullName . '%')
+                      ->orWhere('guru', 'LIKE', '%' . $cleanName . '%');
+                    if (strlen($twoWords) >= 3) {
+                        $q->orWhere('guru', 'LIKE', '%' . $twoWords . '%');
+                    }
                     if ($teacherUser->username) {
                         $q->orWhere('guru', 'LIKE', '%' . $teacherUser->username . '%');
                     }
