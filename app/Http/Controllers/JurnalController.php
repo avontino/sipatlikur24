@@ -94,12 +94,12 @@ class JurnalController extends Controller
             $isKetuaKelas = $user->hasRole('ketuakelas')
                 || ($user->additional_roles && str_contains($user->additional_roles, 'ketuakelas'));
 
-            // Jika view=walikelas dan user adalah ketuakelas (baik role utama maupun additional)
-            if ($request->query('view') === 'walikelas' && $isKetuaKelas) {
-                // Cari kelas yang dikelola sebagai ketua kelas (otomatis ambil kelas TA aktif terbaru)
-                $kelasKetua = $user->getManagedClass() ?: $user->walikelas_kelas;
+            // 1. Jika view=walikelas (Wali Kelas / Ketua Kelas melihat Jurnal Kelas Perwaliannya)
+            $managedClass = $user->getManagedClass() ?: $user->walikelas_kelas;
 
-                $query->where('kelas', $kelasKetua);
+            if ($request->query('view') === 'walikelas' && $managedClass) {
+                // Filter hanya jurnal untuk kelas perwalian (misal 9A)
+                $query->where('kelas', $managedClass);
 
                 if ($request->filled('crtgl')) {
                     $query->whereDate('created_at', $request->crtgl);
@@ -107,7 +107,7 @@ class JurnalController extends Controller
 
             } elseif ($isSiswa) {
                 // Siswa biasa — lihat jurnal kelasnya sendiri (otomatis ambil kelas TA aktif terbaru)
-                $kelasSiswa = $user->getManagedClass();
+                $kelasSiswa = $managedClass;
                 if (!$kelasSiswa) {
                     $siswa = Siswa::where(function($q) use ($user) {
                             $q->where('nama', $user->name)->orWhere('nis', $user->username);
@@ -118,43 +118,39 @@ class JurnalController extends Controller
                 }
                 $query->where('kelas', $kelasSiswa);
             } elseif ($isKetuaOnly) {
-                $kelas = $user->getManagedClass() ?: $user->name;
+                $kelas = $managedClass ?: $user->name;
                 $query->where('kelas', $kelas);
 
                 if ($request->filled('crtgl')) {
                     $query->whereDate('created_at', $request->crtgl);
                 }
             } else {
-                // Semua role Guru (termasuk Wali Kelas & Ketuakelas tambahan)
-                if ($request->query('view') === 'walikelas' && $user->walikelas_kelas) {
-                    $query->where('kelas', $user->walikelas_kelas);
-                } else {
-                    $fullName = $user->name;
-                    // Hapus gelar (S.Pd., M.Pd., Dra., Drs., S.Ag, dll) agar tidak salah mencocokkan "S.Pd" ke semua guru
-                    $cleanName = trim(preg_replace('/,?\s*(S\.Pd|M\.Pd|S\.Pd\.I|M\.Pd\.I|S\.Ag|S\.Kom|S\.Si|S\.T|S\.SE|S\.Sos|S\.H|Dra\.|Drs\.|H\.|Hj\.|M\.T|M\.Si)\.?/i', '', $fullName));
-                    $cleanName = trim(preg_replace('/[.,]/', ' ', $cleanName));
-                    $cleanName = trim(preg_replace('/\s+/', ' ', $cleanName));
+                // Semua role Guru (Riwayat Jurnal Saya — Jurnal Mengajar Saya)
+                $fullName = $user->name;
+                // Hapus gelar (S.Pd., M.Pd., Dra., Drs., S.Ag, dll) agar tidak salah mencocokkan "S.Pd" ke semua guru
+                $cleanName = trim(preg_replace('/,?\s*(S\.Pd|M\.Pd|S\.Pd\.I|M\.Pd\.I|S\.Ag|S\.Kom|S\.Si|S\.T|S\.SE|S\.Sos|S\.H|Dra\.|Drs\.|H\.|Hj\.|M\.T|M\.Si)\.?/i', '', $fullName));
+                $cleanName = trim(preg_replace('/[.,]/', ' ', $cleanName));
+                $cleanName = trim(preg_replace('/\s+/', ' ', $cleanName));
 
-                    $nameParts = explode(' ', $cleanName);
-                    $firstTwoWords = implode(' ', array_slice($nameParts, 0, min(2, count($nameParts))));
+                $nameParts = explode(' ', $cleanName);
+                $firstTwoWords = implode(' ', array_slice($nameParts, 0, min(2, count($nameParts))));
 
-                    $query->where(function($q) use ($user, $fullName, $cleanName, $firstTwoWords) {
-                        $q->where('guru_id', $user->id)
-                          ->orWhere('guru', 'LIKE', '%' . $fullName . '%');
+                $query->where(function($q) use ($user, $fullName, $cleanName, $firstTwoWords) {
+                    $q->where('guru_id', $user->id)
+                      ->orWhere('guru', 'LIKE', '%' . $fullName . '%');
 
-                        if (!empty($cleanName) && strlen($cleanName) >= 3) {
-                            $q->orWhere('guru', 'LIKE', '%' . $cleanName . '%');
-                        }
+                    if (!empty($cleanName) && strlen($cleanName) >= 3) {
+                        $q->orWhere('guru', 'LIKE', '%' . $cleanName . '%');
+                    }
 
-                        if (!empty($firstTwoWords) && strlen($firstTwoWords) >= 5) {
-                            $q->orWhere('guru', 'LIKE', '%' . $firstTwoWords . '%');
-                        }
+                    if (!empty($firstTwoWords) && strlen($firstTwoWords) >= 5) {
+                        $q->orWhere('guru', 'LIKE', '%' . $firstTwoWords . '%');
+                    }
 
-                        if ($user->username) {
-                            $q->orWhere('guru', 'LIKE', '%' . $user->username . '%');
-                        }
-                    });
-                }
+                    if ($user->username) {
+                        $q->orWhere('guru', 'LIKE', '%' . $user->username . '%');
+                    }
+                });
 
                 if ($request->filled('crtgl')) {
                     $query->whereDate('created_at', $request->crtgl);
