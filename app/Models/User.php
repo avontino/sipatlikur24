@@ -253,55 +253,8 @@ class User extends Authenticatable
             return $this->walikelas_kelas;
         }
 
-        if ($this->hasRole('ketuakelas') || $this->hasRole('walikelas')) {
-            // Prioritas 2: Cari kelas dari tabel siswa berdasarkan tahun ajaran AKTIF
-            $rawTa = \Illuminate\Support\Facades\DB::table('tahun_ajaran')
-                ->where('status', 1)
-                ->value('tahun_ajaran');
-
-            if ($rawTa) {
-                $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
-                $firstYear = explode('/', $cleanTa)[0] ?? $cleanTa;
-
-                $siswaClass = \App\Models\Siswa::where(function ($q) {
-                        $q->where('nis', $this->username)
-                          ->orWhere('nama', $this->name);
-                    })
-                    ->where(function ($q) use ($rawTa, $cleanTa, $firstYear) {
-                        $q->where('tahun_ajaran', $rawTa)
-                          ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
-                          ->orWhere('tahun_ajaran', 'LIKE', '%' . $firstYear . '%')
-                          ->orWhereNull('tahun_ajaran');
-                    })
-                    ->orderBy('id', 'desc')
-                    ->value('kelas');
-
-                if ($siswaClass) {
-                    return $siswaClass;
-                }
-            }
-
-            // Prioritas 3: Fallback — ambil data siswa terbaru (id terbesar)
-            $siswaClass = \App\Models\Siswa::where(function ($q) {
-                    $q->where('nis', $this->username)
-                      ->orWhere('nama', $this->name);
-                })
-                ->orderBy('id', 'desc')
-                ->value('kelas');
-
-            if ($siswaClass) {
-                return $siswaClass;
-            }
-
-            return $this->name;
-        }
-
-        if ($this->hasRole('guru') || $this->role === 'guru') {
-            if ($this->walikelas_kelas) {
-                return $this->walikelas_kelas;
-            }
-
-            // Fallback: Peta Wali Kelas Sekolah
+        // Prioritas 2: Jika user adalah Guru / Wali Kelas, cek Peta Wali Kelas Sekolah
+        if ($this->role !== 'siswa' && $this->role !== 'ketuakelas') {
             $walis = [
                 '7A' => ['Dwi Rahmawati'],
                 '7B' => ['Elsye', 'Sandra'],
@@ -335,7 +288,46 @@ class User extends Authenticatable
             }
         }
 
-        return null;
+        // Prioritas 3: Siswa / Ketua Kelas — cari kelas dari tabel siswa berdasarkan TA aktif
+        $rawTa = \Illuminate\Support\Facades\DB::table('tahun_ajaran')
+            ->where('status', 1)
+            ->value('tahun_ajaran');
+
+        if ($rawTa) {
+            $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
+            $firstYear = explode('/', $cleanTa)[0] ?? $cleanTa;
+
+            $siswaClass = \App\Models\Siswa::where(function ($q) {
+                    $q->where('nis', $this->username)
+                      ->orWhere('nama', $this->name);
+                })
+                ->where(function ($q) use ($rawTa, $cleanTa, $firstYear) {
+                    $q->where('tahun_ajaran', $rawTa)
+                      ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
+                      ->orWhere('tahun_ajaran', 'LIKE', '%' . $firstYear . '%')
+                      ->orWhereNull('tahun_ajaran');
+                })
+                ->orderBy('id', 'desc')
+                ->value('kelas');
+
+            if ($siswaClass) {
+                return $siswaClass;
+            }
+        }
+
+        // Prioritas 4: Fallback — ambil data siswa terbaru (id terbesar)
+        $siswaClass = \App\Models\Siswa::where(function ($q) {
+                $q->where('nis', $this->username)
+                  ->orWhere('nama', $this->name);
+            })
+            ->orderBy('id', 'desc')
+            ->value('kelas');
+
+        if ($siswaClass) {
+            return $siswaClass;
+        }
+
+        return $this->name;
     }
 
     /**
