@@ -351,7 +351,7 @@
             <div class="small mb-2" style="font-size: 11px; line-height: 1.3; color: #475569 !important;">
               Scan QR Code ini menggunakan HP Anda untuk mengunduh aplikasi Android SIPATLIKUR.
             </div>
-            <a href="https://pixeldrain.com/u/barXnQkK" target="_blank" class="btn btn-sm btn-success text-white py-1 px-3 text-decoration-none fw-semibold shadow-sm" style="font-size: 11px; border-radius: 20px; background-color: #009638 !important; border-color: #009638 !important;">
+            <a href="https://sipatlikur.smpn24-mlg.sch.id/SIPATLIKUR24.apk" target="_blank" class="btn btn-sm btn-success text-white py-1 px-3 text-decoration-none fw-semibold shadow-sm" style="font-size: 11px; border-radius: 20px; background-color: #009638 !important; border-color: #009638 !important;">
               <i class="fas fa-download me-1"></i> Download APK Langsung
             </a>
           </div>
