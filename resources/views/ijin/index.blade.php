@@ -23,24 +23,17 @@
 								</div>
 
 								<div class="card-body">
-								@if($data_ijin->isEmpty())
-											<tr>
-												<td colspan="12" class="text-center">Tidak ada data ijin tersedia</td>
-											</tr>
-										@else	
+								  <form class="form-inline mb-3 d-flex gap-2 flex-wrap" method="GET" action="/ijin">
+								    <input name="filter" class="form-control form-control-sm" type="date" value="{{ request('filter') }}" style="width: auto;">
+								    <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-filter me-1"></i> Filter</button>
+								    @if(request('filter'))
+								    	<a href="/ijin" class="btn btn-sm btn-outline-secondary">Reset</a>
+								    @endif
 
-								  <form class="form-inline" method="GET" action="/ijin">
-
-								    <input name="filter" class="form-control mr-sm-2" type="date" >
-								    <button type="submit" class="btn btn-primary mr-sm-2">Filter</button>
-
-								    <a href="/ijin/export" class="btn btn-sm btn-primary mr-sm-2">Export</a>
-
-								    <button type="button" class=" btn btn-success btn-sm " data-bs-toggle="modal" data-bs-target="#rk">Rekap Kehadiran</button>
-
+								    <a href="/ijin/export" class="btn btn-sm btn-success text-white ms-auto"><i class="fas fa-file-excel me-1"></i> Export</a>
+								    <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#rk"><i class="fas fa-calendar-alt me-1"></i> Rekap Kehadiran</button>
 								  </form>
 
-								  </br>
 									 <table id="example3" class="table table-bordered table-striped">
 										<thead>
 											<tr>
@@ -58,88 +51,97 @@
 											</tr>
 										</thead>
 										<tbody>
-											@foreach($data_ijin as $ijin)
-											<tr>
-												<td>{{$ijin->tglmasuk}}</td>
-												<td>{{$ijin->guru}}</td>
-												<td>{{$ijin->mapel}}</td>
-												<td>
-													@if($ijin->sia == 'Terlambat')
-														<span class="badge bg-warning text-dark">Terlambat</span>
-													@elseif($ijin->sia == 'Sakit')
-														<span class="badge bg-info">Sakit</span>
-													@elseif($ijin->sia == 'Ijin')
-														<span class="badge bg-success">Ijin</span>
-													@else
-														<span class="badge bg-danger">Alpha</span>
-													@endif
-												</td>
-												<td>{{$ijin->jumlah}}</td>
-												<td>
-													@if($ijin->jam_terlambat)
-														{{date('H:i', strtotime($ijin->jam_terlambat))}}
-													@else
-														-
-													@endif
-												</td>
-												<td>{{$ijin->ket}}</td>
-												<td>
-													@if($ijin->attachment)
-														<a href="{{ asset($ijin->attachment) }}" target="_blank" class="btn btn-xs btn-outline-primary"><i class="fas fa-file-alt"></i> Bukti</a>
-													@else
-														<span class="text-muted small">-</span>
-													@endif
-												</td>
-												<td>
-													@if($ijin->approval_status == 'pending')
-														<span class="badge bg-warning text-dark"><i class="fas fa-spinner fa-spin me-1"></i> Pending</span>
-													@elseif($ijin->approval_status == 'approved')
-														<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Disetujui</span>
-													@else
-														<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Ditolak</span>
-													@endif
-												</td>
-												<td>{{$ijin->created_at->format('d M Y - H:i')}}</td>
-												<td>
-													<div class="d-flex gap-1 flex-wrap">
-														@if(auth()->user()->role == 'admin')
-															@if($ijin->approval_status == 'pending')
-																<form action="{{ route('ijin.approve', $ijin->id) }}" method="POST" class="d-inline">
-																	@csrf
-																	<button type="submit" class="btn btn-xs btn-success text-white"><i class="fas fa-check"></i></button>
-																</form>
-																<form action="{{ route('ijin.reject', $ijin->id) }}" method="POST" class="d-inline">
-																	@csrf
-																	<button type="submit" class="btn btn-xs btn-danger text-white"><i class="fas fa-times"></i></button>
-																</form>
-															@endif
-															<button type="button" class="btn btn-warning btn-xs text-white" 
-																data-myid="{{$ijin->id}}"
-																data-mytglmasuk="{{$ijin->tglmasuk}}"
-																data-myguru="{{$ijin->guru}}"
-																data-mymapel="{{$ijin->mapel}}"
-																data-mysia="{{$ijin->sia}}"
-																data-myjumlah="{{$ijin->jumlah}}"
-																data-myjam_terlambat="{{$ijin->jam_terlambat}}"
-																data-myket="{{$ijin->ket}}"
-																data-bs-toggle="modal" data-bs-target="#edit">Edit</button>
-															<a href="/ijin/{{$ijin->id}}/delete" class="btn btn-danger btn-xs text-white" onclick="return confirm('Hapus izin ini?')">Hapus</a>
+											@if($data_ijin->isEmpty())
+												<tr>
+													<td colspan="11" class="text-center text-muted py-4">Tidak ada data ijin tersedia</td>
+												</tr>
+											@else
+												@foreach($data_ijin as $ijin)
+												<tr>
+													<td>{{$ijin->tglmasuk}}</td>
+													<td>{{$ijin->guru}}</td>
+													<td>{{$ijin->mapel}}</td>
+													<td>
+														@if($ijin->sia == 'Terlambat')
+															<span class="badge bg-warning text-dark">Terlambat</span>
+														@elseif($ijin->sia == 'Sakit')
+															<span class="badge bg-info">Sakit</span>
+														@elseif($ijin->sia == 'Ijin')
+															<span class="badge bg-success">Ijin</span>
 														@else
-															@if($ijin->approval_status == 'pending')
-																<a href="/ijin/{{$ijin->id}}/delete" class="btn btn-danger btn-xs text-white" onclick="return confirm('Batalkan izin ini?')">Batal</a>
-															@else
-																<span class="text-muted small">No Action</span>
-															@endif
+															<span class="badge bg-danger">Alpha</span>
 														@endif
-													</div>
-												</td>
-											</tr>
-											@endforeach
-
-
+													</td>
+													<td>{{$ijin->jumlah}}</td>
+													<td>
+														@if($ijin->jam_terlambat)
+															{{date('H:i', strtotime($ijin->jam_terlambat))}}
+														@else
+															-
+														@endif
+													</td>
+													<td>{{$ijin->ket}}</td>
+													<td>
+														@if($ijin->attachment)
+															<a href="{{ asset($ijin->attachment) }}" target="_blank" class="btn btn-xs btn-outline-primary"><i class="fas fa-file-alt"></i> Bukti</a>
+														@else
+															<span class="text-muted small">-</span>
+														@endif
+													</td>
+													<td>
+														@if($ijin->approval_status == 'pending')
+															<span class="badge bg-warning text-dark"><i class="fas fa-spinner fa-spin me-1"></i> Pending</span>
+														@elseif($ijin->approval_status == 'approved')
+															<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Disetujui</span>
+														@else
+															<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Ditolak</span>
+														@endif
+													</td>
+													<td>
+														@if($ijin->created_at)
+															{{ is_object($ijin->created_at) ? $ijin->created_at->format('d M Y - H:i') : \Carbon\Carbon::parse($ijin->created_at)->format('d M Y - H:i') }}
+														@else
+															-
+														@endif
+													</td>
+													<td>
+														<div class="d-flex gap-1 flex-wrap">
+															@if(auth()->user()->role == 'admin')
+																@if($ijin->approval_status == 'pending')
+																	<form action="{{ route('ijin.approve', $ijin->id) }}" method="POST" class="d-inline">
+																		@csrf
+																		<button type="submit" class="btn btn-xs btn-success text-white" title="Setujui"><i class="fas fa-check"></i></button>
+																	</form>
+																	<form action="{{ route('ijin.reject', $ijin->id) }}" method="POST" class="d-inline">
+																		@csrf
+																		<button type="submit" class="btn btn-xs btn-danger text-white" title="Tolak"><i class="fas fa-times"></i></button>
+																	</form>
+																@endif
+																<button type="button" class="btn btn-warning btn-xs text-white" 
+																	data-myid="{{$ijin->id}}"
+																	data-mytglmasuk="{{$ijin->tglmasuk}}"
+																	data-myguru="{{$ijin->guru}}"
+																	data-mymapel="{{$ijin->mapel}}"
+																	data-mysia="{{$ijin->sia}}"
+																	data-myjumlah="{{$ijin->jumlah}}"
+																	data-myjam_terlambat="{{$ijin->jam_terlambat}}"
+																	data-myket="{{$ijin->ket}}"
+																	data-bs-toggle="modal" data-bs-target="#edit">Edit</button>
+																<a href="/ijin/{{$ijin->id}}/delete" class="btn btn-danger btn-xs text-white" onclick="return confirm('Hapus izin ini?')">Hapus</a>
+															@else
+																@if($ijin->approval_status == 'pending')
+																	<a href="/ijin/{{$ijin->id}}/delete" class="btn btn-danger btn-xs text-white" onclick="return confirm('Batalkan izin ini?')">Batal</a>
+																@else
+																	<span class="text-muted small">-</span>
+																@endif
+															@endif
+														</div>
+													</td>
+												</tr>
+												@endforeach
+											@endif
 										</tbody>
 									</table>
-								@endif
 								</div>
 							</div>
 				</div>
@@ -147,12 +149,6 @@
 		</div>
 	</div>
 
-
-@if($data_ijin->isEmpty())
-											<tr>
-												<!-- <td colspan="12" class="text-center">Tidak ada data jadwal tersedia</td> -->
-											</tr>
-										@else
 <!-- Modal Edit -->
 <div class="modal fade" id="editijin" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 	<div class="modal-dialog" role="document">
@@ -256,10 +252,6 @@
     </div>
   </div>
 </div>
-
-
-
-@endif
 
 @endsection
 

@@ -76,25 +76,34 @@ class IjinController extends Controller
 
     public function index(Request $request)
     {
-        $ma_pel=Mapel::all();
-        $gu_ru=Guru::all();
-        $ke_las=Kelas::all();
+        try {
+            $ma_pel = Mapel::all();
+            $gu_ru  = Guru::all();
+            $ke_las = Kelas::all();
 
-        $isGuru = (auth()->user()->role == 'guru');
-        
-        if ($request->filled('filter')) {
-            $query = \App\Models\Ijin::whereDate('tglmasuk', $request->filter);
-        } else {
-            $query = \App\Models\Ijin::query();
+            $user = auth()->user();
+            $isGuru = ($user->role == 'guru');
+
+            if ($request->filled('filter')) {
+                $query = \App\Models\Ijin::whereDate('tglmasuk', $request->filter);
+            } else {
+                $query = \App\Models\Ijin::query();
+            }
+
+            if ($isGuru) {
+                $query->where(function($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhere('guru', 'LIKE', '%' . $user->name . '%');
+                });
+            }
+
+            $data_ijin = $query->orderBy('created_at', 'desc')->get();
+
+            return view('ijin.index', ['data_ijin' => $data_ijin], compact('ma_pel', 'gu_ru', 'ke_las'));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('IjinController index error: ' . $e->getMessage());
+            return redirect('/dashboard')->with('gagal', 'Terjadi kesalahan saat memuat halaman izin: ' . $e->getMessage());
         }
-
-        if ($isGuru) {
-            $query->where('user_id', auth()->user()->id);
-        }
-
-        $data_ijin = $query->orderBy('created_at','desc')->get();
-        
-    	return view('ijin.index',['data_ijin' => $data_ijin],compact('ma_pel','gu_ru','ke_las'));
     }
 
     public function export() 
