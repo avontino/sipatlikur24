@@ -5,41 +5,57 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\Jurnal;
 
-echo "<style>body{font-family:monospace;font-size:13px;} pre{background:#f4f4f4;padding:8px;border-radius:4px;} h2{color:#333;border-bottom:1px solid #ccc;}</style>";
+echo "<style>body{font-family:monospace;font-size:13px;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #ccc;padding:6px;text-align:left;} th{background:#eee;} h2{color:#333;border-bottom:1px solid #ccc;}</style>";
 
-$user = DB::table('users')->where('name', 'LIKE', '%Maria Ignatia%')->first();
+$user = User::where('name', 'LIKE', '%Maria Ignatia%')->first();
 
-echo "<h2>1. User Record Maria Ignatia</h2>";
-if ($user) {
-    echo "<pre>";
-    echo "ID: {$user->id}\nName: {$user->name}\nUsername: {$user->username}\nRole: {$user->role}\nWalikelas Kelas: " . ($user->walikelas_kelas ?? 'NULL') . "\nAdditional Roles: " . ($user->additional_roles ?? 'NULL');
-    echo "</pre>";
-    
-    $uObj = \App\Models\User::find($user->id);
-    echo "getManagedClass(): '{$uObj->getManagedClass()}'<br>";
-} else {
-    echo "<b style='color:red'>User Maria Ignatia tidak ditemukan!</b>";
+if (!$user) {
+    die("User Maria Ignatia tidak ditemukan!");
 }
 
-echo "<h2>2. Tes Query Jurnal untuk Maria (view=walikelas)</h2>";
-$ta = session('tahun_ajaran') ?? '2026/2027';
-echo "TA: '{$ta}'<br>";
+auth()->login($user);
 
-$query = DB::table('jurnal')
-    ->where('kelas', $uObj ? $uObj->getManagedClass() : '9A');
+echo "<h2>1. Data User & Managed Class</h2>";
+echo "User ID: {$user->id}<br>";
+echo "User Name: {$user->name}<br>";
+echo "Role: {$user->role}<br>";
+echo "Additional Roles: {$user->additional_roles}<br>";
+echo "walikelas_kelas: " . ($user->walikelas_kelas ?? 'NULL') . "<br>";
+echo "<b style='color:blue'>getManagedClass(): " . var_export($user->getManagedClass(), true) . "</b><br>";
 
-if ($ta) {
-    $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $ta));
-    $query->where(function($q) use ($ta, $cleanTa) {
-        $q->where('tahun_ajaran', $ta)
-          ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
-          ->orWhereNull('tahun_ajaran');
-    });
+echo "<h2>2. Hasil Query Jurnal (view=walikelas) di JurnalController</h2>";
+
+$req = \Illuminate\Http\Request::create('/jurnal?view=walikelas', 'GET');
+$controller = new \App\Http\Controllers\JurnalController();
+
+// Panggil index via Reflection atau simulasi query
+$managedClass = $user->getManagedClass();
+echo "Kelas yang digunakan untuk filter: <b>" . var_export($managedClass, true) . "</b><br><br>";
+
+$query = Jurnal::query();
+
+if ($managedClass) {
+    $query->where('kelas', $managedClass);
 }
 
-$rows = $query->orderBy('created_at', 'desc')->get();
-echo "Total Rows untuk Kelas 9A: " . $rows->count() . "<br>";
-foreach ($rows as $r) {
-    echo "<pre>ID: {$r->id} | Kelas: {$r->kelas} | Mapel: {$r->mapel} | Guru: {$r->guru} | TA: {$r->tahun_ajaran} | Tgl: {$r->created_at}</pre>";
+$results = $query->orderBy('created_at', 'desc')->take(10)->get();
+
+echo "Total records ditemukan: " . $results->count() . "<br><br>";
+echo "<table>";
+echo "<tr><th>ID</th><th>Kelas</th><th>Mata Pelajaran</th><th>Guru</th><th>Materi</th><th>Tahun Ajaran</th><th>Semester</th><th>Tanggal</th></tr>";
+foreach ($results as $row) {
+    echo "<tr>";
+    echo "<td>{$row->id}</td>";
+    echo "<td>{$row->kelas}</td>";
+    echo "<td>{$row->mapel}</td>";
+    echo "<td>{$row->guru}</td>";
+    echo "<td>{$row->materi}</td>";
+    echo "<td>{$row->tahun_ajaran}</td>";
+    echo "<td>{$row->semester}</td>";
+    echo "<td>{$row->created_at}</td>";
+    echo "</tr>";
 }
+echo "</table>";
