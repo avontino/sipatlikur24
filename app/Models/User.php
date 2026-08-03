@@ -248,36 +248,25 @@ class User extends Authenticatable
      */
     public function getManagedClass()
     {
-        // Prioritas 1: walikelas_kelas sudah diset secara eksplisit
+        // Prioritas 1: walikelas_kelas sudah diset secara eksplisit oleh admin
         if ($this->walikelas_kelas) {
             return $this->walikelas_kelas;
         }
 
         if ($this->hasRole('ketuakelas') || $this->hasRole('walikelas')) {
-            // Prioritas 2: Cari dari tabel siswa dengan filter tahun ajaran aktif
-            // (agar siswa yang naik kelas tidak pakai kelas tahun lalu)
+            // Prioritas 2: Cari kelas dari tabel siswa berdasarkan tahun ajaran AKTIF
+            // Sehingga siswa yang naik kelas otomatis dapat kelas baru
             $activeTa = \Illuminate\Support\Facades\DB::table('tahun_ajaran')
                 ->where('status', 1)
-                ->first();
+                ->value('tahun_ajaran');
 
             if ($activeTa) {
-                // Coba cari di tabel siswa berdasarkan NIS/nama dengan filter kelas aktif
-                // Siswa yang sudah naik kelas: cari dari jadwal/absen kelas mereka di TA aktif
                 $siswaClass = \App\Models\Siswa::where(function ($q) {
                         $q->where('nis', $this->username)
                           ->orWhere('nama', $this->name);
                     })
-                    // Filter berdasarkan tahun ajaran aktif jika kolom tersedia
-                    ->when(
-                        \Illuminate\Support\Facades\Schema::hasColumn('siswa', 'tahun_ajaran'),
-                        function ($q) use ($activeTa) {
-                            return $q->where(function ($inner) use ($activeTa) {
-                                $inner->where('tahun_ajaran', $activeTa->tahun_ajaran)
-                                      ->orWhereNull('tahun_ajaran');
-                            });
-                        }
-                    )
-                    ->orderBy('id', 'desc') // ambil data terbaru
+                    ->where('tahun_ajaran', 'LIKE', '%' . $activeTa . '%')
+                    ->orderBy('id', 'desc')
                     ->value('kelas');
 
                 if ($siswaClass) {
@@ -285,7 +274,7 @@ class User extends Authenticatable
                 }
             }
 
-            // Prioritas 3: Fallback ke kelas siswa manapun (tahun lama)
+            // Prioritas 3: Fallback — ambil data siswa terbaru (id terbesar)
             $siswaClass = \App\Models\Siswa::where('nis', $this->username)
                 ->orWhere('nama', $this->name)
                 ->orderBy('id', 'desc')

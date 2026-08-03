@@ -7,24 +7,47 @@ use Illuminate\Support\Facades\DB;
 
 echo "<style>body{font-family:monospace;font-size:13px;} pre{background:#f4f4f4;padding:8px;border-radius:4px;}</style>";
 
-// Cek kolom tabel siswa
-echo "<h2>1. Kolom tabel siswa</h2>";
-$cols = DB::select("SHOW COLUMNS FROM siswa");
-echo "<table border=1 cellpadding=4><tr><th>Field</th><th>Type</th><th>Null</th></tr>";
-foreach ($cols as $c) { echo "<tr><td>{$c->Field}</td><td>{$c->Type}</td><td>{$c->Null}</td></tr>"; }
-echo "</table>";
-
-// Cek semua record FEIZHIFARA
-echo "<h2>2. Semua record FEIZHIFARA di siswa</h2>";
+// Cek semua data FEIZHIFARA di siswa
+echo "<h2>1. Semua data FEIZHIFARA di tabel siswa (semua tahun)</h2>";
 $rows = DB::table('siswa')
     ->where('nama', 'LIKE', '%FEIZHIFARA%')
     ->orWhere('nama', 'LIKE', '%QONITAH%')
+    ->orderBy('id', 'desc')
     ->get();
-if ($rows->isEmpty()) echo "<b style='color:red'>Tidak ada!</b>";
-foreach ($rows as $r) echo "<pre>" . json_encode((array)$r, JSON_PRETTY_PRINT) . "</pre>";
+if ($rows->isEmpty()) {
+    echo "<b style='color:red'>Tidak ditemukan!</b>";
+} else {
+    foreach ($rows as $r) {
+        echo "<pre>ID: {$r->id} | NIS: {$r->nis} | Nama: {$r->nama} | Kelas: {$r->kelas} | TA: " . ($r->tahun_ajaran ?? 'NULL') . " | Sem: " . ($r->semester ?? 'NULL') . "</pre>";
+    }
+}
 
-// Cek data user FEIZHIFARA
-echo "<h2>3. User FEIZHIFARA di tabel users</h2>";
-$u = DB::table('users')->where('name','LIKE','%FEIZHIFARA%')->orWhere('name','LIKE','%QONITAH%')->first();
-if ($u) echo "<pre>" . json_encode((array)$u, JSON_PRETTY_PRINT) . "</pre>";
-else echo "<b style='color:red'>Tidak ada!</b>";
+// Cek user FEIZHIFARA
+echo "<h2>2. User FEIZHIFARA di tabel users</h2>";
+$u = DB::table('users')
+    ->where('name', 'LIKE', '%FEIZHIFARA%')
+    ->orWhere('name', 'LIKE', '%QONITAH%')
+    ->first();
+if ($u) {
+    echo "<pre>ID: {$u->id} | Name: {$u->name} | Username: {$u->username} | Role: {$u->role} | Additional Roles: " . ($u->additional_roles ?? 'NULL') . " | walikelas_kelas: " . ($u->walikelas_kelas ?? 'NULL') . "</pre>";
+}
+
+// Cek data siswa kelas 9B tahun ajaran aktif
+echo "<h2>3. Siswa kelas 9B di TA 2026/2027</h2>";
+$siswa9B = DB::table('siswa')
+    ->where('kelas', '9B')
+    ->where('tahun_ajaran', 'LIKE', '%2026/2027%')
+    ->limit(5)->get();
+if ($siswa9B->isEmpty()) {
+    echo "<b style='color:orange'>Belum ada siswa 9B di TA 2026/2027</b>";
+} else {
+    echo "<b style='color:green'>Ada " . $siswa9B->count() . " siswa</b>";
+    foreach ($siswa9B as $s) {
+        echo "<pre>{$s->nis} | {$s->nama} | {$s->kelas} | {$s->tahun_ajaran}</pre>";
+    }
+}
+
+// Cek tahun ajaran aktif
+echo "<h2>4. Tahun Ajaran Aktif</h2>";
+$ta = DB::table('tahun_ajaran')->where('status', 1)->first();
+echo "<pre>" . json_encode((array)$ta, JSON_PRETTY_PRINT) . "</pre>";
