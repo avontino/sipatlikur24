@@ -511,7 +511,7 @@ class JurnalhController extends Controller
 
             $myClass = $user->walikelas_kelas;
             if (!$myClass) {
-                $myClass = \App\Models\Siswa::where('username', $user->username)->orWhere('nama', $user->name)->value('kelas');
+                $myClass = \App\Models\Siswa::where('nis', $user->username)->orWhere('nama', $user->name)->value('kelas');
             }
 
             $isExplicitWaliView = ($view === 'walikelas');
