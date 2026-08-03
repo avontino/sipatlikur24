@@ -409,6 +409,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ajax: {
             url: "{{ url('/jurnal') }}",
             data: function (d) {
+                d.view = "{{ request('view') }}";
                 d.action = "{{ request('action') }}";
                 d.kelas = "{{ request('kelas') }}";
                 d.crtgl = "{{ request('crtgl') }}";
