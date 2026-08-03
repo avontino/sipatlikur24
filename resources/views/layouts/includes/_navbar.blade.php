@@ -154,7 +154,7 @@
                   <div style="flex: 1;">
                     <div class="small font-weight-bold text-dark" style="font-size: 12px; font-weight: 600;">{{ $data['title'] ?? 'Notifikasi' }}</div>
                     <div class="text-muted small mt-0" style="font-size: 11px; line-height: 1.3;">{{ $data['message'] ?? '' }}</div>
-                    <div class="text-muted small mt-1" style="font-size: 9px;"><i class="far fa-clock me-1"></i>{{ $notif->created_at->diffForHumans() }}</div>
+                    <div class="text-muted small mt-1" style="font-size: 9px;"><i class="far fa-clock me-1"></i>{{ $notif->created_at ? (is_object($notif->created_at) ? $notif->created_at->diffForHumans() : \Carbon\Carbon::parse($notif->created_at)->diffForHumans()) : '-' }}</div>
                   </div>
                 </a>
               @empty
