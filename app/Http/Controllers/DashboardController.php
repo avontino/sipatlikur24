@@ -48,16 +48,16 @@ class DashboardController extends Controller
             }
 
             if (auth()->user()->hasRole('guru')) {
-                $hariEng = [
-                    0 => 'Sunday',
-                    1 => 'Monday',
-                    2 => 'Tuesday',
-                    3 => 'Wednesday',
-                    4 => 'Thursday',
-                    5 => 'Friday',
-                    6 => 'Saturday'
+                $hariMapAll = [
+                    0 => ['Sunday', 'sunday', 'Minggu', 'minggu'],
+                    1 => ['Monday', 'monday', 'Senin', 'senin'],
+                    2 => ['Tuesday', 'tuesday', 'Selasa', 'selasa'],
+                    3 => ['Wednesday', 'wednesday', 'Rabu', 'rabu'],
+                    4 => ['Thursday', 'thursday', 'Kamis', 'kamis'],
+                    5 => ['Friday', 'friday', 'Jumat', 'jumat', "Jum'at"],
+                    6 => ['Saturday', 'saturday', 'Sabtu', 'sabtu'],
                 ];
-                $hariIni = $hariEng[$dayOfWeek];
+                $daysForToday = $hariMapAll[$dayOfWeek] ?? ['Monday', 'Senin'];
                 
                 $rawTa = session('tahun_ajaran');
                 $rawSem = session('semester');
@@ -67,7 +67,7 @@ class DashboardController extends Controller
                     if (auth()->user()->username) {
                         $q->orWhere('guru', 'LIKE', '%' . auth()->user()->username . '%');
                     }
-                })->where('hari', $hariIni);
+                })->whereIn('hari', $daysForToday);
 
                 if (!empty($rawTa)) {
                     $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
