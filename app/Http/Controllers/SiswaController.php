@@ -29,6 +29,7 @@ class SiswaController extends Controller
         }
 
         if ($request->filled('cari')) {
+            $cari = $request->cari;
             $query->where(function($q) use ($cari) {
                 $q->where('nis', 'LIKE', '%' . $cari . '%')
                   ->orWhere('nama', 'LIKE', '%' . $cari . '%')
