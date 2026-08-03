@@ -535,14 +535,30 @@ class JurnalController extends Controller
 
     public function edits(Request $request)
     {   
-       $ma_pel=Mapel::all();
-        $gu_ru=Guru::all();
-        $ke_las=Kelas::all();
+        $ma_pel = Mapel::all();
+        $gu_ru  = Guru::all();
+        $ke_las = Kelas::all();
 
-           $data_jurnal= Jurnal::where('kelas',auth()->user()->name)
-           ->whereDate('created_at',now())->orderBy('created_at','desc')->get();    
-           return view('jurnal.edits',['data_jurnal' => $data_jurnal],compact('ma_pel','gu_ru','ke_las'));
-}
+        $user  = auth()->user();
+        $kelas = $user->getManagedClass() ?: ($user->walikelas_kelas ?: $user->name);
+
+        $query = Jurnal::where('kelas', $kelas);
+
+        if ($rawTa = session('tahun_ajaran')) {
+            $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
+            $query->where(function($q) use ($rawTa, $cleanTa) {
+                $q->where('tahun_ajaran', $rawTa)
+                  ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
+                  ->orWhereNull('tahun_ajaran');
+            });
+        }
+
+        $data_jurnal = $query->whereDate('created_at', now())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('jurnal.edits', ['data_jurnal' => $data_jurnal], compact('ma_pel', 'gu_ru', 'ke_las'));
+    }
 
 //khusus update siswa
     public function updates(Request $request)
