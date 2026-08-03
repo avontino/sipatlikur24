@@ -3,51 +3,50 @@ require __DIR__ . '/../vendor/autoload.php';
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
+
 use Illuminate\Support\Facades\DB;
 
-echo "<style>body{font-family:monospace;font-size:13px;} pre{background:#f4f4f4;padding:8px;border-radius:4px;}</style>";
+echo "<style>body{font-family:monospace;font-size:13px;} pre{background:#f4f4f4;padding:8px;border-radius:4px;} h2{color:#333;border-bottom:1px solid #ccc;}</style>";
 
-// Cek semua data FEIZHIFARA di siswa
-echo "<h2>1. Semua data FEIZHIFARA di tabel siswa (semua tahun)</h2>";
-$rows = DB::table('siswa')
-    ->where('nama', 'LIKE', '%FEIZHIFARA%')
-    ->orWhere('nama', 'LIKE', '%QONITAH%')
-    ->orderBy('id', 'desc')
+echo "<h2>1. Semua Jadwal Avo di Tabel Jadwal</h2>";
+$jadwals = DB::table('jadwal')
+    ->where('guru', 'LIKE', '%Avo%')
+    ->orWhere('guru', 'LIKE', '%Satriyatma%')
     ->get();
-if ($rows->isEmpty()) {
-    echo "<b style='color:red'>Tidak ditemukan!</b>";
+
+if ($jadwals->isEmpty()) {
+    echo "<b style='color:red'>TIDAK ADA JADWAL AVO DI TABEL JADWAL!</b>";
 } else {
-    foreach ($rows as $r) {
-        echo "<pre>ID: {$r->id} | NIS: {$r->nis} | Nama: {$r->nama} | Kelas: {$r->kelas} | TA: " . ($r->tahun_ajaran ?? 'NULL') . " | Sem: " . ($r->semester ?? 'NULL') . "</pre>";
+    foreach ($jadwals as $j) {
+        echo "<pre>";
+        echo "ID: {$j->id} | Guru: '{$j->guru}' | Hari: '{$j->hari}' | Kelas: '{$j->kelas}' | Mapel: '{$j->mapel}' | TA: '" . ($j->tahun_ajaran ?? 'NULL') . "' | Sem: '" . ($j->semester ?? 'NULL') . "'";
+        echo "</pre>";
     }
 }
 
-// Cek user FEIZHIFARA
-echo "<h2>2. User FEIZHIFARA di tabel users</h2>";
-$u = DB::table('users')
-    ->where('name', 'LIKE', '%FEIZHIFARA%')
-    ->orWhere('name', 'LIKE', '%QONITAH%')
-    ->first();
-if ($u) {
-    echo "<pre>ID: {$u->id} | Name: {$u->name} | Username: {$u->username} | Role: {$u->role} | Additional Roles: " . ($u->additional_roles ?? 'NULL') . " | walikelas_kelas: " . ($u->walikelas_kelas ?? 'NULL') . "</pre>";
-}
+echo "<h2>2. Peringatan Dashboard (Simulasi Logic)</h2>";
+$user = DB::table('users')->where('name', 'LIKE', '%Avo%')->first();
+$dayOfWeek = now()->dayOfWeek; // 0=Sun
+$hariEng = [0 => 'Sunday', 1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
+$hariInd = [0 => 'Minggu', 1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu'];
 
-// Cek data siswa kelas 9B tahun ajaran aktif
-echo "<h2>3. Siswa kelas 9B di TA 2026/2027</h2>";
-$siswa9B = DB::table('siswa')
-    ->where('kelas', '9B')
-    ->where('tahun_ajaran', 'LIKE', '%2026/2027%')
-    ->limit(5)->get();
-if ($siswa9B->isEmpty()) {
-    echo "<b style='color:orange'>Belum ada siswa 9B di TA 2026/2027</b>";
-} else {
-    echo "<b style='color:green'>Ada " . $siswa9B->count() . " siswa</b>";
-    foreach ($siswa9B as $s) {
-        echo "<pre>{$s->nis} | {$s->nama} | {$s->kelas} | {$s->tahun_ajaran}</pre>";
-    }
-}
+$hEng = $hariEng[$dayOfWeek];
+$hInd = $hariInd[$dayOfWeek];
 
-// Cek tahun ajaran aktif
-echo "<h2>4. Tahun Ajaran Aktif</h2>";
-$ta = DB::table('tahun_ajaran')->where('status', 1)->first();
-echo "<pre>" . json_encode((array)$ta, JSON_PRETTY_PRINT) . "</pre>";
+echo "Hari ini: Eng='{$hEng}', Ind='{$hInd}' (dayOfWeek={$dayOfWeek})<br>";
+echo "Session TA: '" . session('tahun_ajaran') . "', Sem: '" . session('semester') . "'<br><br>";
+
+$schedules = DB::table('jadwal')
+    ->where(function($q) use ($user) {
+        $q->where('guru', 'LIKE', '%' . $user->name . '%')
+          ->orWhere('guru', 'LIKE', '%' . $user->username . '%');
+    })
+    ->where(function($q) use ($hEng, $hInd) {
+        $q->where('hari', $hEng)->orWhere('hari', $hInd);
+    })
+    ->get();
+
+echo "Total jadwal ditemukan untuk hari ini (semua TA): " . $schedules->count() . "<br>";
+foreach ($schedules as $s) {
+    echo "<pre>ID: {$s->id} | Hari: {$s->hari} | Kelas: {$s->kelas} | Mapel: {$s->mapel} | TA: '{$s->tahun_ajaran}' | Sem: '{$s->semester}'</pre>";
+}
