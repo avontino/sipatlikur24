@@ -31,30 +31,21 @@
             <div class="card-header bg-light py-3">
             <div class="row">
           <div class="col-12">
-             <form class="form-inline ms-auto d-flex align-items-center gap-2 flex-wrap" method="GET" action="/siswa">
+             <div class="d-flex align-items-center gap-2 flex-wrap">
                     <h3 class="fw-bold m-0 me-auto" style="color: #004d1a;"><i class="fas fa-user-graduate me-2"></i>Data Master Siswa</h3>
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="text" name="cari" class="form-control form-control-sm" placeholder="Cari NIS / Nama / Kelas..." value="{{ request('cari') }}" style="width: 250px;">
-                        <button type="submit" class="btn btn-sm btn-secondary"><i class="fas fa-search"></i> Cari</button>
-                        @if(request()->filled('cari'))
-                            <a href="/siswa" class="btn btn-sm btn-outline-secondary">Reset</a>
-                        @endif
-                    </div>
                     @if(auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas)
-                        <a href="/siswa/export?view=walikelas" class="btn btn-sm btn-success text-white ms-2">
+                        <a href="/siswa/export?view=walikelas" class="btn btn-sm btn-success text-white">
                             <i class="fas fa-file-excel"></i> Export Kelas Saya
                         </a>
                     @endif
                     @if(auth()->user()->role=='admin')
-                        <button type="button" class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#tambah">Tambah Siswa</button>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tambah">Tambah Siswa</button>
                         <button type="button" class="btn btn-default btn-sm" data-bs-toggle="modal" data-bs-target="#exim">Export/Import</button>
                         <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#updateIjinModal">Reset Ijin Siswa</button>
                     @endif
-            </form>
+            </div>
           </div>
         </div>
-
-           
             </div>
 
 
@@ -120,10 +111,6 @@
 
                 </tfoot>
               </table>
-
-              <div class="mt-3 d-flex justify-content-center">
-                {{ $data_siswa->appends(request()->all())->links() }}
-              </div>
 
             </div>
             <!-- /.card-body -->

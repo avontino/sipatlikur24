@@ -15,41 +15,33 @@ class SiswaController extends Controller
 
     public function index(Request $request)
     {	
-        $ke_las=Kelas::all();
+        $ke_las    = Kelas::all();
         $tahun_ajaran = session('tahun_ajaran');
-        $user = auth()->user();
+        $user      = auth()->user();
 
         $query = \App\Models\Siswa::with('user')
             ->where('tahun_ajaran', $tahun_ajaran);
 
+        // Siswa hanya lihat datanya sendiri
         if ($user->role == 'siswa') {
             $query->where(function($q) use ($user) {
                 $q->where('nama', $user->name)->orWhere('nis', $user->username);
             });
         }
 
-        if ($request->filled('cari')) {
-            $cari = $request->cari;
-            $query->where(function($q) use ($cari) {
-                $q->where('nis', 'LIKE', '%' . $cari . '%')
-                  ->orWhere('nama', 'LIKE', '%' . $cari . '%')
-                  ->orWhere('kelas', 'LIKE', '%' . $cari . '%');
-            });
-        }
-
         $view = $request->query('view');
-        $isWali = auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas;
-        $isOnlyWaliKelas = $isWali && !(auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('lihat'));
+        $isWali = $user->hasRole('walikelas') || $user->walikelas_kelas;
+        $isOnlyWaliKelas = $isWali && !($user->hasRole('kurikulum') || $user->hasRole('admin') || $user->hasRole('lihat'));
 
         if ($view === 'walikelas' || $isOnlyWaliKelas) {
-            $kelas = auth()->user()->walikelas_kelas ?: auth()->user()->name;
+            $kelas = $user->walikelas_kelas ?: $user->name;
             $query->where('kelas', $kelas);
-            $data_siswa = $query->orderBy('nama','asc')->paginate(50);
-            return view('siswa.index',['data_siswa' => $data_siswa],compact('ke_las'));
-        } else {
-            $data_siswa = $query->orderBy('nama','desc')->paginate(50);
-            return view('siswa.index',['data_siswa' => $data_siswa],compact('ke_las'));
         }
+
+        // Load semua data — DataTables yang handle search & paginasi
+        $data_siswa = $query->orderBy('nama', 'asc')->get();
+
+        return view('siswa.index', compact('data_siswa', 'ke_las'));
     }
 
     public function create(Request $request)
