@@ -107,7 +107,12 @@ class DashboardController extends Controller
                         ->where('kelas', $sch->kelas)
                         ->where('mapel', $sch->mapel)
                         ->whereDate('created_at', $todayStr)
+                        ->whereNotNull('materi')
+                        ->where('materi', '!=', '')
+                        ->where('materi', '!=', 'Jam Kosong')
+                        ->where('materi', 'NOT LIKE', '%Jam Kosong%')
                         ->exists();
+
                     if (!$filled) {
                         $guruScheduleNotFilled[] = $sch->kelas . ' (' . $sch->mapel . ')';
                     }
