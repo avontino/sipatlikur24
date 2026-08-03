@@ -77,33 +77,37 @@ class JurnalController extends Controller
                 $siswa = Siswa::where('nama', auth()->user()->name)->first();
                 $kelasSiswa = $siswa ? $siswa->kelas : null;
                 $query->where('kelas', $kelasSiswa);
-            } elseif (auth()->user()->role == 'walikelas' || auth()->user()->role == 'ketuakelas') {
-                $kelas = (auth()->user()->role == 'walikelas' && auth()->user()->walikelas_kelas) ? auth()->user()->walikelas_kelas : auth()->user()->name;
+            } elseif (auth()->user()->role == 'ketuakelas' || auth()->user()->hasRole('ketuakelas')) {
+                $kelas = auth()->user()->getManagedClass() ?: auth()->user()->name;
                 $query->where('kelas', $kelas);
 
                 if ($request->filled('crtgl')) {
                     $query->whereDate('created_at', $request->crtgl);
                 }
-            } elseif (auth()->user()->hasRole('guru') || auth()->user()->role == 'guru') {
-                $teacherUser = auth()->user();
-                $fullName = $teacherUser->name;
-                $cleanName = trim(preg_replace('/,.*$/', '', $fullName));
-                $nameParts = explode(' ', $cleanName);
-                $firstWord = $nameParts[0] ?? '';
-                $secondWord = $nameParts[1] ?? '';
-                $twoWords = trim($firstWord . ' ' . $secondWord);
+            } elseif (auth()->user()->hasRole('guru') || auth()->user()->role == 'guru' || auth()->user()->role == 'walikelas' || auth()->user()->hasRole('walikelas')) {
+                if ($request->query('view') === 'walikelas' && auth()->user()->walikelas_kelas) {
+                    $query->where('kelas', auth()->user()->walikelas_kelas);
+                } else {
+                    $teacherUser = auth()->user();
+                    $fullName = $teacherUser->name;
+                    $cleanName = trim(preg_replace('/,.*$/', '', $fullName));
+                    $nameParts = explode(' ', $cleanName);
+                    $firstWord = $nameParts[0] ?? '';
+                    $secondWord = $nameParts[1] ?? '';
+                    $twoWords = trim($firstWord . ' ' . $secondWord);
 
-                $query->where(function($q) use ($teacherUser, $fullName, $cleanName, $twoWords) {
-                    $q->where('guru_id', $teacherUser->id)
-                      ->orWhere('guru', 'LIKE', '%' . $fullName . '%')
-                      ->orWhere('guru', 'LIKE', '%' . $cleanName . '%');
-                    if (strlen($twoWords) >= 3) {
-                        $q->orWhere('guru', 'LIKE', '%' . $twoWords . '%');
-                    }
-                    if ($teacherUser->username) {
-                        $q->orWhere('guru', 'LIKE', '%' . $teacherUser->username . '%');
-                    }
-                });
+                    $query->where(function($q) use ($teacherUser, $fullName, $cleanName, $twoWords) {
+                        $q->where('guru_id', $teacherUser->id)
+                          ->orWhere('guru', 'LIKE', '%' . $fullName . '%')
+                          ->orWhere('guru', 'LIKE', '%' . $cleanName . '%');
+                        if (strlen($twoWords) >= 3) {
+                            $q->orWhere('guru', 'LIKE', '%' . $twoWords . '%');
+                        }
+                        if ($teacherUser->username) {
+                            $q->orWhere('guru', 'LIKE', '%' . $teacherUser->username . '%');
+                        }
+                    });
+                }
 
                 if ($request->filled('crtgl')) {
                     $query->whereDate('created_at', $request->crtgl);
