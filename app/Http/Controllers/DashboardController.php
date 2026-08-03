@@ -71,11 +71,9 @@ class DashboardController extends Controller
 
                 if (!empty($rawTa)) {
                     $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
-                    $firstYear = explode('/', $cleanTa)[0] ?? $cleanTa;
-                    $scheduleQuery->where(function($q) use ($rawTa, $cleanTa, $firstYear) {
+                    $scheduleQuery->where(function($q) use ($rawTa, $cleanTa) {
                         $q->where('tahun_ajaran', $rawTa)
                           ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
-                          ->orWhere('tahun_ajaran', 'LIKE', '%' . $firstYear . '%')
                           ->orWhereNull('tahun_ajaran')
                           ->orWhere('tahun_ajaran', '');
                     });

@@ -55,16 +55,13 @@ class JurnalController extends Controller
 
             $query = Jurnal::query();
 
-            // Filter Tahun Ajaran secara fleksibel
+            // Filter Tahun Ajaran secara presisi (misal 2026/2027)
             if (!empty($rawTa)) {
                 $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
-                $yearParts = explode('/', $cleanTa);
-                $firstYear = $yearParts[0] ?? $cleanTa;
 
-                $query->where(function($q) use ($rawTa, $cleanTa, $firstYear) {
+                $query->where(function($q) use ($rawTa, $cleanTa) {
                     $q->where('tahun_ajaran', $rawTa)
                       ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
-                      ->orWhere('tahun_ajaran', 'LIKE', '%' . $firstYear . '%')
                       ->orWhereNull('tahun_ajaran')
                       ->orWhere('tahun_ajaran', '');
                 });
