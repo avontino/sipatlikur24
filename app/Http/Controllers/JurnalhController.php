@@ -91,17 +91,12 @@ class JurnalhController extends Controller
                 );
             }
 
-            // ── VALIDASI: Blokir jika sudah pernah disinkronkan pada tanggal terpilih ──
+            // ── Cek apakah sudah disinkronkan (info saja, tidak memblokir) ──
             $alreadySynced = Jurnalh::where('tahun_ajaran', $tahun_ajaran)
                 ->where('semester', $semester)
                 ->whereDate('created_at', $currentDate)
                 ->exists();
-
-            if ($alreadySynced) {
-                return redirect()->back()->with('gagal',
-                    "Jadwal untuk tanggal {$targetDateStr} sudah pernah disinkronkan sebelumnya. Tidak dapat melakukan sinkronisasi ulang."
-                );
-            }
+            // Tidak blokir - admin boleh sinkron ulang untuk mengisi data yang belum ada
 
             // Group jadwal berdasarkan kelas untuk memudahkan proses
             $jadwalsByKelas = $jadwals->groupBy('kelas');
@@ -287,20 +282,26 @@ class JurnalhController extends Controller
 
         if (!$existingJurnal) {
             // Jika belum ada, buat baru
-            Jurnal::create([
-                'kelas' => $jadwal->kelas,
-                'jamke' => $jadwal->jamke,
-                'guru' => $jadwal->guru,
-                'mapel' => $jadwal->mapel,
-                'jumlahjam' => $jadwal->jumlahjam,
-                'materi' => $jadwal->materi,
-                'catatan' => $jadwal->catatan,
-                'guru_id' => $user ? $user->id : null,
-                'tahun_ajaran' => $tahun_ajaran,
-                'semester' => $semester,
-                'created_at' => Carbon::parse($currentDate)->startOfDay(),
-                'updated_at' => now(),
-            ]);
+            try {
+                Jurnal::create([
+                    'kelas' => $jadwal->kelas,
+                    'jamke' => $jadwal->jamke,
+                    'guru' => $jadwal->guru,
+                    'mapel' => $jadwal->mapel,
+                    'jumlahjam' => $jadwal->jumlahjam ?? '1',
+                    'materi' => $jadwal->materi ?? 'Jam Kosong',
+                    'catatan' => $jadwal->catatan ?? 'Catatan',
+                    'ket_guru_mapel' => 'Hadir',
+                    'penugasan' => 'Tidak Ada',
+                    'guru_id' => $user ? $user->id : 0,
+                    'tahun_ajaran' => $tahun_ajaran,
+                    'semester' => $semester,
+                    'created_at' => Carbon::parse($currentDate)->startOfDay(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Throwable $createEx) {
+                \Illuminate\Support\Facades\Log::warning('Gagal buat jurnal untuk guru: ' . $jadwal->guru . ' - ' . $createEx->getMessage());
+            }
         } else {
                 // Jika sudah ada, hanya update field yang masih "Jam Kosong"
                 $updateData = [];
