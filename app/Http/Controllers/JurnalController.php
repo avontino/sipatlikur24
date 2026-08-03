@@ -50,8 +50,8 @@ class JurnalController extends Controller
 // Role Siswa
         // Check if request is AJAX / DataTables Server-Side request
         if ($request->ajax() || $request->has('draw')) {
-            $query = Jurnal::where('tahun_ajaran', session('tahun_ajaran'))
-                ->where('semester', session('semester'));
+            $query = Jurnal::when(session('tahun_ajaran'), function($q) { return $q->where('tahun_ajaran', session('tahun_ajaran')); })
+                ->when(session('semester'), function($q) { return $q->where('semester', session('semester')); });
 
             if (auth()->user()->role == 'siswa') {
                 $siswa = Siswa::where('nama', auth()->user()->name)->where('tahun_ajaran', session('tahun_ajaran'))->first();
@@ -64,8 +64,17 @@ class JurnalController extends Controller
                 if ($request->filled('crtgl')) {
                     $query->whereDate('created_at', $request->crtgl);
                 }
-            } elseif (auth()->user()->role == 'guru') {
-                $query->where('guru_id', auth()->user()->id);
+            } elseif (auth()->user()->hasRole('guru') || auth()->user()->role == 'guru') {
+                $teacherUser = auth()->user();
+                $cleanTeacherName = trim(preg_replace('/,.*$/', '', $teacherUser->name));
+                $query->where(function($q) use ($teacherUser, $cleanTeacherName) {
+                    $q->where('guru_id', $teacherUser->id)
+                      ->orWhere('guru', 'LIKE', '%' . $teacherUser->name . '%')
+                      ->orWhere('guru', 'LIKE', '%' . $cleanTeacherName . '%');
+                    if ($teacherUser->username) {
+                        $q->orWhere('guru', 'LIKE', '%' . $teacherUser->username . '%');
+                    }
+                });
 
                 if ($request->filled('crtgl')) {
                     $query->whereDate('created_at', $request->crtgl);

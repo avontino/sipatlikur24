@@ -503,7 +503,7 @@ class JurnalhController extends Controller
         // NOT ADMIN/KURIKULUM: Wali Kelas, Ketua Kelas, Siswa, or Guru
         $user = auth()->user();
         $isWali = ($user->role=='walikelas' || ($user->role=='guru' && $user->walikelas_kelas));
-        $isKetua = ($user->role=='ketuakelas' || $user->hasRole('ketuakelas') || str_contains((string)$user->additional_roles, 'ketuakelas'));
+        $isKetua = ($user->role=='ketuakelas' || $user->hasRole('ketuakelas'));
 
         $myClass = $user->walikelas_kelas;
         if (!$myClass) {
@@ -517,8 +517,8 @@ class JurnalhController extends Controller
             $targetDate = $request->input('tanggal', date('Y-m-d'));
 
             $jurnalhs = Jurnalh::where('kelas', $kelasToSearch)
-                           ->where('tahun_ajaran', $tahun_ajaran)
-                           ->where('semester', $semester)
+                           ->when($tahun_ajaran, function($q) use ($tahun_ajaran) { return $q->where('tahun_ajaran', $tahun_ajaran); })
+                           ->when($semester, function($q) use ($semester) { return $q->where('semester', $semester); })
                            ->whereDate('created_at', $targetDate)
                            ->get();
 
@@ -530,8 +530,8 @@ class JurnalhController extends Controller
             $cleanGuruNama = trim(preg_replace('/,.*$/', '', $guruNama));
             $targetDate = $request->input('tanggal', date('Y-m-d'));
 
-            $jurnalhs = Jurnalh::where('tahun_ajaran', $tahun_ajaran)
-                ->where('semester', $semester)
+            $jurnalhs = Jurnalh::when($tahun_ajaran, function($q) use ($tahun_ajaran) { return $q->where('tahun_ajaran', $tahun_ajaran); })
+                ->when($semester, function($q) use ($semester) { return $q->where('semester', $semester); })
                 ->whereDate('created_at', $targetDate)
                 ->where(function ($query) use ($guruNama, $cleanGuruNama, $guruNip) {
                     for ($i = 1; $i <= 11; $i++) {
