@@ -32,7 +32,7 @@ class DashboardController extends Controller
             }
 
             if (auth()->user()->hasRole('walikelas') || (auth()->user()->hasRole('guru') && auth()->user()->walikelas_kelas)) {
-                $myClass = auth()->user()->walikelas_kelas ?: auth()->user()->name;
+                $myClass = auth()->user()->getManagedClass() ?: (auth()->user()->walikelas_kelas ?: auth()->user()->name);
                 $hasFilled = \App\Models\Jurnalh::where('kelas', $myClass)->whereDate('created_at', $todayStr)->exists();
                 if (!$hasFilled) {
                     $waliClassNotFilled = true;
@@ -40,7 +40,7 @@ class DashboardController extends Controller
             }
 
             if (auth()->user()->hasRole('ketuakelas')) {
-                $myClass = auth()->user()->walikelas_kelas ?: auth()->user()->name;
+                $myClass = auth()->user()->getManagedClass() ?: (auth()->user()->walikelas_kelas ?: auth()->user()->name);
                 $hasFilled = \App\Models\Jurnalh::where('kelas', $myClass)->whereDate('created_at', $todayStr)->exists();
                 if (!$hasFilled) {
                     $todayJurnalFilled = false;
@@ -59,12 +59,51 @@ class DashboardController extends Controller
                 ];
                 $hariIni = $hariEng[$dayOfWeek];
                 
-                $mySchedules = \App\Models\Jadwal::where('guru', auth()->user()->name)
-                    ->where('hari', $hariIni)
-                    ->get();
-                
+                $rawTa = session('tahun_ajaran');
+                $rawSem = session('semester');
+
+                $scheduleQuery = \App\Models\Jadwal::where(function($q) {
+                    $q->where('guru', auth()->user()->name);
+                    if (auth()->user()->username) {
+                        $q->orWhere('guru', 'LIKE', '%' . auth()->user()->username . '%');
+                    }
+                })->where('hari', $hariIni);
+
+                if (!empty($rawTa)) {
+                    $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
+                    $firstYear = explode('/', $cleanTa)[0] ?? $cleanTa;
+                    $scheduleQuery->where(function($q) use ($rawTa, $cleanTa, $firstYear) {
+                        $q->where('tahun_ajaran', $rawTa)
+                          ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
+                          ->orWhere('tahun_ajaran', 'LIKE', '%' . $firstYear . '%')
+                          ->orWhereNull('tahun_ajaran')
+                          ->orWhere('tahun_ajaran', '');
+                    });
+                }
+
+                if (!empty($rawSem)) {
+                    $semValues = [$rawSem];
+                    if (strtolower($rawSem) === 'ganjil' || $rawSem === '1') {
+                        $semValues = array_merge($semValues, ['1', 'Ganjil', 'ganjil', '1 (Ganjil)']);
+                    } elseif (strtolower($rawSem) === 'genap' || $rawSem === '2') {
+                        $semValues = array_merge($semValues, ['2', 'Genap', 'genap', '2 (Genap)']);
+                    }
+                    $scheduleQuery->where(function($q) use ($semValues) {
+                        $q->whereIn('semester', $semValues)
+                          ->orWhereNull('semester')
+                          ->orWhere('semester', '');
+                    });
+                }
+
+                $mySchedules = $scheduleQuery->get();
+
                 foreach ($mySchedules as $sch) {
-                    $filled = \App\Models\Jurnal::where('guru', auth()->user()->name)
+                    $filled = \App\Models\Jurnal::where(function($q) {
+                            $q->where('guru', auth()->user()->name);
+                            if (auth()->user()->username) {
+                                $q->orWhere('guru', 'LIKE', '%' . auth()->user()->username . '%');
+                            }
+                        })
                         ->where('kelas', $sch->kelas)
                         ->where('mapel', $sch->mapel)
                         ->whereDate('created_at', $todayStr)
