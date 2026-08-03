@@ -51,6 +51,8 @@ class IjinController extends Controller
         $data = $request->except('attachment');
         $data['user_id'] = auth()->user()->id;
         $data['approval_status'] = (auth()->user()->role == 'admin') ? 'approved' : 'pending';
+        $data['tahun_ajaran'] = session('tahun_ajaran');
+        $data['semester'] = session('semester');
 
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
@@ -82,7 +84,8 @@ class IjinController extends Controller
             $ke_las = Kelas::all();
 
             $user = auth()->user();
-            $isGuru = ($user->role == 'guru');
+            $userRole = strtolower($user->role ?? '');
+            $isGuru = ($userRole == 'guru');
 
             if ($request->filled('filter')) {
                 $query = \App\Models\Ijin::whereDate('tglmasuk', $request->filter);
@@ -90,10 +93,25 @@ class IjinController extends Controller
                 $query = \App\Models\Ijin::query();
             }
 
+            // Filter Tahun Ajaran Aktif (misal 2026/2027 Ganjil) jika kolom tersedia
+            if (\Illuminate\Support\Facades\Schema::hasColumn('ijin', 'tahun_ajaran')) {
+                if ($rawTa = session('tahun_ajaran')) {
+                    $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
+                    $query->where(function($q) use ($rawTa, $cleanTa) {
+                        $q->where('tahun_ajaran', $rawTa)
+                          ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
+                          ->orWhereNull('tahun_ajaran');
+                    });
+                }
+            }
+
             if ($isGuru) {
-                $query->where(function($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                      ->orWhere('guru', 'LIKE', '%' . $user->name . '%');
+                $hasUserId = \Illuminate\Support\Facades\Schema::hasColumn('ijin', 'user_id');
+                $query->where(function($q) use ($user, $hasUserId) {
+                    if ($hasUserId) {
+                        $q->where('user_id', $user->id);
+                    }
+                    $q->orWhere('guru', 'LIKE', '%' . $user->name . '%');
                 });
             }
 
