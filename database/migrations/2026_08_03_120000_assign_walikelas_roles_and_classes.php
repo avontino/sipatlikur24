@@ -43,7 +43,15 @@ return new class extends Migration
         foreach ($walis as $kelas => $keywords) {
             $user = null;
             foreach ($keywords as $kw) {
-                $user = DB::table('users')->where('name', 'LIKE', '%' . $kw . '%')->first();
+                $user = DB::table('users')
+                    ->where('role', 'guru')
+                    ->where('name', 'LIKE', '%' . $kw . '%')
+                    ->first();
+                if (!$user) {
+                    $user = DB::table('users')
+                        ->where('name', 'LIKE', '%' . $kw . '%')
+                        ->first();
+                }
                 if ($user) {
                     break;
                 }
