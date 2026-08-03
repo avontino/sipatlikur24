@@ -338,6 +338,26 @@
         <button type="submit" class="btn-signin">Sign In</button>
       </form>
 
+      <!-- QR CODE DOWNLOAD APK SECTION -->
+      <div class="mt-4 pt-3 border-top text-center">
+        <div class="d-flex align-items-center justify-content-center gap-3 p-3 shadow-sm border" style="border-radius: 16px !important; background-color: #f8fafc !important; border-color: #e2e8f0 !important;">
+          <div style="background: white; padding: 6px; border-radius: 12px; border: 1px solid #cbd5e1; flex-shrink: 0;">
+            <img src="{{ asset('images/qr-download-apk.png') }}" alt="QR Code Download APK SIPATLIKUR" style="width: 85px; height: 85px; object-fit: contain;">
+          </div>
+          <div class="text-start" style="flex: 1;">
+            <div class="fw-bold mb-1" style="font-size: 13px; color: #0f172a !important;">
+              <i class="fab fa-android text-success me-1"></i> Download APK Mobile
+            </div>
+            <div class="small mb-2" style="font-size: 11px; line-height: 1.3; color: #475569 !important;">
+              Scan QR Code ini menggunakan HP Anda untuk mengunduh aplikasi Android SIPATLIKUR.
+            </div>
+            <a href="{{ asset('images/qr-download-apk.png') }}" target="_blank" download="QR_Download_APK_SIPATLIKUR.png" class="btn btn-sm btn-outline-success py-1 px-2 text-decoration-none fw-semibold" style="font-size: 11px; border-radius: 20px;">
+              <i class="fas fa-qrcode me-1"></i> Buka / Download QR
+            </a>
+          </div>
+        </div>
+      </div>
+
       <div class="login-footer">
         <a href="#" class="forgot-link">Lupa password? Silahkan menghubungi Tim IT</a>
       </div>
