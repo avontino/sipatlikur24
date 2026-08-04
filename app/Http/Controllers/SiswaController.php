@@ -16,11 +16,19 @@ class SiswaController extends Controller
     public function index(Request $request)
     {	
         $ke_las    = Kelas::all();
-        $tahun_ajaran = session('tahun_ajaran');
         $user      = auth()->user();
 
-        $query = \App\Models\Siswa::with('user')
-            ->where('tahun_ajaran', $tahun_ajaran);
+        $query = \App\Models\Siswa::with('user');
+
+        if ($rawTa = session('tahun_ajaran')) {
+            $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
+            $query->where(function($q) use ($rawTa, $cleanTa) {
+                $q->where('tahun_ajaran', $rawTa)
+                  ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
+                  ->orWhereNull('tahun_ajaran')
+                  ->orWhere('tahun_ajaran', '');
+            });
+        }
 
         // Siswa hanya lihat datanya sendiri
         if ($user->role == 'siswa') {
@@ -46,11 +54,18 @@ class SiswaController extends Controller
 
     public function create(Request $request)
     {	
-        $tahun_ajaran = session('tahun_ajaran');
+        $rawTa = session('tahun_ajaran');
+        $cleanTa = $rawTa ? trim(preg_replace('/\s*\(.*\)/', '', $rawTa)) : null;
+        $tahun_ajaran = $cleanTa ?: $rawTa;
 
         // Check if NIS already exists in current year
         $existingSiswa = \App\Models\Siswa::where('nis', $request->nis)
-            ->where('tahun_ajaran', $tahun_ajaran)
+            ->where(function($q) use ($rawTa, $cleanTa) {
+                if ($rawTa) {
+                    $q->where('tahun_ajaran', $rawTa)
+                      ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%');
+                }
+            })
             ->first();
 
         if ($existingSiswa) {
@@ -59,6 +74,10 @@ class SiswaController extends Controller
 
         $data = $request->all();
         $data['tahun_ajaran'] = $tahun_ajaran;
+        if (!isset($data['sakit']) || $data['sakit'] === '') $data['sakit'] = 0;
+        if (!isset($data['ijin']) || $data['ijin'] === '') $data['ijin'] = 0;
+        if (!isset($data['alpha']) || $data['alpha'] === '') $data['alpha'] = 0;
+        if (!isset($data['dispen']) || $data['dispen'] === '') $data['dispen'] = 0;
 
     	\App\Models\Siswa::create($data);
 
