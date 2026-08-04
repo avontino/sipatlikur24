@@ -24,9 +24,7 @@ class SiswaController extends Controller
             $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
             $query->where(function($q) use ($rawTa, $cleanTa) {
                 $q->where('tahun_ajaran', $rawTa)
-                  ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%')
-                  ->orWhereNull('tahun_ajaran')
-                  ->orWhere('tahun_ajaran', '');
+                  ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%');
             });
         }
 
