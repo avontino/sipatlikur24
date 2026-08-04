@@ -263,16 +263,26 @@
             <div class="card-body bg-light border-bottom py-3 px-2">
               <div id="verifikasiCardSlider" class="d-flex overflow-auto pb-2 px-1 gap-2" style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
                 @foreach($verifikasiRekap as $rekap)
-                  <div class="card border shadow-sm flex-shrink-0" style="min-width: 210px; max-width: 230px; border-radius: 10px; background: #ffffff;">
+                  <div class="card border shadow-sm flex-shrink-0" style="min-width: 220px; max-width: 240px; border-radius: 12px; background: #ffffff;">
                     <div class="card-body p-2">
                       <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-bold text-dark" style="font-size: 13px;">Kelas {{ $rekap['kelas'] }}</span>
+                        <span class="fw-bold text-dark" style="font-size: 14px;">Kelas {{ $rekap['kelas'] }}</span>
                         @if($rekap['status'] === 'Sudah Verifikasi')
                           <span class="badge bg-success" style="font-size: 10px;"><i class="fas fa-check-circle me-1"></i> Selesai</span>
                         @else
                           <span class="badge bg-danger" style="font-size: 10px;"><i class="fas fa-clock me-1"></i> Belum</span>
                         @endif
                       </div>
+
+                      <!-- LARGE EYE-CATCHING ATTENDANCE DISPLAY -->
+                      <div class="py-1 px-2 mb-2 text-center rounded border" style="background-color: #f8fafc; border-color: #cbd5e1 !important; border-radius: 8px !important;">
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                          <span class="fw-bold text-success" style="font-size: 22px; font-weight: 800 !important; line-height: 1;">{{ $rekap['hadir'] }}</span>
+                          <span class="fw-bold text-dark" style="font-size: 15px;">/ {{ $rekap['total'] }}</span>
+                          <span class="fw-bold text-muted ms-1" style="font-size: 11px; text-transform: uppercase;">Hadir</span>
+                        </div>
+                      </div>
+
                       <div class="text-truncate small text-secondary mb-1" style="font-size: 11px;" title="{{ $rekap['detail'] }}">
                         {{ $rekap['detail'] }}
                       </div>
@@ -310,7 +320,7 @@
                             <span class="badge bg-danger" style="font-size: 10px;"><i class="fas fa-minus-circle me-1"></i> Belum Verifikasi</span>
                           @endif
                         </td>
-                        <td class="py-2">{{ $rekap['detail'] }}</td>
+                        <td class="py-2"><span class="badge bg-primary me-2 fw-bold" style="font-size: 11px;">{{ $rekap['hadir'] }} / {{ $rekap['total'] }} Hadir</span> {{ $rekap['detail'] }}</td>
                         <td class="py-2 text-center text-muted">{{ $rekap['verified_by'] }}</td>
                         <td class="py-2 text-center text-muted">{{ $rekap['time'] }}</td>
                       </tr>

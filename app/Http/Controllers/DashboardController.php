@@ -209,22 +209,44 @@ class DashboardController extends Controller
                 : collect();
                 
             foreach ($allClasses as $c) {
+                $totalSiswa = \App\Models\Siswa::where('kelas', $c)
+                    ->where(function($q) {
+                        if ($rawTa = session('tahun_ajaran')) {
+                            $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
+                            $q->where('tahun_ajaran', $rawTa)->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%');
+                        }
+                    })->count();
+
+                if ($totalSiswa == 0) {
+                    $totalSiswa = \App\Models\Siswa::where('kelas', $c)->count();
+                }
+
                 $v = $verifikasiToday->get($c);
                 if ($v) {
                     $totalVerified++;
+                    $tot = $v->total ?: $totalSiswa;
+                    $hdr = ($v->status == 'NIHIL') ? $tot : $v->hadir;
+
                     $verifikasiRekap[] = [
                         'kelas' => $c,
                         'status' => 'Sudah Verifikasi',
-                        'detail' => ($v->status == 'NIHIL') ? "NIHIL (Hadir Semua - {$v->total} Siswa)" : "{$v->sakit} Sakit, {$v->izin} Izin, {$v->alpha} Alpha, {$v->dispen} Terlambat, {$v->hadir} Hadir dari {$v->total} Siswa",
+                        'hadir' => $hdr,
+                        'total' => $tot,
+                        'detail' => ($v->status == 'NIHIL') ? "NIHIL (Hadir Semua)" : "{$v->sakit} Sakit, {$v->izin} Izin, {$v->alpha} Alpha, {$v->dispen} Dispen",
                         'verified_by' => optional(\App\Models\User::find($v->verified_by))->name ?? 'Sistem',
                         'time' => \Carbon\Carbon::parse($v->updated_at)->format('H:i')
                     ];
                 } else {
                     $totalUnverified++;
+                    $absenTodayCount = \App\Models\Absen::where('kelas', $c)->whereDate('created_at', $todayStr)->count();
+                    $hdr = max(0, $totalSiswa - $absenTodayCount);
+
                     $verifikasiRekap[] = [
                         'kelas' => $c,
                         'status' => 'Belum Verifikasi',
-                        'detail' => '-',
+                        'hadir' => $hdr,
+                        'total' => $totalSiswa,
+                        'detail' => ($absenTodayCount > 0) ? "{$absenTodayCount} Siswa Absen/Izin" : "Belum Diverifikasi",
                         'verified_by' => '-',
                         'time' => '-'
                     ];
