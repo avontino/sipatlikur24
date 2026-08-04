@@ -155,7 +155,12 @@ class DashboardController extends Controller
         }
 
         $unreadNotifications = auth()->user()->unreadNotifications;
-        $managedClass = auth()->user()->getManagedClass();
+        
+        $u = auth()->user();
+        $isWaliKelas = ($u->hasRole('walikelas') || $u->walikelas_kelas || str_contains((string)$u->additional_roles, 'walikelas'));
+        $isKetuaKelas = ($u->role === 'ketuakelas' || $u->hasRole('ketuakelas') || str_contains((string)$u->additional_roles, 'ketuakelas'));
+
+        $managedClass = ($isWaliKelas || $isKetuaKelas) ? $u->getManagedClass() : null;
         $todayVerification = null;
         $currentDetailStr = null;
 

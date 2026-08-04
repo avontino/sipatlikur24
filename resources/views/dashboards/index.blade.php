@@ -70,7 +70,7 @@
         @endif
 
         <!-- Verification Widget (Wali Kelas and Ketua Kelas) -->
-        @if(isset($managedClass))
+        @if(!empty($managedClass))
           <div class="card shadow mb-4">
             <div class="card-header bg-light py-2">
               <h5 class="card-title m-0 font-weight-bold text-dark" style="font-size: 14px;"><i class="fas fa-clipboard-check me-2 text-primary"></i> Verifikasi Absensi Pagi - Kelas {{ $managedClass }}</h5>
