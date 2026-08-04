@@ -20,12 +20,39 @@ class SiswaController extends Controller
 
         $query = \App\Models\Siswa::with('user');
 
-        if ($rawTa = session('tahun_ajaran')) {
+        $rawTa = session('tahun_ajaran');
+        $rawSem = session('semester');
+
+        if (!$rawTa || !$rawSem) {
+            $activeTaObj = DB::table('tahun_ajaran')->where('status', 1)->first();
+            if ($activeTaObj) {
+                if (!$rawTa) {
+                    $rawTa = $activeTaObj->tahun_ajaran;
+                    session(['tahun_ajaran' => $rawTa]);
+                }
+                if (!$rawSem) {
+                    $rawSem = $activeTaObj->semester;
+                    session(['semester' => $rawSem]);
+                }
+            }
+        }
+
+        if ($rawTa) {
             $cleanTa = trim(preg_replace('/\s*\(.*\)/', '', $rawTa));
             $query->where(function($q) use ($rawTa, $cleanTa) {
                 $q->where('tahun_ajaran', $rawTa)
                   ->orWhere('tahun_ajaran', 'LIKE', '%' . $cleanTa . '%');
             });
+        }
+
+        if ($rawSem) {
+            $semValues = [$rawSem];
+            if (strtolower($rawSem) === 'ganjil' || $rawSem === '1') {
+                $semValues = array_merge($semValues, ['1', 'Ganjil', 'ganjil', '1 (Ganjil)']);
+            } elseif (strtolower($rawSem) === 'genap' || $rawSem === '2') {
+                $semValues = array_merge($semValues, ['2', 'Genap', 'genap', '2 (Genap)']);
+            }
+            $query->whereIn('semester', $semValues);
         }
 
         // Siswa hanya lihat datanya sendiri
