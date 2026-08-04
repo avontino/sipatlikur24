@@ -55,8 +55,25 @@ class SiswaController extends Controller
     public function create(Request $request)
     {	
         $rawTa = session('tahun_ajaran');
-        $cleanTa = $rawTa ? trim(preg_replace('/\s*\(.*\)/', '', $rawTa)) : null;
-        $tahun_ajaran = $cleanTa ?: $rawTa;
+        $rawSem = session('semester');
+
+        if (!$rawTa || !$rawSem) {
+            $activeTaObj = DB::table('tahun_ajaran')->where('status', 1)->first();
+            if ($activeTaObj) {
+                if (!$rawTa) {
+                    $rawTa = $activeTaObj->tahun_ajaran;
+                    session(['tahun_ajaran' => $rawTa]);
+                }
+                if (!$rawSem) {
+                    $rawSem = $activeTaObj->semester;
+                    session(['semester' => $rawSem]);
+                }
+            }
+        }
+
+        $cleanTa = $rawTa ? trim(preg_replace('/\s*\(.*\)/', '', $rawTa)) : '2026/2027';
+        $tahun_ajaran = $cleanTa ?: '2026/2027';
+        $semester = $rawSem ?: 'Ganjil';
 
         // Check if NIS already exists in current year
         $existingSiswa = \App\Models\Siswa::where('nis', $request->nis)
@@ -74,6 +91,7 @@ class SiswaController extends Controller
 
         $data = $request->all();
         $data['tahun_ajaran'] = $tahun_ajaran;
+        $data['semester'] = $semester;
         if (!isset($data['sakit']) || $data['sakit'] === '') $data['sakit'] = 0;
         if (!isset($data['ijin']) || $data['ijin'] === '') $data['ijin'] = 0;
         if (!isset($data['alpha']) || $data['alpha'] === '') $data['alpha'] = 0;
