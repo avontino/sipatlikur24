@@ -30,7 +30,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-12">
                                 <form class="d-flex flex-wrap gap-2 gap-md-3 align-items-center" method="GET" action="/jurnal">
-                                    @if(auth()->user()->hasPermission('jurnal_create') && auth()->user()->role != 'guru')
+                                    @if(auth()->user()->hasPermission('jurnal_create') && !in_array(auth()->user()->role, ['guru', 'siswa', 'ketuakelas']) && !auth()->user()->hasRole('siswa') && !auth()->user()->hasRole('ketuakelas'))
                                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                             <i class="fas fa-plus"></i> Tambah Jurnal
                                         </button>

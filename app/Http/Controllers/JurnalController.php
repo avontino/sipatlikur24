@@ -376,6 +376,10 @@ class JurnalController extends Controller
     
     public function create(Request $request)
     {	
+        if (in_array(auth()->user()->role, ['siswa', 'ketuakelas']) || auth()->user()->hasRole('siswa') || auth()->user()->hasRole('ketuakelas')) {
+            return redirect()->back()->with('gagal', 'Siswa / Ketua Kelas tidak memiliki akses untuk menambah jurnal mengajar.');
+        }
+
         $guru = DB::table('jurnal')->select('guru')
         // $guru=\App\Models\Jurnal::
         ->where('guru','LIKE','%'.$request->guru.'%')
@@ -421,6 +425,9 @@ class JurnalController extends Controller
 
     public function createsusul(Request $request)
     {   
+        if (in_array(auth()->user()->role, ['siswa', 'ketuakelas']) || auth()->user()->hasRole('siswa') || auth()->user()->hasRole('ketuakelas')) {
+            return redirect()->back()->with('gagal', 'Siswa / Ketua Kelas tidak memiliki akses untuk menambah jurnal mengajar.');
+        }
         
     //  \App\Models\Jurnal::create($request->all());
         // $user=DB::table('users')->where('name','LIKE','%'.$request->guru.'%')->first();
