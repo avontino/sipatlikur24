@@ -145,7 +145,6 @@
                     <td>{{$jadwal->guru}}</td>
                     
                     <td>
-                      @if(!in_array(auth()->user()->role, ['siswa', 'ketuakelas']) && !auth()->user()->hasRole('siswa') && !auth()->user()->hasRole('ketuakelas'))
                           <button type="button" class="btn btn-success btn-sm" 
                           data-myid="{{$jadwal->id}}"
                           data-mykelas="{{$jadwal->kelas}}"
@@ -169,7 +168,6 @@
                           data-myj11="{{$jadwal->j11}}"
 
                   data-bs-toggle="modal" data-bs-target="#editjadwal">Tambah Jurnal</button>
-                      @endif
                     </td>
                   </tr>
                   @endforeach
