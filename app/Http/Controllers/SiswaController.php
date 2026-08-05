@@ -55,20 +55,21 @@ class SiswaController extends Controller
             $query->whereIn('semester', $semValues);
         }
 
-        // Siswa hanya lihat datanya sendiri
-        if ($user->role == 'siswa') {
+        $view = $request->query('view');
+        $isWali = $user->hasRole('walikelas') || $user->walikelas_kelas;
+        $isKetua = $user->role === 'ketuakelas' || $user->hasRole('ketuakelas');
+        $isOnlyWaliOrKetua = ($view === 'walikelas') || (($isWali || $isKetua) && !($user->hasRole('kurikulum') || $user->hasRole('admin') || $user->hasRole('lihat')));
+
+        if ($isOnlyWaliOrKetua && ($isWali || $isKetua)) {
+            $kelas = $user->getManagedClass() ?: ($user->walikelas_kelas ?: $user->name);
+            if ($kelas) {
+                $query->where('kelas', $kelas);
+            }
+        } elseif ($user->role == 'siswa' && !$isKetua) {
+            // Siswa biasa (Bukan Ketua Kelas) hanya lihat datanya sendiri
             $query->where(function($q) use ($user) {
                 $q->where('nama', $user->name)->orWhere('nis', $user->username);
             });
-        }
-
-        $view = $request->query('view');
-        $isWali = $user->hasRole('walikelas') || $user->walikelas_kelas;
-        $isOnlyWaliKelas = $isWali && !($user->hasRole('kurikulum') || $user->hasRole('admin') || $user->hasRole('lihat'));
-
-        if ($view === 'walikelas' || $isOnlyWaliKelas) {
-            $kelas = $user->walikelas_kelas ?: $user->name;
-            $query->where('kelas', $kelas);
         }
 
         // Load semua data — DataTables yang handle search & paginasi
