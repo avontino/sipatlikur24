@@ -107,13 +107,13 @@
                                         <button type="submit" class="btn btn-sm btn-outline-primary" name="action" value="kelastgl">Filter Kelas & Tanggal</button>
                                     @endif
 
-                                    @if(auth()->user()->role=='admin' || auth()->user()->role=='kesiswaan' || auth()->user()->role=='walikelas' || auth()->user()->role=='ketuakelas' || auth()->user()->hasRole('walikelas') || auth()->user()->hasRole('ketuakelas') || (auth()->user()->role=='guru' && auth()->user()->walikelas_kelas))
+                                    @if(request()->query('view') === 'walikelas' && (auth()->user()->role=='admin' || auth()->user()->role=='kesiswaan' || auth()->user()->role=='walikelas' || auth()->user()->role=='ketuakelas' || auth()->user()->hasRole('walikelas') || auth()->user()->hasRole('ketuakelas') || (auth()->user()->role=='guru' && auth()->user()->walikelas_kelas)))
                                      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tambahabsen">
                                          <i class="fas fa-plus me-1"></i> Tambah Absensi Siswa
                                      </button>
                                      @endif
                                     
-                                    @if(auth()->user()->role != 'siswa')
+                                    @if(request()->query('view') === 'walikelas' && auth()->user()->role != 'siswa')
                                     <button type="button" class="btn btn-sm btn-success text-white" data-bs-toggle="modal" data-bs-target="#exportAbsenModal">
                                          <i class="fas fa-file-excel me-1"></i> Export Data
                                      </button>

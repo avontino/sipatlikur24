@@ -25,12 +25,12 @@ class AbsenController extends Controller
             
         $view = $request->query('view');
         $isWali = auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas;
-        $isKetuaKelas = auth()->user()->hasRole('ketuakelas');
-        $isOnlyWaliOrKetua = ($isWali || $isKetuaKelas) && !(auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('lihat'));
+        $isKetuaKelas = auth()->user()->role === 'ketuakelas' || auth()->user()->hasRole('ketuakelas');
+        $isOnlyWali = $isWali && !(auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('lihat'));
 
-        $isWaliView = ($view === 'walikelas' || $isOnlyWaliOrKetua);
+        $isWaliView = ($view === 'walikelas' || ($isOnlyWali && !$isKetuaKelas));
 
-        // Jika dalam mode Wali Kelas / Ketua Kelas, paksa filter hanya kelas perwaliannya saja
+        // Jika dalam mode Wali Kelas / Ketua Kelas (dengan view=walikelas), filter kelas perwaliannya
         if ($isWaliView) {
             $kelas = auth()->user()->getManagedClass() ?: auth()->user()->name;
             
@@ -52,8 +52,8 @@ class AbsenController extends Controller
                 ->with('sakit',$sakit)->with('ijin',$ijin)->with('alpha',$alpha);
         }
 
-        // Mode siswa
-        if (auth()->user()->role=='siswa') {
+        // Mode siswa (termasuk Ketua Kelas saat mengakses "Absensi Saya" / /absen biasa)
+        if (auth()->user()->role=='siswa' || auth()->user()->role=='ketuakelas' || $isKetuaKelas) {
             $sakit = (clone $baseAbsen)->where('ket','Sakit')->where('nama',auth()->user()->name)->count();
             $ijin = (clone $baseAbsen)->where('ket','Ijin')->where('nama',auth()->user()->name)->count();
             $alpha = (clone $baseAbsen)->where('ket','Alpha')->where('nama',auth()->user()->name)->count();    
