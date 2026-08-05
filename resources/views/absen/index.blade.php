@@ -141,7 +141,7 @@
                     <td>{{$absen->nama}}</td>
                     <td>{{$absen->kelas}}</td>
                     <td>{{$absen->ket}}</td>
-                    <td>{{$absen->created_at->format ('d-m-Y H:m:s')}}</td>
+                    <td>{{ optional($absen->updated_at)->format('d-m-Y H:i:s') ?? ($absen->created_at ? $absen->created_at->format('d-m-Y H:i:s') : '-') }}</td>
 
                     @if(auth()->user()->role=='admin' || auth()->user()->role=='walikelas' || auth()->user()->role=='ketuakelas' || (auth()->user()->role=='guru' && auth()->user()->walikelas_kelas))
                     <td>
