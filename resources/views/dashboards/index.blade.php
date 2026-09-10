@@ -413,18 +413,18 @@
                                 <td class="text-center">
                                   @php
                                     $ketLower = strtolower($s['ket']);
-                                    $badgeClass = 'bg-secondary text-white';
+                                    $badgeStyle = 'background-color: #64748b; color: #ffffff !important;';
                                     if (str_contains($ketLower, 'sakit')) {
-                                      $badgeClass = 'bg-warning text-dark';
+                                      $badgeStyle = 'background-color: #d97706; color: #ffffff !important;';
                                     } elseif (str_contains($ketLower, 'izin') || str_contains($ketLower, 'ijin')) {
-                                      $badgeClass = 'bg-info text-dark';
+                                      $badgeStyle = 'background-color: #0284c7; color: #ffffff !important;';
                                     } elseif (str_contains($ketLower, 'alpha')) {
-                                      $badgeClass = 'bg-danger text-white';
+                                      $badgeStyle = 'background-color: #dc2626; color: #ffffff !important;';
                                     } elseif (str_contains($ketLower, 'dispen')) {
-                                      $badgeClass = 'bg-primary text-white';
+                                      $badgeStyle = 'background-color: #7c3aed; color: #ffffff !important;';
                                     }
                                   @endphp
-                                  <span class="badge {{ $badgeClass }} px-2 py-1" style="font-size: 11px;">
+                                  <span class="badge px-2 py-1" style="{{ $badgeStyle }} font-size: 11.5px; font-weight: 600; border-radius: 6px;">
                                     {{ $s['ket'] }}
                                   </span>
                                 </td>
