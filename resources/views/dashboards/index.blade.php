@@ -38,28 +38,97 @@
   })();
 </script>
 
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-auto">
-          <div class="col-sm-6">
-            <!-- <h1>Dashboard</h1> -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="content">
+    <section class="content pt-3">
       <div class="container-fluid">
         
-        <!-- Peringatan Jurnal Mengajar Guru (Baris Atas Sendiri) -->
+        <!-- 1. Hero Welcome Banner Card -->
+        <div class="card shadow-sm border-0 rounded-3 mb-4 text-white overflow-hidden" style="background: linear-gradient(135deg, #004d1a 0%, #006622 50%, #009638 100%);">
+          <div class="card-body p-4 position-relative">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 54px; height: 54px; background: rgba(255,255,255,0.18); backdrop-filter: blur(4px);">
+                  <i class="fas fa-school fa-2x text-warning"></i>
+                </div>
+                <div>
+                  @php
+                    $hour = (int) \Carbon\Carbon::now()->format('H');
+                    $greeting = 'Selamat Malam';
+                    if ($hour >= 4 && $hour < 11) {
+                      $greeting = 'Selamat Pagi';
+                    } elseif ($hour >= 11 && $hour < 15) {
+                      $greeting = 'Selamat Siang';
+                    } elseif ($hour >= 15 && $hour < 19) {
+                      $greeting = 'Selamat Sore';
+                    }
+                    $userRoleLabel = strtoupper(auth()->user()->role);
+                    if (auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas) {
+                      $userRoleLabel = 'WALI KELAS ' . (auth()->user()->walikelas_kelas ?: auth()->user()->getManagedClass());
+                    } elseif (auth()->user()->hasRole('ketuakelas')) {
+                      $userRoleLabel = 'KETUA KELAS ' . auth()->user()->name;
+                    } elseif (auth()->user()->hasRole('guru')) {
+                      $userRoleLabel = 'GURU';
+                    } elseif (auth()->user()->hasRole('kurikulum')) {
+                      $userRoleLabel = 'TIM KURIKULUM';
+                    } elseif (auth()->user()->hasRole('admin')) {
+                      $userRoleLabel = 'ADMINISTRATOR';
+                    }
+                  @endphp
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <h3 class="fw-bold text-white mb-0" style="font-size: 22px;">{{ $greeting }}, {{ auth()->user()->name }}! 👋</h3>
+                    <span class="badge bg-warning text-dark fw-bold px-2 py-1" style="font-size: 11px; letter-spacing: 0.5px;">{{ $userRoleLabel }}</span>
+                  </div>
+                  <p class="text-white-50 small mb-0 mt-1">
+                    <i class="far fa-calendar-alt me-1 text-warning"></i> {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
+                    @if(session('tahun_ajaran'))
+                      <span class="mx-2 opacity-50">|</span>
+                      <i class="fas fa-graduation-cap me-1 text-warning"></i> TA {{ session('tahun_ajaran') }} {{ session('semester') ? '(' . session('semester') . ')' : '' }}
+                    @endif
+                  </p>
+                </div>
+              </div>
+              @if(isset($totalClasses) && $totalClasses > 0)
+                @php
+                  $compRate = round(($totalVerified / $totalClasses) * 100, 1);
+                  $barColor = $compRate >= 85 ? '#22c55e' : ($compRate >= 60 ? '#facc15' : '#ef4444');
+                @endphp
+                <div class="p-3 rounded-3 flex-shrink-0" style="background: rgba(0, 0, 0, 0.2); min-width: 230px;">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small text-white-50 fw-semibold text-uppercase" style="font-size: 10.5px;">Verifikasi Pagi Hari Ini</span>
+                    <span class="fw-bold text-white" style="font-size: 13px;">{{ $totalVerified }}/{{ $totalClasses }} Kelas</span>
+                  </div>
+                  <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.2);">
+                    <div class="progress-bar" role="progressbar" style="width: {{ $compRate }}%; background-color: {{ $barColor }};" aria-valuenow="{{ $compRate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mt-1">
+                    <span class="small text-white-50" style="font-size: 10.5px;">Capaian Sekolah:</span>
+                    <span class="fw-bold text-warning" style="font-size: 11.5px;">{{ $compRate }}% Terverifikasi</span>
+                  </div>
+                </div>
+              @endif
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Peringatan Jurnal Mengajar Guru -->
         @if(auth()->user()->hasRole('guru'))
           @if(count($guruScheduleNotFilled) > 0)
-            <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px; background: #fff3cd; color: #856404;">
-              <i class="fas fa-exclamation-triangle me-2"></i>
-              <strong>Peringatan Jurnal Mengajar:</strong> Anda memiliki jadwal mengajar hari ini untuk kelas berikut tetapi belum mengisi jurnal mengajar harian: 
-              <strong>{{ implode(', ', $guruScheduleNotFilled) }}</strong>.
-              <a href="/jurnal" class="btn btn-warning btn-sm text-dark ms-2 fw-bold"><i class="fas fa-edit me-1"></i> Isi Jurnal</a>
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="card shadow-sm border-0 rounded-3 mb-4 overflow-hidden" style="background: #fffbeb; border-left: 5px solid #f59e0b !important;">
+              <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px; background: #fde68a; color: #b45309;">
+                    <i class="fas fa-exclamation-triangle fa-lg"></i>
+                  </div>
+                  <div>
+                    <h6 class="fw-bold mb-1" style="color: #92400e; font-size: 14px;">Peringatan Jurnal Mengajar Hari Ini</h6>
+                    <p class="mb-0 small" style="color: #78350f; font-size: 12.5px;">
+                      Anda memiliki jadwal mengajar tetapi belum mengisi jurnal: <strong>{{ implode(', ', $guruScheduleNotFilled) }}</strong>.
+                    </p>
+                  </div>
+                </div>
+                <a href="/jurnal" class="btn btn-warning btn-sm fw-bold px-3 shadow-sm" style="color: #78350f; border-radius: 8px;">
+                  <i class="fas fa-edit me-1"></i> Isi Jurnal Sekarang
+                </a>
+              </div>
             </div>
           @endif
         @endif
@@ -67,11 +136,24 @@
         <!-- Peringatan Jurnal Admin / Kurikulum / Lihat -->
         @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('lihat'))
           @if(count($classesNotFilled) > 0)
-            <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px; background: #fff3cd; color: #856404;">
-              <i class="fas fa-exclamation-triangle me-2"></i>
-              <strong>Peringatan Jurnal Harian:</strong> Terdapat {{ count($classesNotFilled) }} kelas yang belum mengisi jurnal harian hari ini: 
-              <strong>{{ implode(', ', $classesNotFilled) }}</strong>.
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="card shadow-sm border-0 rounded-3 mb-4 overflow-hidden" style="background: #fffbeb; border-left: 5px solid #f59e0b !important;">
+              <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px; background: #fde68a; color: #b45309;">
+                    <i class="fas fa-exclamation-circle fa-lg"></i>
+                  </div>
+                  <div>
+                    <h6 class="fw-bold mb-1" style="color: #92400e; font-size: 14px;">Peringatan Jurnal Harian Kelas</h6>
+                    <p class="mb-0 small" style="color: #78350f; font-size: 12.5px;">
+                      Terdapat <strong>{{ count($classesNotFilled) }} kelas</strong> belum mengisi jurnal harian hari ini: 
+                      <span class="badge bg-warning text-dark ms-1">{{ implode(', ', $classesNotFilled) }}</span>
+                    </p>
+                  </div>
+                </div>
+                <a href="/jurnalh?view=kurikulum" class="btn btn-outline-warning btn-sm fw-bold px-3" style="color: #78350f; border-radius: 8px;">
+                  <i class="fas fa-eye me-1"></i> Pantau Jurnal
+                </a>
+              </div>
             </div>
           @endif
         @endif
@@ -79,10 +161,20 @@
         <!-- Peringatan Jurnal Wali Kelas -->
         @if(auth()->user()->hasRole('walikelas') || auth()->user()->walikelas_kelas)
           @if($waliClassNotFilled)
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 text-white" role="alert" style="border-radius: 12px; background-color: #dc3545;">
-              <i class="fas fa-exclamation-circle me-2"></i>
-              <strong>Peringatan Jurnal Kelas:</strong> Kelas perwalian Anda (<strong>{{ auth()->user()->walikelas_kelas ?: auth()->user()->name }}</strong>) belum mengisi jurnal harian hari ini! Harap hubungi Ketua Kelas Anda.
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="card shadow-sm border-0 rounded-3 mb-4 overflow-hidden text-white" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-left: 5px solid #991b1b !important;">
+              <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 42px; height: 42px; background: rgba(255,255,255,0.2);">
+                    <i class="fas fa-exclamation-triangle fa-lg text-white"></i>
+                  </div>
+                  <div>
+                    <h6 class="fw-bold mb-1 text-white" style="font-size: 14px;">Peringatan Jurnal Kelas Anda</h6>
+                    <p class="mb-0 small text-white-50" style="font-size: 12.5px;">
+                      Kelas perwalian Anda (<strong>{{ auth()->user()->walikelas_kelas ?: auth()->user()->name }}</strong>) belum mengisi jurnal harian hari ini! Harap koordinasi dengan Ketua Kelas.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           @endif
         @endif
@@ -90,189 +182,209 @@
         <!-- Peringatan Jurnal Ketua Kelas -->
         @if(auth()->user()->hasRole('ketuakelas'))
           @if(!$todayJurnalFilled)
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4 text-white" role="alert" style="border-radius: 12px; background-color: #dc3545;">
-              <i class="fas fa-exclamation-circle me-2"></i>
-              <strong>Peringatan Jurnal:</strong> Kelas Anda belum mengisi jurnal harian hari ini! 
-              <a href="/jurnalbaru" class="btn btn-light btn-sm text-danger ms-2 fw-bold"><i class="fas fa-edit me-1"></i> Isi Jurnal Sekarang</a>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="card shadow-sm border-0 rounded-3 mb-4 overflow-hidden text-white" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-left: 5px solid #991b1b !important;">
+              <div class="card-body p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 42px; height: 42px; background: rgba(255,255,255,0.2);">
+                    <i class="fas fa-exclamation-circle fa-lg text-white"></i>
+                  </div>
+                  <div>
+                    <h6 class="fw-bold mb-1 text-white" style="font-size: 14px;">Peringatan: Jurnal Hari Ini Belum Diisi</h6>
+                    <p class="mb-0 small text-white-50" style="font-size: 12.5px;">Kelas Anda belum mengisi jurnal harian untuk jadwal KBM hari ini!</p>
+                  </div>
+                </div>
+                <a href="/jurnalbaru" class="btn btn-light btn-sm fw-bold px-3 shadow-sm text-danger" style="border-radius: 8px;">
+                  <i class="fas fa-edit me-1"></i> Isi Jurnal Sekarang
+                </a>
+              </div>
             </div>
           @endif
         @endif
 
-        <!-- Verification Widget (Wali Kelas and Ketua Kelas) -->
+        <!-- 3. Verification Widget (Wali Kelas and Ketua Kelas) -->
         @if(!empty($managedClass))
-          <div class="card shadow mb-4">
-            <div class="card-header bg-light py-2">
-              <h5 class="card-title m-0 font-weight-bold text-dark" style="font-size: 14px;"><i class="fas fa-clipboard-check me-2 text-primary"></i> Verifikasi Absensi Pagi - Kelas {{ $managedClass }}</h5>
+          <div class="card shadow-sm border-0 rounded-3 mb-4">
+            <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+              <h6 class="card-title m-0 fw-bold text-dark" style="font-size: 14px;">
+                <i class="fas fa-clipboard-check text-primary me-2"></i> Verifikasi Absensi Pagi - Kelas {{ $managedClass }}
+              </h6>
+              <span class="badge bg-secondary px-2 py-1" style="font-size: 11px;">{{ \Carbon\Carbon::now()->isoFormat('D MMMM Y') }}</span>
             </div>
-            <div class="card-body py-3">
+            <div class="card-body p-3">
               @if($todayVerification)
-                <div class="alert alert-success d-flex align-items-center mb-0 p-3" role="alert" style="background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;">
-                  <i class="fas fa-check-circle me-3" style="font-size: 24px; color: #198754;"></i>
-                  <div>
-                    <h6 class="alert-heading font-weight-bold mb-1" style="font-size: 14px; color: #0f5132;">Absensi Pagi Kelas Terverifikasi!</h6>
-                    <p class="mb-0 small" style="font-size: 12px;">Status Kehadiran Hari Ini: <strong>{{ $todayVerification->status == 'NIHIL' ? 'NIHIL (Hadir Semua)' : 'ADA ABSEN' }}</strong></p>
-                    <p class="mb-0 small mt-1" style="font-size: 12px; opacity: 0.85;">Rincian Kehadiran: {{ $currentDetailStr }}</p>
-                    <p class="mb-0 small" style="font-size: 11px; opacity: 0.75;">Diverifikasi oleh: {{ optional(\App\Models\User::find($todayVerification->verified_by))->name ?? 'Sistem' }} pada {{ \Carbon\Carbon::parse($todayVerification->updated_at)->format('H:i') }} WIB</p>
+                <div class="p-3 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; background-color: #22c55e; color: #ffffff;">
+                      <i class="fas fa-check-circle fa-lg"></i>
+                    </div>
+                    <div>
+                      <div class="d-flex align-items-center gap-2">
+                        <h6 class="fw-bold text-success mb-0" style="font-size: 15px;">Absensi Pagi Kelas Terverifikasi!</h6>
+                        <span class="badge bg-success px-2 py-0" style="font-size: 10px;">{{ $todayVerification->status == 'NIHIL' ? 'NIHIL (Hadir Semua)' : 'ADA ABSEN' }}</span>
+                      </div>
+                      <p class="mb-0 small text-dark mt-1" style="font-size: 12px;"><strong>Rincian:</strong> {{ $currentDetailStr }}</p>
+                      <span class="text-muted small" style="font-size: 11px;"><i class="fas fa-user-check me-1"></i>Diverifikasi oleh: {{ optional(\App\Models\User::find($todayVerification->verified_by))->name ?? 'Sistem' }} pukul {{ \Carbon\Carbon::parse($todayVerification->updated_at)->format('H:i') }} WIB</span>
+                    </div>
                   </div>
-                </div>
-                
-                <div class="mt-2 text-end">
-                  <a href="/jurnalbaru" class="btn btn-outline-success btn-sm text-xs py-1 px-2"><i class="fas fa-sync me-1"></i> Perbarui Verifikasi</a>
+                  <a href="/jurnalbaru" class="btn btn-outline-success btn-sm fw-semibold px-3" style="border-radius: 6px;">
+                    <i class="fas fa-sync me-1"></i> Perbarui Verifikasi
+                  </a>
                 </div>
               @else
-                <div class="alert alert-warning d-flex align-items-center mb-2 p-3" role="alert" style="background-color: #fff3cd; border-color: #ffecb5; color: #664d03; border-left: 5px solid #ffc107;">
-                  <i class="fas fa-exclamation-triangle me-3" style="font-size: 24px; color: #ffc107;"></i>
-                  <div>
-                    <h6 class="alert-heading font-weight-bold mb-1" style="font-size: 14px; color: #664d03;">Pemberitahuan: Belum Verifikasi Kehadiran Pagi</h6>
-                    <p class="mb-0 small" style="font-size: 12px;">Kelas Anda belum melakukan verifikasi absensi pagi untuk hari ini.</p>
-                    <p class="mb-0 small mt-1" style="font-size: 12px; opacity: 0.85;">Rincian Data Saat Ini: {{ $currentDetailStr }}</p>
+                <div class="p-3 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background-color: #fffbeb; border: 1px solid #fde68a;">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; background-color: #f59e0b; color: #ffffff;">
+                      <i class="fas fa-exclamation-triangle fa-lg"></i>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold mb-0" style="color: #92400e; font-size: 15px;">Belum Verifikasi Kehadiran Pagi</h6>
+                      <p class="mb-0 small mt-1" style="color: #78350f; font-size: 12px;">Kelas Anda belum melakukan verifikasi absensi pagi untuk hari ini.</p>
+                      <p class="mb-0 small text-muted" style="font-size: 11.5px;">Data saat ini: {{ $currentDetailStr }}</p>
+                      <p class="mb-0 text-muted fst-italic" style="font-size: 11px;">*Jika terdapat siswa yang Sakit, Izin, Terlambat (Dispen), atau Alpha hari ini, harap input absensi terlebih dahulu di menu Absensi Siswa sebelum verifikasi.</p>
+                    </div>
                   </div>
-                </div>
-                <p class="text-muted small mb-2" style="font-size: 11px; font-style: italic;">*Jika terdapat siswa yang Sakit, Izin, Terlambat (Dispen), atau Alpha hari ini, harap input absensi mereka terlebih dahulu di menu <strong>Absensi Siswa</strong> sebelum mengeklik verifikasi.</p>
-                
-                <div class="text-end">
-                  <a href="/jurnalbaru" class="btn btn-warning btn-sm font-weight-bold text-dark px-3 py-1 text-xs"><i class="fas fa-check-circle me-1"></i> Verifikasi Absensi Pagi</a>
+                  <a href="/jurnalbaru" class="btn btn-warning btn-sm fw-bold px-3 text-dark shadow-sm" style="border-radius: 6px;">
+                    <i class="fas fa-check-circle me-1"></i> Verifikasi Absensi Pagi
+                  </a>
                 </div>
               @endif
             </div>
           </div>
         @endif
 
-        {{-- Status Presensi Hari Ini (Guru dan Tendik) Disembunyikan --}}
-
-        <!-- Small boxes (Stat box) -->
-         @if(auth()->user()->hasRole('siswa'))
-          <div class="row g-4 row-cols-1 row-cols-md-4 mb-4">
-         @else
-          <div class="row g-4 row-cols-1 row-cols-md-3 mb-4">
-         @endif
-         @if(auth()->user()->hasRole('siswa'))
-            <div class="col">
-            <!-- small box -->
-            <div class="small-box bg-dark">
-              <div class="inner">
-                <h3>{{$status}}</h3>
-
-                <p>Hari Ini </p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-id-badge"></i>
+        <!-- 4. Modern Metric Cards -->
+        @if(auth()->user()->hasRole('siswa'))
+          <div class="row g-3 mb-4">
+            <div class="col-lg-3 col-sm-6">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #1e293b !important; background: #ffffff;">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px;">Status Kehadiran</span>
+                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ $status }}</h3>
+                    <span class="text-secondary small" style="font-size: 11px;">Hari Ini</span>
+                  </div>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #f1f5f9; color: #1e293b;">
+                    <i class="fas fa-id-badge fa-lg"></i>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-           
-           {{-- Tagihan Komite & Tagihan Lain Disembunyikan --}}
-
-          <div class="col">
-            <!-- small box -->
-            <div class="small-box bg-danger">
-              <div class="inner">
-                <h3>0</h3>
-
-                <p>Total Poin Pelanggaran</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-user-shield"></i>
+            <div class="col-lg-3 col-sm-6">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #ef4444 !important; background: #ffffff;">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px;">Poin Pelanggaran</span>
+                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">0</h3>
+                    <span class="text-secondary small" style="font-size: 11px;">Kedisiplinan</span>
+                  </div>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #fee2e2; color: #ef4444;">
+                    <i class="fas fa-user-shield fa-lg"></i>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="col">
-            <!-- small box -->
-            <div class="small-box bg-primary">
-              <div class="inner">
-                <h3>0</h3>
-
-                <p>Total Poin Prestasi</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-trophy"></i>
-              </div>
-            </div>
-          </div>
-
-          <div class="col">
-            <!-- small box -->
-            <div class="small-box bg-success">
-              <div class="inner">
-                <h3>0</h3>
-
-                <p>Total Poin Siswa</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-user-check"></i>
+            <div class="col-lg-3 col-sm-6">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #3b82f6 !important; background: #ffffff;">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px;">Poin Prestasi</span>
+                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">0</h3>
+                    <span class="text-secondary small" style="font-size: 11px;">Penghargaan</span>
+                  </div>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #dbeafe; color: #3b82f6;">
+                    <i class="fas fa-trophy fa-lg"></i>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          @endif
-          <div class="col">
-            <!-- small box -->
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3>{{$sakit}}</h3>
-
-                <p>Total Siswa Sakit </p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-head-side-cough"></i>
-              </div>
-            </div>
-          </div>
-
-          <div class="col">
-            <!-- small box -->
-            <div class="small-box bg-warning">
-              <div class="inner">
-                <h3>{{$ijin}}</h3>
-
-                <p>Total Siswa Ijin </p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-file-signature"></i>
-              </div>
-            </div>
-          </div>
-
-          <div class="col">
-            <!-- small box -->
-            <div class="small-box bg-secondary">
-              <div class="inner">
-                <h3>{{$alpha}}</h3>
-
-                <p>Total Siswa Alpha</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-user-times"></i>
-              </div>
-            </div>
-          </div>
-
-        </div> 
-
-        <div class="row g-4 row-cols-1 row-cols-md-3 row-cols-lg-{{ auth()->user()->hasRole('guru') ? '6' : '5' }} mb-4">
-            
-        @if(auth()->user()->hasRole('guru'))
-          <div class="col">
-            <!-- small box -->
-            <div class="small-box bg-primary">
-              <div class="inner">
-                <h3>{{ is_numeric($absenguru) ? $absenguru : 0 }} <sup style="font-size: 20px">Hari</sup></h3>
-
-                <p>{{auth()->user()->name}} Tidak Masuk</p>
-              </div>
-              <div class="icon">
-                <i class="fas fa-chalkboard-teacher"></i>
+            <div class="col-lg-3 col-sm-6">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #10b981 !important; background: #ffffff;">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px;">Total Poin Siswa</span>
+                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">0</h3>
+                    <span class="text-secondary small" style="font-size: 11px;">Akumulasi</span>
+                  </div>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #d1fae5; color: #10b981;">
+                    <i class="fas fa-user-check fa-lg"></i>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         @endif
-        </div>
-      </div>
-    </section>
 
-    <section class="content">
-      <div class="container-fluid">
+        @php
+          $colClass = auth()->user()->hasRole('guru') ? 'col-lg-3 col-sm-6' : 'col-lg-4 col-sm-6';
+        @endphp
+
+        <div class="row g-3 mb-4">
+          <!-- Siswa Sakit -->
+          <div class="{{ $colClass }}">
+            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #0284c7 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+              <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Siswa Sakit</span>
+                  <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ $sakit }}</h3>
+                  <span class="text-secondary small" style="font-size: 11px;">Tercatat Hari Ini</span>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #e0f2fe; color: #0284c7;">
+                  <i class="fas fa-head-side-cough fa-lg"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Siswa Izin -->
+          <div class="{{ $colClass }}">
+            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #d97706 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+              <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Siswa Izin</span>
+                  <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ $ijin }}</h3>
+                  <span class="text-secondary small" style="font-size: 11px;">Tercatat Hari Ini</span>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #fef3c7; color: #d97706;">
+                  <i class="fas fa-file-signature fa-lg"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Siswa Alpha -->
+          <div class="{{ $colClass }}">
+            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #dc2626 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+              <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Siswa Alpha</span>
+                  <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ $alpha }}</h3>
+                  <span class="text-secondary small" style="font-size: 11px;">Tanpa Keterangan</span>
+                </div>
+                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #fee2e2; color: #dc2626;">
+                  <i class="fas fa-user-times fa-lg"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          @if(auth()->user()->hasRole('guru'))
+            <!-- Presensi Guru Pribadi -->
+            <div class="{{ $colClass }}">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #7c3aed !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Presensi Saya</span>
+                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ is_numeric($absenguru) ? $absenguru : 0 }} <span style="font-size: 13px; font-weight: 500;">Hari</span></h3>
+                    <span class="text-secondary small" style="font-size: 11px;">Tidak Masuk Bulan Ini</span>
+                  </div>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #ede9fe; color: #7c3aed;">
+                    <i class="fas fa-chalkboard-teacher fa-lg"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          @endif
+        </div>
         <!-- Verification Summary Slider & Table -->
         @if(isset($verifikasiRekap) && count($verifikasiRekap) > 0)
           <div class="card shadow mb-4">
