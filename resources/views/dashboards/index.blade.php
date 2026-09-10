@@ -4,8 +4,8 @@
 
 <script type="text/javascript">
   (function() {
-    // Refresh otomatis hanya jika pengguna sedang idle/diam selama 3 menit (180 detik)
-    var IDLE_TIMEOUT_MS = 180000; 
+    // Refresh otomatis jika pengguna sedang diam/idle selama 1 menit (60 detik)
+    var IDLE_TIMEOUT_MS = 60000; 
     var refreshTimer = null;
 
     function isModalOpen() {
