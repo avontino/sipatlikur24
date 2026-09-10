@@ -332,34 +332,111 @@
   </div>
 @endforeach
 
+@endsection
+
+@push('scripts')
+<style>
+  #tableRekapVerifikasi thead th {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #tableRekapVerifikasi thead th:not(:first-child):not(:last-child) {
+    cursor: pointer !important;
+    transition: background-color 0.15s ease;
+  }
+  #tableRekapVerifikasi thead th:not(:first-child):not(:last-child):hover {
+    background-color: #e2e8f0 !important;
+  }
+</style>
+
 <script>
 $(document).ready(function() {
-  if ($.fn.DataTable.isDataTable('#tableRekapVerifikasi')) {
-    $('#tableRekapVerifikasi').DataTable().destroy();
-  }
-  var table = $('#tableRekapVerifikasi').DataTable({
-    paging: false,
-    searching: true,
-    info: false,
-    order: [[6, 'desc']], // Default: urut dari % Kepatuhan tertinggi (kelas paling rajin)
-    columnDefs: [
-      { orderable: false, targets: [0, 7] }, // Kolom No dan Aksi tidak disortir
-      { targets: [3, 4, 5, 6], type: 'num' }
-    ],
-    language: {
-      search: "<i class='fas fa-search me-1 text-secondary'></i> Cari Kelas / Wali:",
-      searchPlaceholder: "Ketik nama kelas / wali..."
-    }
-  });
-
-  // Perbarui nomor urut saat tabel disortir atau dicari
-  table.on('order.dt search.dt', function () {
-    let i = 1;
-    table.cells(null, 0, { search: 'applied', order: 'applied' }).every(function (cell) {
-      this.data(i++);
-    });
-  }).draw();
+  initRekapVerifikasiTable();
 });
-</script>
 
-@endsection
+function initRekapVerifikasiTable() {
+  if (typeof $.fn.DataTable !== 'undefined') {
+    if ($.fn.DataTable.isDataTable('#tableRekapVerifikasi')) {
+      $('#tableRekapVerifikasi').DataTable().destroy();
+    }
+    var table = $('#tableRekapVerifikasi').DataTable({
+      paging: false,
+      searching: true,
+      info: false,
+      order: [[6, 'desc']], // Default: urut dari % Kepatuhan tertinggi (kelas paling rajin)
+      columnDefs: [
+        { orderable: false, targets: [0, 7] }, // Kolom No dan Aksi tidak disortir
+        { targets: [3, 4, 5, 6], type: 'num' }
+      ],
+      language: {
+        search: "<i class='fas fa-search me-1 text-secondary'></i> Cari Kelas / Wali:",
+        searchPlaceholder: "Ketik nama kelas / wali..."
+      }
+    });
+
+    // Perbarui nomor urut saat tabel disortir atau dicari
+    table.on('order.dt search.dt', function () {
+      table.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+        cell.innerHTML = '<strong>' + (i + 1) + '</strong>';
+      });
+    });
+  } else {
+    // Fallback sorting Vanilla JS murni jika DataTables belum siap
+    initFallbackSortingVerif('tableRekapVerifikasi');
+  }
+}
+
+function initFallbackSortingVerif(tableId) {
+  var table = document.getElementById(tableId);
+  if (!table) return;
+  var headers = table.querySelectorAll('thead th');
+  var tbody = table.querySelector('tbody');
+  if (!tbody) return;
+
+  var currentSortCol = 6;
+  var isAsc = false;
+
+  headers.forEach(function(th, colIdx) {
+    if (colIdx === 0 || colIdx === 7) return; // Lewati kolom No & Aksi
+    th.addEventListener('click', function() {
+      if (currentSortCol === colIdx) {
+        isAsc = !isAsc;
+      } else {
+        currentSortCol = colIdx;
+        isAsc = false; // Default klik pertama: tertinggi / rajin (desc)
+      }
+
+      var rows = Array.from(tbody.querySelectorAll('tr'));
+      if (rows.length <= 1) return;
+
+      rows.sort(function(a, b) {
+        var cellA = a.children[colIdx];
+        var cellB = b.children[colIdx];
+        if (!cellA || !cellB) return 0;
+
+        var valA = cellA.getAttribute('data-order') !== null ? cellA.getAttribute('data-order') : cellA.innerText.trim();
+        var valB = cellB.getAttribute('data-order') !== null ? cellB.getAttribute('data-order') : cellB.innerText.trim();
+
+        var numA = parseFloat(valA);
+        var numB = parseFloat(valB);
+
+        var comparison = 0;
+        if (!isNaN(numA) && !isNaN(numB)) {
+          comparison = numA - numB;
+        } else {
+          comparison = valA.localeCompare(valB, 'id', { numeric: true });
+        }
+        return isAsc ? comparison : -comparison;
+      });
+
+      rows.forEach(function(row, idx) {
+        tbody.appendChild(row);
+        if (row.children[0]) {
+          row.children[0].innerHTML = '<strong>' + (idx + 1) + '</strong>';
+        }
+      });
+    });
+  });
+}
+</script>
+@endpush
