@@ -271,7 +271,7 @@
             <div class="d-flex gap-2">
               <span class="badge bg-success px-2 py-1" style="font-size: 12px;">Sudah: {{ $r['sudah_verifikasi'] }} Hari</span>
               <span class="badge bg-danger px-2 py-1" style="font-size: 12px;">Tidak: {{ $r['tidak_verifikasi'] }} Hari</span>
-              <span class="badge bg-info text-dark px-2 py-1" style="font-size: 12px;">Kepatuhan: {{ $r['persentase'] }}%</span>
+              <span class="badge px-2 py-1" style="background-color: #7c3aed; color: #ffffff !important; font-size: 12px; font-weight: 700;">Kepatuhan: {{ $r['persentase'] }}%</span>
             </div>
           </div>
 
