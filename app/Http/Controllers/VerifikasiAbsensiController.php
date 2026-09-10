@@ -102,10 +102,58 @@ class VerifikasiAbsensiController extends Controller
             $verifGrouped[$row->kelas][$row->tanggal] = $row;
         }
 
-        // Petakan Wali Kelas untuk setiap kelas
+        // Petakan Wali Kelas untuk setiap kelas (khusus Guru / Wali Kelas, kecualikan Ketua Kelas & Siswa)
         $waliMap = User::whereNotNull('walikelas_kelas')
+            ->whereNotIn('role', ['ketuakelas', 'siswa'])
+            ->where(function ($q) {
+                $q->whereNull('additional_roles')
+                  ->orWhere(function ($q2) {
+                      $q2->where('additional_roles', 'NOT LIKE', '%ketuakelas%')
+                         ->where('additional_roles', 'NOT LIKE', '%siswa%');
+                  });
+            })
             ->pluck('name', 'walikelas_kelas')
             ->toArray();
+
+        // Fallback mapping wali kelas jika ada kelas yang belum terisi di DB
+        $walisDictionary = [
+            '7A' => ['Dwi Rahmawati'],
+            '7B' => ['Elsye', 'Sandra'],
+            '7C' => ['Widyatama'],
+            '7D' => ['Erri Endah', 'Listiani'],
+            '7E' => ['Dyah Amelia'],
+            '7F' => ['Fernanda'],
+            '7G' => ['Sriatin'],
+            '8A' => ['Siti Rohmawati'],
+            '8B' => ['Made Argita', 'Argita'],
+            '8C' => ['Lina Setyaningrum'],
+            '8D' => ['Titik Dewi'],
+            '8E' => ['Ainur Romlah'],
+            '8F' => ['Noveriana'],
+            '8G' => ['Umi Farah'],
+            '9A' => ['Maria Ignatia'],
+            '9B' => ['Ida Fitriyah'],
+            '9C' => ['Wega'],
+            '9D' => ['Sri Hartati'],
+            '9E' => ['Endah Suci'],
+            '9F' => ['Muflihatul', 'Habibah', "A'im"],
+            '9G' => ['Vita Arwidiah', 'Vita'],
+        ];
+
+        foreach ($walisDictionary as $kls => $keywords) {
+            if (empty($waliMap[$kls])) {
+                $foundTeacher = User::whereNotIn('role', ['ketuakelas', 'siswa'])
+                    ->where(function ($q) use ($keywords) {
+                        foreach ($keywords as $kw) {
+                            $q->orWhere('name', 'LIKE', "%{$kw}%");
+                        }
+                    })
+                    ->value('name');
+                if ($foundTeacher) {
+                    $waliMap[$kls] = $foundTeacher;
+                }
+            }
+        }
 
         // Susun data rekap per kelas
         $rekapPerKelas = [];
