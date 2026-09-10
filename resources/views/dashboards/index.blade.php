@@ -256,57 +256,57 @@
         @if(auth()->user()->hasRole('siswa'))
           <div class="row g-3 mb-4">
             <div class="col-lg-3 col-sm-6">
-              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #1e293b !important; background: #ffffff;">
-                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 6px solid #1e293b !important; background: #ffffff;">
+                <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-center">
                   <div>
-                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px;">Status Kehadiran</span>
-                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ $status }}</h3>
-                    <span class="text-secondary small" style="font-size: 11px;">Hari Ini</span>
+                    <span class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 13px; letter-spacing: 0.8px;">Status Kehadiran</span>
+                    <h2 class="fw-bold text-dark mb-1" style="font-size: 38px; line-height: 1.1;">{{ $status }}</h2>
+                    <span class="text-secondary" style="font-size: 13px;"><i class="far fa-calendar-check me-1"></i>Hari Ini</span>
                   </div>
-                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #f1f5f9; color: #1e293b;">
-                    <i class="fas fa-id-badge fa-lg"></i>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 58px; height: 58px; background-color: #f1f5f9; color: #1e293b;">
+                    <i class="fas fa-id-badge fa-2x"></i>
                   </div>
                 </div>
               </div>
             </div>
             <div class="col-lg-3 col-sm-6">
-              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #ef4444 !important; background: #ffffff;">
-                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 6px solid #ef4444 !important; background: #ffffff;">
+                <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-center">
                   <div>
-                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px;">Poin Pelanggaran</span>
-                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">0</h3>
-                    <span class="text-secondary small" style="font-size: 11px;">Kedisiplinan</span>
+                    <span class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 13px; letter-spacing: 0.8px;">Poin Pelanggaran</span>
+                    <h2 class="fw-bold text-danger mb-1" style="font-size: 42px; line-height: 1.1;">0</h2>
+                    <span class="text-secondary" style="font-size: 13px;"><i class="fas fa-shield-alt me-1"></i>Kedisiplinan</span>
                   </div>
-                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #fee2e2; color: #ef4444;">
-                    <i class="fas fa-user-shield fa-lg"></i>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 58px; height: 58px; background-color: #fee2e2; color: #ef4444;">
+                    <i class="fas fa-user-shield fa-2x"></i>
                   </div>
                 </div>
               </div>
             </div>
             <div class="col-lg-3 col-sm-6">
-              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #3b82f6 !important; background: #ffffff;">
-                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 6px solid #3b82f6 !important; background: #ffffff;">
+                <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-center">
                   <div>
-                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px;">Poin Prestasi</span>
-                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">0</h3>
-                    <span class="text-secondary small" style="font-size: 11px;">Penghargaan</span>
+                    <span class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 13px; letter-spacing: 0.8px;">Poin Prestasi</span>
+                    <h2 class="fw-bold text-primary mb-1" style="font-size: 42px; line-height: 1.1;">0</h2>
+                    <span class="text-secondary" style="font-size: 13px;"><i class="fas fa-award me-1"></i>Penghargaan</span>
                   </div>
-                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #dbeafe; color: #3b82f6;">
-                    <i class="fas fa-trophy fa-lg"></i>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 58px; height: 58px; background-color: #dbeafe; color: #3b82f6;">
+                    <i class="fas fa-trophy fa-2x"></i>
                   </div>
                 </div>
               </div>
             </div>
             <div class="col-lg-3 col-sm-6">
-              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #10b981 !important; background: #ffffff;">
-                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 6px solid #10b981 !important; background: #ffffff;">
+                <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-center">
                   <div>
-                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px;">Total Poin Siswa</span>
-                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">0</h3>
-                    <span class="text-secondary small" style="font-size: 11px;">Akumulasi</span>
+                    <span class="text-muted fw-bold text-uppercase d-block mb-1" style="font-size: 13px; letter-spacing: 0.8px;">Total Poin Siswa</span>
+                    <h2 class="fw-bold text-success mb-1" style="font-size: 42px; line-height: 1.1;">0</h2>
+                    <span class="text-secondary" style="font-size: 13px;"><i class="fas fa-calculator me-1"></i>Akumulasi</span>
                   </div>
-                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #d1fae5; color: #10b981;">
-                    <i class="fas fa-user-check fa-lg"></i>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 58px; height: 58px; background-color: #d1fae5; color: #10b981;">
+                    <i class="fas fa-user-check fa-2x"></i>
                   </div>
                 </div>
               </div>
@@ -321,15 +321,15 @@
         <div class="row g-3 mb-4">
           <!-- Siswa Sakit -->
           <div class="{{ $colClass }}">
-            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #0284c7 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
-              <div class="card-body p-3 d-flex justify-content-between align-items-center">
+            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 6px solid #0284c7 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 24px rgba(0,0,0,0.09)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+              <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-center">
                 <div>
-                  <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Siswa Sakit</span>
-                  <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ $sakit }}</h3>
-                  <span class="text-secondary small" style="font-size: 11px;">Tercatat Hari Ini</span>
+                  <span class="fw-bold text-uppercase d-block mb-1" style="color: #475569; font-size: 13.5px; letter-spacing: 0.8px;">Siswa Sakit</span>
+                  <h2 class="fw-bold mb-1" style="color: #0284c7; font-size: 44px; font-weight: 800; line-height: 1.1;">{{ $sakit }}</h2>
+                  <span class="text-secondary" style="font-size: 13px;"><i class="far fa-clock me-1 text-muted"></i>Tercatat Hari Ini</span>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #e0f2fe; color: #0284c7;">
-                  <i class="fas fa-head-side-cough fa-lg"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 60px; height: 60px; background-color: #e0f2fe; color: #0284c7;">
+                  <i class="fas fa-head-side-cough fa-2x"></i>
                 </div>
               </div>
             </div>
@@ -337,15 +337,15 @@
 
           <!-- Siswa Izin -->
           <div class="{{ $colClass }}">
-            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #d97706 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
-              <div class="card-body p-3 d-flex justify-content-between align-items-center">
+            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 6px solid #d97706 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 24px rgba(0,0,0,0.09)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+              <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-center">
                 <div>
-                  <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Siswa Izin</span>
-                  <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ $ijin }}</h3>
-                  <span class="text-secondary small" style="font-size: 11px;">Tercatat Hari Ini</span>
+                  <span class="fw-bold text-uppercase d-block mb-1" style="color: #475569; font-size: 13.5px; letter-spacing: 0.8px;">Siswa Izin</span>
+                  <h2 class="fw-bold mb-1" style="color: #d97706; font-size: 44px; font-weight: 800; line-height: 1.1;">{{ $ijin }}</h2>
+                  <span class="text-secondary" style="font-size: 13px;"><i class="far fa-clock me-1 text-muted"></i>Tercatat Hari Ini</span>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #fef3c7; color: #d97706;">
-                  <i class="fas fa-file-signature fa-lg"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 60px; height: 60px; background-color: #fef3c7; color: #d97706;">
+                  <i class="fas fa-file-signature fa-2x"></i>
                 </div>
               </div>
             </div>
@@ -353,15 +353,15 @@
 
           <!-- Siswa Alpha -->
           <div class="{{ $colClass }}">
-            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #dc2626 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
-              <div class="card-body p-3 d-flex justify-content-between align-items-center">
+            <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 6px solid #dc2626 !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 24px rgba(0,0,0,0.09)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+              <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-center">
                 <div>
-                  <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Siswa Alpha</span>
-                  <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ $alpha }}</h3>
-                  <span class="text-secondary small" style="font-size: 11px;">Tanpa Keterangan</span>
+                  <span class="fw-bold text-uppercase d-block mb-1" style="color: #475569; font-size: 13.5px; letter-spacing: 0.8px;">Siswa Alpha</span>
+                  <h2 class="fw-bold mb-1" style="color: #dc2626; font-size: 44px; font-weight: 800; line-height: 1.1;">{{ $alpha }}</h2>
+                  <span class="text-secondary" style="font-size: 13px;"><i class="fas fa-times-circle me-1 text-danger opacity-75"></i>Tanpa Keterangan</span>
                 </div>
-                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #fee2e2; color: #dc2626;">
-                  <i class="fas fa-user-times fa-lg"></i>
+                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 60px; height: 60px; background-color: #fee2e2; color: #dc2626;">
+                  <i class="fas fa-user-times fa-2x"></i>
                 </div>
               </div>
             </div>
@@ -370,15 +370,15 @@
           @if(auth()->user()->hasRole('guru'))
             <!-- Presensi Guru Pribadi -->
             <div class="{{ $colClass }}">
-              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 4px solid #7c3aed !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
-                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+              <div class="card shadow-sm border-0 rounded-3 h-100" style="border-left: 6px solid #7c3aed !important; background: #ffffff; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 24px rgba(0,0,0,0.09)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+                <div class="card-body p-3 p-md-4 d-flex justify-content-between align-items-center">
                   <div>
-                    <span class="text-muted small fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">Presensi Saya</span>
-                    <h3 class="fw-bold text-dark mt-1 mb-0" style="font-size: 26px;">{{ is_numeric($absenguru) ? $absenguru : 0 }} <span style="font-size: 13px; font-weight: 500;">Hari</span></h3>
-                    <span class="text-secondary small" style="font-size: 11px;">Tidak Masuk Bulan Ini</span>
+                    <span class="fw-bold text-uppercase d-block mb-1" style="color: #475569; font-size: 13.5px; letter-spacing: 0.8px;">Presensi Saya</span>
+                    <h2 class="fw-bold mb-1" style="color: #7c3aed; font-size: 44px; font-weight: 800; line-height: 1.1;">{{ is_numeric($absenguru) ? $absenguru : 0 }} <span style="font-size: 18px; font-weight: 600; color: #64748b;">Hari</span></h2>
+                    <span class="text-secondary" style="font-size: 13px;"><i class="far fa-calendar-alt me-1 text-muted"></i>Tidak Masuk Bulan Ini</span>
                   </div>
-                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background-color: #ede9fe; color: #7c3aed;">
-                    <i class="fas fa-chalkboard-teacher fa-lg"></i>
+                  <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 60px; height: 60px; background-color: #ede9fe; color: #7c3aed;">
+                    <i class="fas fa-chalkboard-teacher fa-2x"></i>
                   </div>
                 </div>
               </div>
