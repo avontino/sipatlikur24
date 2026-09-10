@@ -412,9 +412,10 @@
                     $modalId = 'modalDetailAbsen' . Str::slug($rekap['kelas']);
                     $siswaAbsen = $rekap['siswa_absen'] ?? [];
                     $isLate = !empty($rekap['is_late']) || (!empty($rekap['time']) && $rekap['time'] !== '-' && $rekap['time'] > '09:00');
+                    $lupaVerif = !empty($rekap['lupa_verif']) || ($rekap['status'] === 'Belum Verifikasi' && count($siswaAbsen) > 0);
                   @endphp
-                  <div class="card border shadow-sm flex-shrink-0 verifikasi-card {{ $isLate ? 'border-warning' : '' }}" 
-                       style="min-width: 220px; max-width: 240px; border-radius: 12px; background: {{ $isLate ? '#fffdf5' : '#ffffff' }}; cursor: pointer; transition: all 0.2s ease-in-out; {{ $isLate ? 'border-width: 2px !important;' : '' }}"
+                  <div class="card border shadow-sm flex-shrink-0 verifikasi-card {{ $lupaVerif ? 'border-danger' : ($isLate ? 'border-warning' : '') }}" 
+                       style="min-width: 220px; max-width: 240px; border-radius: 12px; background: {{ $lupaVerif ? '#fff7ed' : ($isLate ? '#fffdf5' : '#ffffff') }}; cursor: pointer; transition: all 0.2s ease-in-out; {{ ($lupaVerif || $isLate) ? 'border-width: 2px !important;' : '' }}"
                        data-bs-toggle="modal" data-bs-target="#{{ $modalId }}"
                        data-toggle="modal" data-target="#{{ $modalId }}"
                        onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 18px rgba(0,0,0,0.12)';"
@@ -430,7 +431,11 @@
                             <span class="badge bg-success" style="font-size: 10px;"><i class="fas fa-check-circle me-1"></i> Selesai</span>
                           @endif
                         @else
-                          <span class="badge bg-danger" style="font-size: 10px;"><i class="fas fa-clock me-1"></i> Belum</span>
+                          @if($lupaVerif)
+                            <span class="badge text-white fw-bold" style="background-color: #ea580c; font-size: 9.5px;" title="Sudah isi siswa absen tapi lupa klik tombol Verifikasi Absensi Pagi"><i class="fas fa-bell me-1"></i> Lupa Verif</span>
+                          @else
+                            <span class="badge bg-danger" style="font-size: 10px;"><i class="fas fa-clock me-1"></i> Belum</span>
+                          @endif
                         @endif
                       </div>
 
@@ -448,7 +453,9 @@
                       </div>
                       <div class="d-flex justify-content-between text-muted pt-1 border-top" style="font-size: 10px;">
                         <span><i class="fas fa-user me-1"></i>{{ Str::limit($rekap['verified_by'], 12) }}</span>
-                        @if($isLate)
+                        @if($lupaVerif)
+                          <span class="text-danger fw-bold" title="Data absen sudah masuk, belum klik tombol verifikasi"><i class="fas fa-bell me-1"></i>Lupa Verif</span>
+                        @elseif($isLate)
                           <span class="text-danger fw-bold" title="Terlambat (Melebihi jam 09.00 WIB)"><i class="fas fa-clock me-1"></i>{{ $rekap['time'] }} (Terlambat)</span>
                         @else
                           <span><i class="far fa-clock me-1"></i>{{ $rekap['time'] }}</span>
@@ -482,11 +489,14 @@
                         $modalId = 'modalDetailAbsen' . Str::slug($rekap['kelas']);
                         $siswaAbsen = $rekap['siswa_absen'] ?? [];
                         $isLate = !empty($rekap['is_late']) || (!empty($rekap['time']) && $rekap['time'] !== '-' && $rekap['time'] > '09:00');
+                        $lupaVerif = !empty($rekap['lupa_verif']) || ($rekap['status'] === 'Belum Verifikasi' && count($siswaAbsen) > 0);
                       @endphp
-                      <tr class="{{ $isLate ? 'table-warning' : '' }}" style="{{ $isLate ? 'background-color: #fff9e6 !important;' : '' }}">
+                      <tr class="{{ $lupaVerif ? 'table-danger' : ($isLate ? 'table-warning' : '') }}" style="{{ $lupaVerif ? 'background-color: #fff7ed !important;' : ($isLate ? 'background-color: #fff9e6 !important;' : '') }}">
                         <td class="py-2 text-center font-weight-bold text-dark">
                           {{ $rekap['kelas'] }}
-                          @if($isLate)
+                          @if($lupaVerif)
+                            <span class="badge text-white d-block mt-1 mx-auto fw-bold" style="background-color: #ea580c; font-size: 8.5px; max-width: 80px;" title="Sudah input absen siswa tapi belum klik Verifikasi Pagi">LUPA VERIF</span>
+                          @elseif($isLate)
                             <span class="badge bg-warning text-dark border border-warning d-block mt-1 mx-auto" style="font-size: 8.5px; max-width: 65px; font-weight: 700;">LEWAT 09.00</span>
                           @endif
                         </td>
@@ -500,13 +510,21 @@
                             @endif
                           @else
                             <span class="badge bg-danger" style="font-size: 10px;"><i class="fas fa-minus-circle me-1"></i> Belum Verifikasi</span>
+                            @if($lupaVerif)
+                              <span class="badge text-white mt-1 d-block mx-auto fw-bold" style="background-color: #ea580c; font-size: 9px; max-width: 125px; border-radius: 4px;" title="Data absen siswa tidak masuk sudah diisi, tetapi belum klik tombol Verifikasi Absensi Pagi">
+                                <i class="fas fa-bell me-1"></i>Lupa Klik Verif
+                              </span>
+                            @endif
                           @endif
                         </td>
                         <td class="py-2">
                           <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
                             <div>
                               <span class="badge bg-primary me-2 fw-bold" style="font-size: 11px;">{{ $rekap['hadir'] }} / {{ $rekap['total'] }} Hadir</span>
-                              <span>{{ $rekap['detail'] }}</span>
+                              <span class="{{ $lupaVerif ? 'text-danger fw-semibold' : '' }}">{{ $rekap['detail'] }}</span>
+                              @if($lupaVerif)
+                                <span class="badge bg-warning text-dark border border-warning ms-1" style="font-size: 9.5px; font-weight: 600;" title="Siswa absen sudah diinput tapi verifikasi belum diklik"><i class="fas fa-exclamation-circle text-danger me-1"></i>Belum Klik Tombol Verif</span>
+                              @endif
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 10.5px; border-radius: 4px;"
                                     data-bs-toggle="modal" data-bs-target="#{{ $modalId }}"
@@ -518,7 +536,11 @@
                         </td>
                         <td class="py-2 text-center text-muted">{{ $rekap['verified_by'] }}</td>
                         <td class="py-2 text-center">
-                          @if($isLate)
+                          @if($lupaVerif)
+                            <span class="badge text-dark border px-2 py-1 shadow-sm" style="background-color: #fed7aa; border-color: #f97316 !important; font-size: 10.5px; font-weight: 700;" title="Absensi siswa sudah diisi, tetapi belum klik tombol Verifikasi Absensi Pagi">
+                              <i class="fas fa-bell text-danger me-1"></i>Lupa Verif
+                            </span>
+                          @elseif($isLate)
                             <span class="badge bg-danger text-white px-2 py-1 shadow-sm" style="font-size: 11px; font-weight: 700;" title="Verifikasi terlambat: melebihi jam 09.00 WIB">
                               <i class="fas fa-clock me-1"></i>{{ $rekap['time'] }}
                               <span class="d-block text-warning fw-bold mt-1" style="font-size: 8.5px; border-top: 1px dashed rgba(255,255,255,0.4); padding-top: 1px;">
@@ -544,6 +566,8 @@
             @php
               $modalId = 'modalDetailAbsen' . Str::slug($rekap['kelas']);
               $siswaAbsen = $rekap['siswa_absen'] ?? [];
+              $isLate = !empty($rekap['is_late']) || (!empty($rekap['time']) && $rekap['time'] !== '-' && $rekap['time'] > '09:00');
+              $lupaVerif = !empty($rekap['lupa_verif']) || ($rekap['status'] === 'Belum Verifikasi' && count($siswaAbsen) > 0);
             @endphp
             <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true">
               <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -561,11 +585,14 @@
                         <span class="text-muted small">Status Verifikasi:</span>
                         @if($rekap['status'] === 'Sudah Verifikasi')
                           <span class="badge bg-success ms-1"><i class="fas fa-check-circle me-1"></i>Sudah Verifikasi</span>
-                          @if(!empty($rekap['is_late']) || (!empty($rekap['time']) && $rekap['time'] !== '-' && $rekap['time'] > '09:00'))
+                          @if($isLate)
                             <span class="badge bg-danger ms-1" title="Verifikasi lewat batas jam 09.00 WIB"><i class="fas fa-exclamation-triangle me-1"></i>Terlambat (Pukul {{ $rekap['time'] }} WIB)</span>
                           @endif
                         @else
                           <span class="badge bg-danger ms-1"><i class="fas fa-clock me-1"></i>Belum Verifikasi</span>
+                          @if($lupaVerif)
+                            <span class="badge text-white ms-1 fw-bold" style="background-color: #ea580c;" title="Data absen sudah masuk, belum klik tombol Verifikasi Pagi"><i class="fas fa-exclamation-circle me-1"></i>Data Absen Terisi, Lupa Klik Verifikasi Pagi</span>
+                          @endif
                         @endif
                         <span class="text-muted small ms-2"><i class="far fa-calendar-alt me-1"></i>{{ \Carbon\Carbon::now()->isoFormat('D MMMM Y') }}</span>
                       </div>

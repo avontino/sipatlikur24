@@ -265,38 +265,49 @@ class DashboardController extends Controller
                     $totalUnverified++;
                     $absenTodayCount = count($siswaAbsen);
                     $hdr = max(0, $totalSiswa - $absenTodayCount);
+                    $lupaVerif = ($absenTodayCount > 0);
 
                     $tempRekap[] = [
                         'kelas' => $c,
                         'status' => 'Belum Verifikasi',
                         'hadir' => $hdr,
                         'total' => $totalSiswa,
-                        'detail' => ($absenTodayCount > 0) ? "{$absenTodayCount} Siswa Absen/Izin" : "Belum Diverifikasi",
+                        'detail' => ($absenTodayCount > 0) ? "{$absenTodayCount} Siswa Absen/Izin (Belum Klik Verifikasi)" : "Belum Diverifikasi",
                         'verified_by' => '-',
                         'time' => '-',
                         'is_late' => false,
+                        'lupa_verif' => $lupaVerif,
+                        'absen_count' => $absenTodayCount,
                         'siswa_absen' => $siswaAbsen
                     ];
                 }
             }
 
             // Urutan prioritas perhatian:
-            // 1. Belum Verifikasi / Mengisi (paling awal / kiri)
-            // 2. Terlambat Mengisi (> 09.00 WIB) - diletakkan persis setelah yang belum mengisi
-            // 3. Sudah Verifikasi Tepat Waktu (<= 09.00 WIB)
-            $belumList = [];
+            // 1. Belum melakukan verifikasi sama sekali (absen kosong & belum verif)
+            // 2. Sudah mengisi absensi (siswa tidak masuk) tapi lupa klik Verifikasi Pagi (persis setelah yang belum verif sama sekali)
+            // 3. Terlambat Mengisi (> 09.00 WIB)
+            // 4. Sudah Verifikasi Tepat Waktu (<= 09.00 WIB)
+            $belumSamaSekaliList = [];
+            $lupaVerifList = [];
             $terlambatList = [];
             $tepatWaktuList = [];
+
             foreach ($tempRekap as $item) {
                 if ($item['status'] === 'Belum Verifikasi') {
-                    $belumList[] = $item;
+                    if (!empty($item['lupa_verif'])) {
+                        $lupaVerifList[] = $item;
+                    } else {
+                        $belumSamaSekaliList[] = $item;
+                    }
                 } elseif (!empty($item['is_late'])) {
                     $terlambatList[] = $item;
                 } else {
                     $tepatWaktuList[] = $item;
                 }
             }
-            $verifikasiRekap = array_merge($belumList, $terlambatList, $tepatWaktuList);
+
+            $verifikasiRekap = array_merge($belumSamaSekaliList, $lupaVerifList, $terlambatList, $tepatWaktuList);
         }
 
         view()->share(compact(
