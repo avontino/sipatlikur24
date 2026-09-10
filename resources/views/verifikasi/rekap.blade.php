@@ -294,7 +294,10 @@
               </thead>
               <tbody>
                 @foreach($r['rincian'] as $i => $hari)
-                  <tr class="{{ $hari['status_verif'] === 'TIDAK' ? 'table-warning' : '' }}">
+                  @php
+                    $isLateHari = ($hari['status_verif'] === 'SUDAH' && !empty($hari['jam']) && $hari['jam'] !== '-' && $hari['jam'] > '09:00');
+                  @endphp
+                  <tr class="{{ $hari['status_verif'] === 'TIDAK' ? 'table-warning' : ($isLateHari ? 'table-light' : '') }}">
                     <td class="text-center fw-bold">{{ $i + 1 }}</td>
                     <td class="fw-semibold text-dark">{{ $hari['tanggal_format'] }}</td>
                     <td class="text-center">
@@ -302,13 +305,29 @@
                         <span class="badge bg-success px-2 py-1" style="font-size: 11px;">
                           <i class="fas fa-check-circle me-1"></i> Sudah Verifikasi
                         </span>
+                        @if($isLateHari)
+                          <span class="badge bg-warning text-dark border border-warning d-block mt-1 mx-auto fw-bold" style="font-size: 8.5px; max-width: 105px;" title="Verifikasi melebihi batas jam 09.00 WIB">
+                            <i class="fas fa-clock text-danger me-1"></i>Lewat 09.00
+                          </span>
+                        @endif
                       @else
                         <span class="badge bg-danger px-2 py-1" style="font-size: 11px;">
                           <i class="fas fa-times-circle me-1"></i> Belum / Tidak Verif
                         </span>
                       @endif
                     </td>
-                    <td class="text-center text-muted">{{ $hari['jam'] }}</td>
+                    <td class="text-center">
+                      @if($isLateHari)
+                        <span class="badge bg-danger text-white px-2 py-1 shadow-sm" style="font-size: 11px; font-weight: 700;" title="Verifikasi terlambat (melebihi jam 09.00 WIB)">
+                          <i class="fas fa-clock me-1"></i>{{ $hari['jam'] }}
+                          <span class="d-block text-warning fw-bold mt-1" style="font-size: 8.5px; border-top: 1px dashed rgba(255,255,255,0.4); padding-top: 1px;">Terlambat</span>
+                        </span>
+                      @elseif($hari['jam'] !== '-')
+                        <span class="text-dark fw-bold">{{ $hari['jam'] }}</span>
+                      @else
+                        <span class="text-muted">-</span>
+                      @endif
+                    </td>
                     <td class="text-center">{{ $hari['verified_by'] }}</td>
                     <td>
                       @if($hari['status_verif'] === 'SUDAH')

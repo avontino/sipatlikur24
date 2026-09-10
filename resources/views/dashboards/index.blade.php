@@ -411,9 +411,10 @@
                   @php
                     $modalId = 'modalDetailAbsen' . Str::slug($rekap['kelas']);
                     $siswaAbsen = $rekap['siswa_absen'] ?? [];
+                    $isLate = !empty($rekap['is_late']) || (!empty($rekap['time']) && $rekap['time'] !== '-' && $rekap['time'] > '09:00');
                   @endphp
-                  <div class="card border shadow-sm flex-shrink-0 verifikasi-card" 
-                       style="min-width: 220px; max-width: 240px; border-radius: 12px; background: #ffffff; cursor: pointer; transition: all 0.2s ease-in-out;"
+                  <div class="card border shadow-sm flex-shrink-0 verifikasi-card {{ $isLate ? 'border-warning' : '' }}" 
+                       style="min-width: 220px; max-width: 240px; border-radius: 12px; background: {{ $isLate ? '#fffdf5' : '#ffffff' }}; cursor: pointer; transition: all 0.2s ease-in-out; {{ $isLate ? 'border-width: 2px !important;' : '' }}"
                        data-bs-toggle="modal" data-bs-target="#{{ $modalId }}"
                        data-toggle="modal" data-target="#{{ $modalId }}"
                        onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 18px rgba(0,0,0,0.12)';"
@@ -423,7 +424,11 @@
                       <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-bold text-dark" style="font-size: 14px;">Kelas {{ $rekap['kelas'] }}</span>
                         @if($rekap['status'] === 'Sudah Verifikasi')
-                          <span class="badge bg-success" style="font-size: 10px;"><i class="fas fa-check-circle me-1"></i> Selesai</span>
+                          @if($isLate)
+                            <span class="badge bg-warning text-dark border border-warning" style="font-size: 9.5px; font-weight: 700;" title="Verifikasi melebihi jam 09.00 WIB"><i class="fas fa-exclamation-triangle text-danger me-1"></i> Lewat 09.00</span>
+                          @else
+                            <span class="badge bg-success" style="font-size: 10px;"><i class="fas fa-check-circle me-1"></i> Selesai</span>
+                          @endif
                         @else
                           <span class="badge bg-danger" style="font-size: 10px;"><i class="fas fa-clock me-1"></i> Belum</span>
                         @endif
@@ -443,7 +448,11 @@
                       </div>
                       <div class="d-flex justify-content-between text-muted pt-1 border-top" style="font-size: 10px;">
                         <span><i class="fas fa-user me-1"></i>{{ Str::limit($rekap['verified_by'], 12) }}</span>
-                        <span><i class="far fa-clock me-1"></i>{{ $rekap['time'] }}</span>
+                        @if($isLate)
+                          <span class="text-danger fw-bold" title="Terlambat (Melebihi jam 09.00 WIB)"><i class="fas fa-clock me-1"></i>{{ $rekap['time'] }} (Terlambat)</span>
+                        @else
+                          <span><i class="far fa-clock me-1"></i>{{ $rekap['time'] }}</span>
+                        @endif
                       </div>
                       <div class="text-center pt-1 mt-1 border-top" style="font-size: 10px;">
                         <span class="text-primary fw-bold"><i class="fas fa-search me-1"></i>Klik: Cek Siswa Tidak Masuk</span>
@@ -472,12 +481,23 @@
                       @php
                         $modalId = 'modalDetailAbsen' . Str::slug($rekap['kelas']);
                         $siswaAbsen = $rekap['siswa_absen'] ?? [];
+                        $isLate = !empty($rekap['is_late']) || (!empty($rekap['time']) && $rekap['time'] !== '-' && $rekap['time'] > '09:00');
                       @endphp
-                      <tr>
-                        <td class="py-2 text-center font-weight-bold text-dark">{{ $rekap['kelas'] }}</td>
+                      <tr class="{{ $isLate ? 'table-warning' : '' }}" style="{{ $isLate ? 'background-color: #fff9e6 !important;' : '' }}">
+                        <td class="py-2 text-center font-weight-bold text-dark">
+                          {{ $rekap['kelas'] }}
+                          @if($isLate)
+                            <span class="badge bg-warning text-dark border border-warning d-block mt-1 mx-auto" style="font-size: 8.5px; max-width: 65px; font-weight: 700;">LEWAT 09.00</span>
+                          @endif
+                        </td>
                         <td class="py-2 text-center">
                           @if($rekap['status'] === 'Sudah Verifikasi')
                             <span class="badge bg-success" style="font-size: 10px;"><i class="fas fa-check-circle me-1"></i> Sudah Verifikasi</span>
+                            @if($isLate)
+                              <span class="badge bg-warning text-dark border border-warning mt-1 d-block mx-auto fw-bold" style="font-size: 9px; max-width: 110px;" title="Verifikasi melebihi batas jam 09.00 WIB">
+                                <i class="fas fa-exclamation-triangle text-danger me-1"></i>Lewat 09.00
+                              </span>
+                            @endif
                           @else
                             <span class="badge bg-danger" style="font-size: 10px;"><i class="fas fa-minus-circle me-1"></i> Belum Verifikasi</span>
                           @endif
@@ -497,7 +517,20 @@
                           </div>
                         </td>
                         <td class="py-2 text-center text-muted">{{ $rekap['verified_by'] }}</td>
-                        <td class="py-2 text-center text-muted">{{ $rekap['time'] }}</td>
+                        <td class="py-2 text-center">
+                          @if($isLate)
+                            <span class="badge bg-danger text-white px-2 py-1 shadow-sm" style="font-size: 11px; font-weight: 700;" title="Verifikasi terlambat: melebihi jam 09.00 WIB">
+                              <i class="fas fa-clock me-1"></i>{{ $rekap['time'] }}
+                              <span class="d-block text-warning fw-bold mt-1" style="font-size: 8.5px; border-top: 1px dashed rgba(255,255,255,0.4); padding-top: 1px;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Terlambat
+                              </span>
+                            </span>
+                          @elseif($rekap['time'] !== '-')
+                            <span class="text-dark font-weight-bold">{{ $rekap['time'] }}</span>
+                          @else
+                            <span class="text-muted">-</span>
+                          @endif
+                        </td>
                       </tr>
                     @endforeach
                   </tbody>
@@ -528,6 +561,9 @@
                         <span class="text-muted small">Status Verifikasi:</span>
                         @if($rekap['status'] === 'Sudah Verifikasi')
                           <span class="badge bg-success ms-1"><i class="fas fa-check-circle me-1"></i>Sudah Verifikasi</span>
+                          @if(!empty($rekap['is_late']) || (!empty($rekap['time']) && $rekap['time'] !== '-' && $rekap['time'] > '09:00'))
+                            <span class="badge bg-danger ms-1" title="Verifikasi lewat batas jam 09.00 WIB"><i class="fas fa-exclamation-triangle me-1"></i>Terlambat (Pukul {{ $rekap['time'] }} WIB)</span>
+                          @endif
                         @else
                           <span class="badge bg-danger ms-1"><i class="fas fa-clock me-1"></i>Belum Verifikasi</span>
                         @endif

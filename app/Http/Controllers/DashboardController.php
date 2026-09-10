@@ -247,6 +247,9 @@ class DashboardController extends Controller
                     $tot = $v->total ?: $totalSiswa;
                     $hdr = ($v->status == 'NIHIL') ? $tot : $v->hadir;
 
+                    $timeStr = \Carbon\Carbon::parse($v->updated_at)->format('H:i');
+                    $isLate = ($timeStr > '09:00');
+
                     $tempRekap[] = [
                         'kelas' => $c,
                         'status' => 'Sudah Verifikasi',
@@ -254,7 +257,8 @@ class DashboardController extends Controller
                         'total' => $tot,
                         'detail' => ($v->status == 'NIHIL') ? "NIHIL (Hadir Semua)" : "{$v->sakit} Sakit, {$v->izin} Izin, {$v->alpha} Alpha, {$v->dispen} Dispen",
                         'verified_by' => optional(\App\Models\User::find($v->verified_by))->name ?? 'Sistem',
-                        'time' => \Carbon\Carbon::parse($v->updated_at)->format('H:i'),
+                        'time' => $timeStr,
+                        'is_late' => $isLate,
                         'siswa_absen' => $siswaAbsen
                     ];
                 } else {
@@ -270,6 +274,7 @@ class DashboardController extends Controller
                         'detail' => ($absenTodayCount > 0) ? "{$absenTodayCount} Siswa Absen/Izin" : "Belum Diverifikasi",
                         'verified_by' => '-',
                         'time' => '-',
+                        'is_late' => false,
                         'siswa_absen' => $siswaAbsen
                     ];
                 }
