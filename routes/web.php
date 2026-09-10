@@ -113,6 +113,7 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			Route::get('/absen/{id}/delete','AbsenController@delete');
 			Route::get('/absen/export','AbsenController@export');
 			Route::post('/absen/import','AbsenController@import');
+			Route::get('/rekap-verifikasi', 'VerifikasiAbsensiController@rekap');
 
 			//route jurnal
 			Route::get('/tambahjurnal','JurnalController@tambahj');

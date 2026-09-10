@@ -281,6 +281,9 @@
                 <i class="fas fa-list-alt me-2 text-primary"></i> Status Verifikasi Absensi Pagi Seluruh Kelas
               </h5>
               <div class="d-flex align-items-center gap-2">
+                <a href="/rekap-verifikasi" class="btn btn-sm btn-primary py-0 px-2 fw-bold" style="font-size: 11px; border-radius: 6px;" title="Lihat Rekapitulasi Verifikasi Bulanan">
+                  <i class="fas fa-chart-bar me-1"></i> Rekap Bulanan
+                </a>
                 <span class="badge bg-success px-2 py-1">{{ $totalVerified }} Sudah</span>
                 <span class="badge bg-danger px-2 py-1 me-2">{{ $totalUnverified }} Belum</span>
                 <!-- Slider Nav Controls -->

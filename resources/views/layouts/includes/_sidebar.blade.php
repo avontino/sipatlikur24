@@ -94,6 +94,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="/rekap-verifikasi" class="nav-link {{ Request::is('rekap-verifikasi*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-calendar-check text-success"></i>
+            <p>Rekap Verifikasi Pagi</p>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="/perangkat" class="nav-link {{ Request::is('perangkat*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-briefcase text-success"></i>
             <p>Perangkat Pembelajaran</p>
@@ -416,6 +422,14 @@
         <p>Poin Siswa</p>
       </a>
     </li>
+    @if($isWaliKelas)
+    <li class="nav-item">
+      <a href="/rekap-verifikasi" class="nav-link {{ Request::is('rekap-verifikasi*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-calendar-check text-success"></i>
+        <p>Rekap Verifikasi Pagi</p>
+      </a>
+    </li>
+    @endif
     @endif
 
 
@@ -462,6 +476,12 @@
           <a href="/susulan" class="nav-link {{ Request::is('susulan*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-history"></i>
             <p>Jurnal Susulan</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/rekap-verifikasi" class="nav-link {{ Request::is('rekap-verifikasi*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-calendar-check text-info"></i>
+            <p>Rekap Verifikasi Pagi</p>
           </a>
         </li>
       </ul>
