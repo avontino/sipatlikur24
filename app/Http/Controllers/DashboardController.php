@@ -280,17 +280,23 @@ class DashboardController extends Controller
                 }
             }
 
-            // Urutkan yang dari sebelah kiri adalah mulai dari yang Belum Verifikasi
+            // Urutan prioritas perhatian:
+            // 1. Belum Verifikasi / Mengisi (paling awal / kiri)
+            // 2. Terlambat Mengisi (> 09.00 WIB) - diletakkan persis setelah yang belum mengisi
+            // 3. Sudah Verifikasi Tepat Waktu (<= 09.00 WIB)
             $belumList = [];
-            $sudahList = [];
+            $terlambatList = [];
+            $tepatWaktuList = [];
             foreach ($tempRekap as $item) {
                 if ($item['status'] === 'Belum Verifikasi') {
                     $belumList[] = $item;
+                } elseif (!empty($item['is_late'])) {
+                    $terlambatList[] = $item;
                 } else {
-                    $sudahList[] = $item;
+                    $tepatWaktuList[] = $item;
                 }
             }
-            $verifikasiRekap = array_merge($belumList, $sudahList);
+            $verifikasiRekap = array_merge($belumList, $terlambatList, $tepatWaktuList);
         }
 
         view()->share(compact(
