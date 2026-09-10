@@ -162,17 +162,17 @@
       </div>
 
       <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped table-hover align-middle m-0" style="font-size: 12.5px;">
+        <div class="table-responsive p-2">
+          <table id="tableRekapJurnal" class="table table-bordered table-striped table-hover align-middle m-0" style="font-size: 12.5px; width: 100%;">
             <thead class="table-light">
               <tr class="text-center">
                 <th style="width: 5%;">No</th>
-                <th style="width: 12%;">Kelas</th>
-                <th style="width: 20%;">Wali Kelas</th>
-                <th style="width: 14%;">Total Mapel</th>
-                <th style="width: 15%;">Mapel Terisi</th>
-                <th style="width: 15%;">Mapel Kosong</th>
-                <th style="width: 11%;">% Keterisian</th>
+                <th style="width: 12%; cursor: pointer;" title="Klik untuk mengurutkan kelas">Kelas <i class="fas fa-sort ms-1 small text-muted"></i></th>
+                <th style="width: 20%; cursor: pointer;" title="Klik untuk mengurutkan wali kelas">Wali Kelas <i class="fas fa-sort ms-1 small text-muted"></i></th>
+                <th style="width: 14%; cursor: pointer;" title="Klik untuk mengurutkan total mapel">Total Mapel <i class="fas fa-sort ms-1 small text-muted"></i></th>
+                <th style="width: 15%; cursor: pointer;" title="Klik untuk mengurutkan mapel terisi">Mapel Terisi <i class="fas fa-sort ms-1 small text-muted"></i></th>
+                <th style="width: 15%; cursor: pointer;" title="Klik untuk mengurutkan mapel kosong">Mapel Kosong <i class="fas fa-sort ms-1 small text-muted"></i></th>
+                <th style="width: 11%; cursor: pointer;" title="Klik untuk mengurutkan persentase kepatuhan">% Keterisian <i class="fas fa-sort ms-1 small text-muted"></i></th>
                 <th style="width: 8%;">Aksi</th>
               </tr>
             </thead>
@@ -191,15 +191,15 @@
                 @endphp
                 <tr>
                   <td class="text-center fw-bold">{{ $idx + 1 }}</td>
-                  <td class="text-center fw-bold text-dark" style="font-size: 14px;">Kelas {{ $r['kelas'] }}</td>
-                  <td>{{ $r['walikelas'] }}</td>
-                  <td class="text-center fw-semibold">{{ $r['total_mapel'] }} Mapel <small class="text-muted">({{ $r['total_hari'] }} Hari)</small></td>
-                  <td class="text-center">
+                  <td class="text-center fw-bold text-dark" style="font-size: 14px;" data-order="{{ $r['kelas'] }}">Kelas {{ $r['kelas'] }}</td>
+                  <td data-order="{{ $r['walikelas'] }}">{{ $r['walikelas'] }}</td>
+                  <td class="text-center fw-semibold" data-order="{{ $r['total_mapel'] }}">{{ $r['total_mapel'] }} Mapel <small class="text-muted">({{ $r['total_hari'] }} Hari)</small></td>
+                  <td class="text-center" data-order="{{ $r['terisi_mapel'] }}">
                     <span class="badge bg-success px-2 py-1" style="font-size: 12px;">
                       <i class="fas fa-check-circle me-1"></i> {{ $r['terisi_mapel'] }} Terisi
                     </span>
                   </td>
-                  <td class="text-center">
+                  <td class="text-center" data-order="{{ $r['kosong_mapel'] }}">
                     @if($r['kosong_mapel'] > 0)
                       <span class="badge bg-danger px-2 py-1" style="font-size: 12px;">
                         <i class="fas fa-times-circle me-1"></i> {{ $r['kosong_mapel'] }} Kosong
@@ -210,7 +210,7 @@
                       </span>
                     @endif
                   </td>
-                  <td>
+                  <td data-order="{{ $r['persentase'] }}">
                     <div class="d-flex align-items-center gap-2">
                       <div class="progress flex-grow-1" style="height: 8px;">
                         <div class="progress-bar {{ $progressColor }}" role="progressbar" style="width: {{ $r['persentase'] }}%;" aria-valuenow="{{ $r['persentase'] }}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -370,5 +370,35 @@
     </div>
   </div>
 @endforeach
+
+<script>
+$(document).ready(function() {
+  if ($.fn.DataTable.isDataTable('#tableRekapJurnal')) {
+    $('#tableRekapJurnal').DataTable().destroy();
+  }
+  var table = $('#tableRekapJurnal').DataTable({
+    paging: false,
+    searching: true,
+    info: false,
+    order: [[6, 'desc']], // Default: urut dari % Keterisian tertinggi (kelas paling rajin)
+    columnDefs: [
+      { orderable: false, targets: [0, 7] }, // Kolom No dan Aksi tidak disortir
+      { targets: [3, 4, 5, 6], type: 'num' }
+    ],
+    language: {
+      search: "<i class='fas fa-search me-1 text-secondary'></i> Cari Kelas / Wali:",
+      searchPlaceholder: "Ketik nama kelas / wali..."
+    }
+  });
+
+  // Perbarui nomor urut saat tabel disortir atau dicari
+  table.on('order.dt search.dt', function () {
+    let i = 1;
+    table.cells(null, 0, { search: 'applied', order: 'applied' }).every(function (cell) {
+      this.data(i++);
+    });
+  }).draw();
+});
+</script>
 
 @endsection
