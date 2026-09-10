@@ -3,9 +3,39 @@
 @section('content')    
 
 <script type="text/javascript">
-   setTimeout(function(){
-       location.reload();
-   },20000);
+  (function() {
+    // Refresh otomatis hanya jika pengguna sedang idle/diam selama 3 menit (180 detik)
+    var IDLE_TIMEOUT_MS = 180000; 
+    var refreshTimer = null;
+
+    function isModalOpen() {
+      return document.querySelectorAll('.modal.show, .modal.in').length > 0;
+    }
+
+    function doRefresh() {
+      // Jangan pernah reload jika ada pop-up / modal info yang sedang dibuka
+      if (isModalOpen()) {
+        resetTimer(); // Tunda dan periksa kembali nanti
+        return;
+      }
+      location.reload();
+    }
+
+    function resetTimer() {
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      refreshTimer = setTimeout(doRefresh, IDLE_TIMEOUT_MS);
+    }
+
+    // Reset timer jika user sedang aktif berinteraksi (melihat info, scroll, geser kartu, klik, dll)
+    ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(function(evt) {
+      window.addEventListener(evt, resetTimer, { passive: true });
+    });
+
+    // Jalankan timer saat halaman pertama kali dimuat
+    resetTimer();
+  })();
 </script>
 
     <section class="content-header">
