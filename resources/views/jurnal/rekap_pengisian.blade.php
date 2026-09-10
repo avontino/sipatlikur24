@@ -1,26 +1,31 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="content-header">
+<section class="content pt-3">
   <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col-sm-6">
-        <h1 class="m-0 text-dark font-weight-bold" style="font-size: 20px;">
-          <i class="fas fa-book-reader text-primary me-2"></i> Rekap Pengisian Jurnal Per Kelas
-        </h1>
-      </div>
-      <div class="col-sm-6">
-        <ol class="breadcrumb float-sm-end">
-          <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-          <li class="breadcrumb-item active">Rekap Pengisian Jurnal</li>
-        </ol>
+
+    <!-- Page Header Banner Card -->
+    <div class="card shadow-sm border-0 rounded-3 mb-3 text-white" style="background: linear-gradient(135deg, #004d1a 0%, #006622 50%, #009638 100%);">
+      <div class="card-body py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; background: rgba(255,255,255,0.2);">
+            <i class="fas fa-book-reader fa-lg text-white"></i>
+          </div>
+          <div>
+            <h4 class="fw-bold mb-0 text-white" style="font-size: 19px;">Rekap Pengisian Jurnal Per Kelas</h4>
+            <p class="text-white-50 small mb-0">Monitoring keaktifan dan ketertiban pengisian jurnal harian setiap kelas per mata pelajaran</p>
+          </div>
+        </div>
+        <div>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 px-3 py-1 rounded-pill" style="background: rgba(0,0,0,0.18); font-size: 12px;">
+              <li class="breadcrumb-item"><a href="/dashboard" class="text-white text-decoration-none opacity-75"><i class="fas fa-home me-1"></i> Dashboard</a></li>
+              <li class="breadcrumb-item active text-white fw-bold">Rekap Jurnal</li>
+            </ol>
+          </nav>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
-<section class="content">
-  <div class="container-fluid">
 
     <!-- Filter Card -->
     <div class="card shadow-sm border mb-4">
