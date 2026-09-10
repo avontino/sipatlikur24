@@ -22,7 +22,7 @@
 <section class="content">
   <div class="container-fluid">
 
-    <!-- Filter & Statistik Card -->
+    <!-- Filter Card -->
     <div class="card shadow-sm border mb-4">
       <div class="card-header bg-light py-2">
         <h5 class="card-title m-0 fw-bold text-dark" style="font-size: 14px;">
@@ -82,16 +82,16 @@
     <!-- Summary Metrics Cards -->
     <div class="row g-3 mb-4">
       <div class="col-lg-3 col-6">
-        <div class="card shadow-sm border-0 rounded-3 text-white" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+        <div class="card shadow-sm border-0 rounded-3 text-white" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
           <div class="card-body p-3">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <div class="text-white-50 small fw-bold text-uppercase">Hari Efektif KBM</div>
-                <div class="fs-4 fw-bold mt-1">{{ $totalHariEfektif }} Hari</div>
-                <div class="small text-white-50 mt-1">{{ \Carbon\Carbon::parse($selectedMonth . '-01')->isoFormat('MMMM Y') }}</div>
+                <div class="text-white-50 small fw-bold text-uppercase">Total Mapel Terjadwal</div>
+                <div class="fs-4 fw-bold mt-1">{{ $totalMapelSemuaTerjadwal }} Mapel</div>
+                <div class="small text-white-50 mt-1">{{ $totalHariEfektif }} Hari Efektif KBM</div>
               </div>
               <div>
-                <i class="far fa-calendar-alt fa-2x opacity-50"></i>
+                <i class="fas fa-calendar-alt fa-2x opacity-50"></i>
               </div>
             </div>
           </div>
@@ -99,16 +99,16 @@
       </div>
 
       <div class="col-lg-3 col-6">
-        <div class="card shadow-sm border-0 rounded-3 text-white" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+        <div class="card shadow-sm border-0 rounded-3 text-white" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
           <div class="card-body p-3">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <div class="text-white-50 small fw-bold text-uppercase">Total Jurnal Terisi</div>
-                <div class="fs-4 fw-bold mt-1">{{ $totalSudahSemua }} Kali</div>
-                <div class="small text-white-50 mt-1">Hari KBM Terisi</div>
+                <div class="text-white-50 small fw-bold text-uppercase">Total Mapel Terisi</div>
+                <div class="fs-4 fw-bold mt-1">{{ $totalMapelSemuaTerisi }} Mapel</div>
+                <div class="small text-white-50 mt-1">Materi Pembelajaran Diisi</div>
               </div>
               <div>
-                <i class="fas fa-book-open fa-2x opacity-50"></i>
+                <i class="fas fa-check-double fa-2x opacity-50"></i>
               </div>
             </div>
           </div>
@@ -120,12 +120,12 @@
           <div class="card-body p-3">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <div class="text-white-50 small fw-bold text-uppercase">Total Jurnal Kosong</div>
-                <div class="fs-4 fw-bold mt-1">{{ $totalTidakSemua }} Kali</div>
-                <div class="small text-white-50 mt-1">Hari Terlewat / Belum Diisi</div>
+                <div class="text-white-50 small fw-bold text-uppercase">Total Mapel Kosong</div>
+                <div class="fs-4 fw-bold mt-1">{{ $totalMapelSemuaKosong }} Mapel</div>
+                <div class="small text-white-50 mt-1">Jam Kosong / Belum Diisi</div>
               </div>
               <div>
-                <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
+                <i class="fas fa-exclamation-circle fa-2x opacity-50"></i>
               </div>
             </div>
           </div>
@@ -137,9 +137,9 @@
           <div class="card-body p-3">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <div class="text-white-50 small fw-bold text-uppercase">Tingkat Kepatuhan</div>
+                <div class="text-white-50 small fw-bold text-uppercase">Tingkat Keterisian</div>
                 <div class="fs-4 fw-bold mt-1">{{ $rataRataKepatuhan }}%</div>
-                <div class="small text-white-50 mt-1">Kepatuhan Pengisian Jurnal</div>
+                <div class="small text-white-50 mt-1">Kepatuhan Pengisian Mapel</div>
               </div>
               <div>
                 <i class="fas fa-chart-line fa-2x opacity-50"></i>
@@ -154,7 +154,7 @@
     <div class="card shadow mb-4">
       <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h5 class="card-title m-0 fw-bold text-dark" style="font-size: 15px;">
-          <i class="fas fa-list-alt text-primary me-2"></i> Rekapitulasi Pengisian Jurnal Per Kelas
+          <i class="fas fa-list-alt text-primary me-2"></i> Rekapitulasi Pengisian Jurnal Per Kelas Berdasarkan Mapel
         </h5>
         <span class="badge bg-primary px-3 py-1">
           Periode: {{ \Carbon\Carbon::parse($selectedMonth . '-01')->isoFormat('MMMM Y') }}
@@ -169,10 +169,10 @@
                 <th style="width: 5%;">No</th>
                 <th style="width: 12%;">Kelas</th>
                 <th style="width: 20%;">Wali Kelas</th>
-                <th style="width: 13%;">Hari Efektif</th>
-                <th style="width: 15%;">Sudah Mengisi</th>
-                <th style="width: 15%;">Tidak/Belum Mengisi</th>
-                <th style="width: 12%;">% Kepatuhan</th>
+                <th style="width: 14%;">Total Mapel</th>
+                <th style="width: 15%;">Mapel Terisi</th>
+                <th style="width: 15%;">Mapel Kosong</th>
+                <th style="width: 11%;">% Keterisian</th>
                 <th style="width: 8%;">Aksi</th>
               </tr>
             </thead>
@@ -193,20 +193,20 @@
                   <td class="text-center fw-bold">{{ $idx + 1 }}</td>
                   <td class="text-center fw-bold text-dark" style="font-size: 14px;">Kelas {{ $r['kelas'] }}</td>
                   <td>{{ $r['walikelas'] }}</td>
-                  <td class="text-center fw-semibold">{{ $r['total_hari'] }} Hari</td>
+                  <td class="text-center fw-semibold">{{ $r['total_mapel'] }} Mapel <small class="text-muted">({{ $r['total_hari'] }} Hari)</small></td>
                   <td class="text-center">
                     <span class="badge bg-success px-2 py-1" style="font-size: 12px;">
-                      <i class="fas fa-check-circle me-1"></i> {{ $r['sudah_mengisi'] }} Kali
+                      <i class="fas fa-check-circle me-1"></i> {{ $r['terisi_mapel'] }} Terisi
                     </span>
                   </td>
                   <td class="text-center">
-                    @if($r['tidak_mengisi'] > 0)
+                    @if($r['kosong_mapel'] > 0)
                       <span class="badge bg-danger px-2 py-1" style="font-size: 12px;">
-                        <i class="fas fa-times-circle me-1"></i> {{ $r['tidak_mengisi'] }} Kali
+                        <i class="fas fa-times-circle me-1"></i> {{ $r['kosong_mapel'] }} Kosong
                       </span>
                     @else
                       <span class="badge bg-secondary px-2 py-1" style="font-size: 12px;">
-                        <i class="fas fa-check me-1"></i> 0 Kali (Nihil)
+                        <i class="fas fa-check me-1"></i> 0 Kosong (Nihil)
                       </span>
                     @endif
                   </td>
@@ -215,14 +215,14 @@
                       <div class="progress flex-grow-1" style="height: 8px;">
                         <div class="progress-bar {{ $progressColor }}" role="progressbar" style="width: {{ $r['persentase'] }}%;" aria-valuenow="{{ $r['persentase'] }}" aria-valuemin="0" aria-valuemax="100"></div>
                       </div>
-                      <span class="fw-bold small" style="width: 38px;">{{ $r['persentase'] }}%</span>
+                      <span class="fw-bold small" style="width: 42px;">{{ $r['persentase'] }}%</span>
                     </div>
                   </td>
                   <td class="text-center">
                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fw-semibold" style="font-size: 11px; border-radius: 6px;"
                             data-bs-toggle="modal" data-bs-target="#{{ $modalId }}"
                             data-toggle="modal" data-target="#{{ $modalId }}"
-                            title="Lihat rincian tanggal pengisian jurnal">
+                            title="Lihat rincian harian mapel terisi & kosong">
                       <i class="fas fa-calendar-alt me-1"></i> Rincian
                     </button>
                   </td>
@@ -253,7 +253,7 @@
       <div class="modal-content border-0 shadow">
         <div class="modal-header bg-primary text-white py-2 px-3">
           <h6 class="modal-title font-weight-bold mb-0" id="{{ $modalId }}Label" style="font-size: 15px;">
-            <i class="fas fa-book-open me-2"></i> Rincian Harian Pengisian Jurnal - Kelas {{ $r['kelas'] }}
+            <i class="fas fa-book-open me-2"></i> Rincian Mapel Jurnal Harian - Kelas {{ $r['kelas'] }}
           </h6>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -269,53 +269,91 @@
               <span class="text-primary fw-semibold">{{ \Carbon\Carbon::parse($selectedMonth . '-01')->isoFormat('MMMM Y') }}</span>
             </div>
             <div class="d-flex gap-2">
-              <span class="badge bg-success px-2 py-1" style="font-size: 12px;">Sudah: {{ $r['sudah_mengisi'] }} Hari</span>
-              <span class="badge bg-danger px-2 py-1" style="font-size: 12px;">Tidak: {{ $r['tidak_mengisi'] }} Hari</span>
-              <span class="badge px-2 py-1" style="background-color: #7c3aed; color: #ffffff !important; font-size: 12px; font-weight: 700;">Kepatuhan: {{ $r['persentase'] }}%</span>
+              <span class="badge bg-success px-2 py-1" style="font-size: 12px;">Terisi: {{ $r['terisi_mapel'] }} Mapel</span>
+              <span class="badge bg-danger px-2 py-1" style="font-size: 12px;">Kosong: {{ $r['kosong_mapel'] }} Mapel</span>
+              <span class="badge px-2 py-1" style="background-color: #7c3aed; color: #ffffff !important; font-size: 12px; font-weight: 700;">Keterisian: {{ $r['persentase'] }}%</span>
             </div>
           </div>
 
-          <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+          <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
             <table class="table table-bordered table-striped table-hover table-sm align-middle m-0" style="font-size: 12px;">
               <thead class="table-light sticky-top" style="z-index: 1;">
                 <tr class="text-center">
                   <th style="width: 5%;">No</th>
-                  <th style="width: 25%;">Hari & Tanggal</th>
-                  <th style="width: 18%;">Status Pengisian</th>
-                  <th style="width: 18%;">Jumlah Jam/Mapel</th>
-                  <th style="width: 34%;">Rincian Mapel & Guru yang Mengajar</th>
+                  <th style="width: 22%;">Hari & Tanggal</th>
+                  <th style="width: 14%;">Status Hari</th>
+                  <th style="width: 25%;">Keterangan Mapel</th>
+                  <th style="width: 34%;">Rincian Mata Pelajaran & Guru</th>
                 </tr>
               </thead>
               <tbody>
                 @foreach($r['rincian'] as $i => $hari)
-                  <tr class="{{ $hari['status'] === 'TIDAK' ? 'table-warning' : '' }}">
+                  @php
+                    $rowBg = '';
+                    if ($hari['status_hari'] === 'KOSONG') {
+                      $rowBg = 'table-danger';
+                    } elseif ($hari['status_hari'] === 'SEBAGIAN') {
+                      $rowBg = 'table-warning';
+                    }
+                  @endphp
+                  <tr class="{{ $rowBg }}">
                     <td class="text-center fw-bold">{{ $i + 1 }}</td>
                     <td class="fw-semibold text-dark">{{ $hari['tanggal_format'] }}</td>
                     <td class="text-center">
-                      @if($hari['status'] === 'SUDAH')
+                      @if($hari['status_hari'] === 'LENGKAP')
                         <span class="badge bg-success px-2 py-1" style="font-size: 11px;">
-                          <i class="fas fa-check-circle me-1"></i> Jurnal Terisi
+                          <i class="fas fa-check-circle me-1"></i> Lengkap Terisi
                         </span>
-                      @else
+                      @elseif($hari['status_hari'] === 'SEBAGIAN')
+                        <span class="badge bg-warning text-dark px-2 py-1 fw-bold" style="font-size: 11px;">
+                          <i class="fas fa-adjust me-1"></i> Sebagian Terisi
+                        </span>
+                      @elseif($hari['status_hari'] === 'KOSONG')
                         <span class="badge bg-danger px-2 py-1" style="font-size: 11px;">
-                          <i class="fas fa-times-circle me-1"></i> Belum Diisi / Kosong
-                        </span>
-                      @endif
-                    </td>
-                    <td class="text-center">
-                      @if($hari['status'] === 'SUDAH')
-                        <span class="badge bg-primary px-2 py-1" style="font-size: 11px;">
-                          {{ $hari['jumlah_jam'] }}
+                          <i class="fas fa-times-circle me-1"></i> Semua Kosong
                         </span>
                       @else
-                        <span class="text-muted small">-</span>
+                        <span class="badge bg-secondary px-2 py-1" style="font-size: 11px;">
+                          {{ $hari['badge_status'] }}
+                        </span>
                       @endif
                     </td>
                     <td>
-                      @if($hari['status'] === 'SUDAH')
-                        <span class="small text-dark">{{ $hari['detail_mapel'] }}</span>
+                      <span class="fw-bold {{ $hari['status_hari'] === 'KOSONG' ? 'text-danger' : ($hari['status_hari'] === 'SEBAGIAN' ? 'text-dark' : 'text-success') }}">
+                        {{ $hari['ringkasan'] }}
+                      </span>
+                    </td>
+                    <td>
+                      @if(count($hari['blocks']) > 0)
+                        <div class="d-flex flex-column gap-1 py-1">
+                          @foreach($hari['blocks'] as $b)
+                            @php
+                              $jamLabel = ($b['start_jam'] == $b['end_jam']) ? "Jam ke-{$b['start_jam']}" : "Jam ke-{$b['start_jam']} s.d {$b['end_jam']}";
+                            @endphp
+                            <div class="p-1 px-2 rounded border" style="background-color: {{ $b['is_terisi'] ? '#f0fdf4' : '#fef2f2' }}; border-color: {{ $b['is_terisi'] ? '#bbf7d0' : '#fecaca' }} !important;">
+                              <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-dark" style="font-size: 11.5px;">
+                                  <i class="far fa-clock me-1 text-secondary"></i>{{ $jamLabel }}: {{ $b['mapel'] }}
+                                </span>
+                                @if($b['is_terisi'])
+                                  <span class="badge bg-success" style="font-size: 10px;">Terisi</span>
+                                @else
+                                  <span class="badge bg-danger" style="font-size: 10px;">Jam Kosong</span>
+                                @endif
+                              </div>
+                              <div class="text-muted" style="font-size: 10.5px;">
+                                <i class="fas fa-user-tie me-1"></i>{{ $b['guru'] }}
+                              </div>
+                              @if($b['is_terisi'] && !empty($b['materi']))
+                                <div class="text-secondary fst-italic" style="font-size: 10px;">
+                                  <i class="fas fa-pencil-alt me-1"></i>{{ $b['materi'] }}
+                                </div>
+                              @endif
+                            </div>
+                          @endforeach
+                        </div>
                       @else
-                        <span class="text-danger small fst-italic"><i class="fas fa-exclamation-triangle me-1"></i>Jurnal kelas belum/tidak diisi</span>
+                        <span class="text-muted small fst-italic">- Tidak ada jadwal KBM -</span>
                       @endif
                     </td>
                   </tr>

@@ -47,14 +47,7 @@ class RekapJurnalController extends Controller
             $limitDate = $startOfMonth->toDateString();
         }
 
-        // Tanggal-tanggal di mana ada jurnal terisi di bulan tersebut
-        $datesWithJurnal = DB::table('jurnal')
-            ->whereBetween('created_at', [$startOfMonth->toDateString() . ' 00:00:00', $endOfMonth->toDateString() . ' 23:59:59'])
-            ->selectRaw('DATE(created_at) as tgl')
-            ->distinct()
-            ->pluck('tgl')
-            ->toArray();
-
+        // Ambil semua tanggal yang memiliki rekaman jurnalh pada bulan tersebut
         $datesWithJurnalh = DB::table('jurnalh')
             ->whereBetween('created_at', [$startOfMonth->toDateString() . ' 00:00:00', $endOfMonth->toDateString() . ' 23:59:59'])
             ->selectRaw('DATE(created_at) as tgl')
@@ -62,9 +55,7 @@ class RekapJurnalController extends Controller
             ->pluck('tgl')
             ->toArray();
 
-        $allRecordedDates = array_unique(array_merge($datesWithJurnal, $datesWithJurnalh));
-
-        // Kumpulkan hari efektif sekolah (Senin - Jumat hingga hari ini/akhir bulan, atau tanggal di mana ada jurnal terisi)
+        // Kumpulkan hari efektif sekolah (Senin - Jumat hingga batas evaluasi, atau tanggal di mana ada jurnalh)
         $effectiveDates = [];
         $curr = (clone $startOfMonth);
         $limitObj = Carbon::parse($limitDate);
@@ -73,7 +64,7 @@ class RekapJurnalController extends Controller
             while ($curr->lte($limitObj)) {
                 $dayOfWeek = $curr->dayOfWeekIso; // 1 = Senin, 7 = Minggu
                 $dateStr = $curr->toDateString();
-                if ($dayOfWeek <= 5 || in_array($dateStr, $allRecordedDates)) {
+                if ($dayOfWeek <= 5 || in_array($dateStr, $datesWithJurnalh)) {
                     $effectiveDates[] = $dateStr;
                 }
                 $curr->addDay();
@@ -82,7 +73,7 @@ class RekapJurnalController extends Controller
         sort($effectiveDates);
         $totalHariEfektif = count($effectiveDates);
 
-        // Ambil kelas yang akan ditampilkan
+        // Ambil daftar kelas
         $classesQuery = Kelas::query();
         if ($isOnlyWali && $managedClass) {
             $classesQuery->where('kelas', $managedClass);
@@ -96,7 +87,7 @@ class RekapJurnalController extends Controller
         }
         $targetClasses = $classesQuery->orderBy('kelas', 'asc')->pluck('kelas')->toArray();
 
-        // Ambil data jurnal harian (jurnalh) pada bulan tersebut
+        // Ambil data jurnalh pada bulan tersebut
         $jurnalhRows = DB::table('jurnalh')
             ->whereBetween('created_at', [$startOfMonth->toDateString() . ' 00:00:00', $endOfMonth->toDateString() . ' 23:59:59'])
             ->get();
@@ -107,67 +98,120 @@ class RekapJurnalController extends Controller
             $jurnalhGrouped[$jh->kelas][$tgl] = $jh;
         }
 
-        // Ambil data detail mapel/guru (jurnal) pada bulan tersebut
-        $jurnalDetailRows = DB::table('jurnal')
-            ->whereBetween('created_at', [$startOfMonth->toDateString() . ' 00:00:00', $endOfMonth->toDateString() . ' 23:59:59'])
-            ->orderBy('jamke', 'asc')
-            ->get();
-
-        $jurnalDetailGrouped = [];
-        foreach ($jurnalDetailRows as $jd) {
-            $tgl = Carbon::parse($jd->created_at)->toDateString();
-            $jurnalDetailGrouped[$jd->kelas][$tgl][] = $jd;
-        }
-
-        // Peta Wali Kelas
+        // Petakan Wali Kelas
         $waliMap = User::whereNotNull('walikelas_kelas')
             ->pluck('name', 'walikelas_kelas')
             ->toArray();
 
-        // Susun data rekapitulasi pengisian jurnal per kelas
+        // Susun data rekapitulasi berbasis blok Mata Pelajaran (Mapel)
         $rekapPerKelas = [];
-        $totalSudahSemua = 0;
-        $totalTidakSemua = 0;
+        $totalMapelSemuaTerjadwal = 0;
+        $totalMapelSemuaTerisi = 0;
+        $totalMapelSemuaKosong = 0;
 
         foreach ($targetClasses as $c) {
-            $sudahCount = 0;
+            $classTotalMapel = 0;
+            $classTerisiMapel = 0;
+            $classKosongMapel = 0;
             $rincianHari = [];
 
             foreach ($effectiveDates as $tgl) {
                 $jh = $jurnalhGrouped[$c][$tgl] ?? null;
-                $details = $jurnalDetailGrouped[$c][$tgl] ?? [];
-                $hasJurnal = ($jh !== null) || (count($details) > 0);
-
                 $tglCarbon = Carbon::parse($tgl);
                 $hariIndonesia = $tglCarbon->isoFormat('dddd, D MMMM Y');
 
-                if ($hasJurnal) {
-                    $sudahCount++;
-                    $jumlahJam = count($details);
-                    $mapelList = [];
-                    foreach ($details as $d) {
-                        $mapelList[] = "Jam " . ($d->jamke ?: '?') . ": " . ($d->mapel ?: 'Mapel') . " (" . ($d->guru ?: 'Guru') . ")";
-                    }
-                    $mapelStr = count($mapelList) > 0 ? implode('; ', $mapelList) : "Jurnal Harian Terisi";
+                $mapelBlocks = [];
+                if ($jh) {
+                    $currentBlock = null;
 
-                    $rincianHari[] = [
-                        'tanggal'       => $tgl,
-                        'tanggal_format'=> $hariIndonesia,
-                        'status'        => 'SUDAH',
-                        'jumlah_jam'    => $jumlahJam > 0 ? "{$jumlahJam} Mapel/Jam Terisi" : "Jurnal Terisi",
-                        'detail_mapel'  => $mapelStr,
-                        'raw_details'   => $details
-                    ];
-                } else {
-                    $rincianHari[] = [
-                        'tanggal'       => $tgl,
-                        'tanggal_format'=> $hariIndonesia,
-                        'status'        => 'TIDAK',
-                        'jumlah_jam'    => 'Belum Ada Jam Terisi',
-                        'detail_mapel'  => 'Jurnal belum diisi pada tanggal ini',
-                        'raw_details'   => []
-                    ];
+                    for ($i = 1; $i <= 11; $i++) {
+                        $colVal = trim($jh->{'j'.$i} ?? '');
+                        if (empty($colVal)) {
+                            continue;
+                        }
+
+                        $segments = explode('<hr>', $colVal);
+                        $guru = trim($segments[0] ?? '');
+                        $mapel = trim($segments[1] ?? '');
+                        $materi = trim($segments[2] ?? '');
+
+                        $signature = $guru . '||' . $mapel;
+                        $isKosong = (stripos($materi, 'Jam Kosong') !== false) && !preg_match('/(Bab|Topik|Tugas|TP|Pelajaran)\s?\d/i', $materi);
+
+                        // Cek apakah masih blok jam yang sama dari mapel & guru tersebut
+                        if ($currentBlock && $currentBlock['signature'] === $signature && $currentBlock['is_kosong'] === $isKosong) {
+                            $currentBlock['end_jam'] = $i;
+                            if (empty($currentBlock['materi']) && !empty($materi)) {
+                                $currentBlock['materi'] = $materi;
+                            }
+                        } else {
+                            if ($currentBlock) {
+                                $mapelBlocks[] = $currentBlock;
+                            }
+                            $currentBlock = [
+                                'signature' => $signature,
+                                'guru'      => $guru,
+                                'mapel'     => $mapel,
+                                'materi'    => $materi,
+                                'is_kosong' => $isKosong,
+                                'is_terisi' => !$isKosong,
+                                'start_jam' => $i,
+                                'end_jam'   => $i,
+                            ];
+                        }
+                    }
+
+                    if ($currentBlock) {
+                        $mapelBlocks[] = $currentBlock;
+                    }
                 }
+
+                $totalMapelHari = count($mapelBlocks);
+                $terisiMapelHari = 0;
+                $kosongMapelHari = 0;
+
+                foreach ($mapelBlocks as $b) {
+                    if ($b['is_terisi']) {
+                        $terisiMapelHari++;
+                    } else {
+                        $kosongMapelHari++;
+                    }
+                }
+
+                $classTotalMapel += $totalMapelHari;
+                $classTerisiMapel += $terisiMapelHari;
+                $classKosongMapel += $kosongMapelHari;
+
+                // Tentukan status & keterangan harian yang persis diminta
+                if ($totalMapelHari == 0) {
+                    $statusHari = 'KOSONG_TOTAL';
+                    $badgeStatus = 'Tidak Ada Jadwal / Belum Sinkron';
+                    $ringkasanStr = 'Tidak ada jadwal pembelajaran pada tanggal ini';
+                } elseif ($kosongMapelHari == 0) {
+                    $statusHari = 'LENGKAP';
+                    $badgeStatus = 'Lengkap Terisi';
+                    $ringkasanStr = "{$terisiMapelHari} Mapel Terisi dari {$totalMapelHari} Mapel";
+                } elseif ($terisiMapelHari > 0) {
+                    $statusHari = 'SEBAGIAN';
+                    $badgeStatus = 'Sebagian Terisi';
+                    $ringkasanStr = "{$terisiMapelHari} Mapel Terisi, {$kosongMapelHari} Mapel Kosong dari {$totalMapelHari} Mapel";
+                } else {
+                    $statusHari = 'KOSONG';
+                    $badgeStatus = 'Semua Kosong';
+                    $ringkasanStr = "{$kosongMapelHari} Mapel Kosong dari {$totalMapelHari} Mapel";
+                }
+
+                $rincianHari[] = [
+                    'tanggal'        => $tgl,
+                    'tanggal_format' => $hariIndonesia,
+                    'status_hari'    => $statusHari,
+                    'badge_status'   => $badgeStatus,
+                    'total_mapel'    => $totalMapelHari,
+                    'terisi_mapel'   => $terisiMapelHari,
+                    'kosong_mapel'   => $kosongMapelHari,
+                    'ringkasan'      => $ringkasanStr,
+                    'blocks'         => $mapelBlocks,
+                ];
             }
 
             // Balik urutan tanggal (tanggal terbaru di atas)
@@ -175,27 +219,27 @@ class RekapJurnalController extends Controller
                 return strcmp($b['tanggal'], $a['tanggal']);
             });
 
-            $tidakCount = max(0, $totalHariEfektif - $sudahCount);
-            $persentase = ($totalHariEfektif > 0) ? round(($sudahCount / $totalHariEfektif) * 100) : 0;
+            $persentase = ($classTotalMapel > 0) ? round(($classTerisiMapel / $classTotalMapel) * 100, 1) : 0;
 
-            $totalSudahSemua += $sudahCount;
-            $totalTidakSemua += $tidakCount;
+            $totalMapelSemuaTerjadwal += $classTotalMapel;
+            $totalMapelSemuaTerisi += $classTerisiMapel;
+            $totalMapelSemuaKosong += $classKosongMapel;
 
             $rekapPerKelas[] = [
-                'kelas'             => $c,
-                'walikelas'         => $waliMap[$c] ?? '-',
-                'total_hari'        => $totalHariEfektif,
-                'sudah_mengisi'     => $sudahCount,
-                'tidak_mengisi'     => $tidakCount,
-                'persentase'        => $persentase,
-                'rincian'           => $rincianHari
+                'kelas'         => $c,
+                'walikelas'     => $waliMap[$c] ?? '-',
+                'total_hari'    => $totalHariEfektif,
+                'total_mapel'   => $classTotalMapel,
+                'terisi_mapel'  => $classTerisiMapel,
+                'kosong_mapel'  => $classKosongMapel,
+                'persentase'    => $persentase,
+                'rincian'       => $rincianHari
             ];
         }
 
-        // Hitung statistik ringkasan
+        // Statistik Ringkasan Sekolah
         $jumlahKelas = count($rekapPerKelas);
-        $totalSlotEvaluasi = $jumlahKelas * $totalHariEfektif;
-        $rataRataKepatuhan = ($totalSlotEvaluasi > 0) ? round(($totalSudahSemua / $totalSlotEvaluasi) * 100, 1) : 0;
+        $rataRataKepatuhan = ($totalMapelSemuaTerjadwal > 0) ? round(($totalMapelSemuaTerisi / $totalMapelSemuaTerjadwal) * 100, 1) : 0;
 
         // Daftar kelas untuk dropdown filter
         $allKelasList = Kelas::orderBy('kelas', 'asc')->pluck('kelas')->toArray();
@@ -205,8 +249,9 @@ class RekapJurnalController extends Controller
             'selectedMonth',
             'totalHariEfektif',
             'jumlahKelas',
-            'totalSudahSemua',
-            'totalTidakSemua',
+            'totalMapelSemuaTerjadwal',
+            'totalMapelSemuaTerisi',
+            'totalMapelSemuaKosong',
             'rataRataKepatuhan',
             'isOnlyWali',
             'managedClass',
