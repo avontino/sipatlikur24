@@ -125,6 +125,7 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			Route::get('/jurnal/export','JurnalController@export');
 			
 			Route::get('/rekap-jurnal', 'JurnalController@rekapJurnal');
+			Route::get('/rekap-pengisian-jurnal', 'RekapJurnalController@index');
 			Route::get('/jurnal/export-excel', 'JurnalController@exportExcel')->name('jurnal.exportExcel');
 			Route::get('/jurnal/export-pdf', 'JurnalController@exportPDF')->name('jurnal.exportPDF');
 

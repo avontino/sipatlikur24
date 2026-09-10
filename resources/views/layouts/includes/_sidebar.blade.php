@@ -100,6 +100,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="/rekap-pengisian-jurnal" class="nav-link {{ Request::is('rekap-pengisian-jurnal*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-book-reader text-primary"></i>
+            <p>Rekap Pengisian Jurnal</p>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="/perangkat" class="nav-link {{ Request::is('perangkat*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-briefcase text-success"></i>
             <p>Perangkat Pembelajaran</p>
@@ -429,6 +435,12 @@
         <p>Rekap Verifikasi Pagi</p>
       </a>
     </li>
+    <li class="nav-item">
+      <a href="/rekap-pengisian-jurnal" class="nav-link {{ Request::is('rekap-pengisian-jurnal*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-book-reader text-success"></i>
+        <p>Rekap Jurnal Kelas</p>
+      </a>
+    </li>
     @endif
     @endif
 
@@ -482,6 +494,12 @@
           <a href="/rekap-verifikasi" class="nav-link {{ Request::is('rekap-verifikasi*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-calendar-check text-info"></i>
             <p>Rekap Verifikasi Pagi</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/rekap-pengisian-jurnal" class="nav-link {{ Request::is('rekap-pengisian-jurnal*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-book-reader text-info"></i>
+            <p>Rekap Pengisian Jurnal</p>
           </a>
         </li>
       </ul>
