@@ -207,7 +207,13 @@ class DashboardController extends Controller
                     ->get()
                     ->keyBy('kelas')
                 : collect();
+
+            $allAbsenToday = \App\Models\Absen::whereDate('created_at', $todayStr)
+                ->orderBy('nama', 'asc')
+                ->get()
+                ->groupBy('kelas');
                 
+            $tempRekap = [];
             foreach ($allClasses as $c) {
                 $totalSiswa = \App\Models\Siswa::where('kelas', $c)
                     ->where(function($q) {
@@ -221,37 +227,65 @@ class DashboardController extends Controller
                     $totalSiswa = \App\Models\Siswa::where('kelas', $c)->count();
                 }
 
+                $siswaAbsen = isset($allAbsenToday[$c]) ? $allAbsenToday[$c]->map(function($a) {
+                    $jam = '-';
+                    if ($a->updated_at) {
+                        $jam = \Carbon\Carbon::parse($a->updated_at)->format('H:i');
+                    } elseif ($a->created_at) {
+                        $jam = \Carbon\Carbon::parse($a->created_at)->format('H:i');
+                    }
+                    return [
+                        'nama' => $a->nama,
+                        'ket'  => $a->ket,
+                        'jam'  => $jam,
+                    ];
+                })->values()->toArray() : [];
+
                 $v = $verifikasiToday->get($c);
                 if ($v) {
                     $totalVerified++;
                     $tot = $v->total ?: $totalSiswa;
                     $hdr = ($v->status == 'NIHIL') ? $tot : $v->hadir;
 
-                    $verifikasiRekap[] = [
+                    $tempRekap[] = [
                         'kelas' => $c,
                         'status' => 'Sudah Verifikasi',
                         'hadir' => $hdr,
                         'total' => $tot,
                         'detail' => ($v->status == 'NIHIL') ? "NIHIL (Hadir Semua)" : "{$v->sakit} Sakit, {$v->izin} Izin, {$v->alpha} Alpha, {$v->dispen} Dispen",
                         'verified_by' => optional(\App\Models\User::find($v->verified_by))->name ?? 'Sistem',
-                        'time' => \Carbon\Carbon::parse($v->updated_at)->format('H:i')
+                        'time' => \Carbon\Carbon::parse($v->updated_at)->format('H:i'),
+                        'siswa_absen' => $siswaAbsen
                     ];
                 } else {
                     $totalUnverified++;
-                    $absenTodayCount = \App\Models\Absen::where('kelas', $c)->whereDate('created_at', $todayStr)->count();
+                    $absenTodayCount = count($siswaAbsen);
                     $hdr = max(0, $totalSiswa - $absenTodayCount);
 
-                    $verifikasiRekap[] = [
+                    $tempRekap[] = [
                         'kelas' => $c,
                         'status' => 'Belum Verifikasi',
                         'hadir' => $hdr,
                         'total' => $totalSiswa,
                         'detail' => ($absenTodayCount > 0) ? "{$absenTodayCount} Siswa Absen/Izin" : "Belum Diverifikasi",
                         'verified_by' => '-',
-                        'time' => '-'
+                        'time' => '-',
+                        'siswa_absen' => $siswaAbsen
                     ];
                 }
             }
+
+            // Urutkan yang dari sebelah kiri adalah mulai dari yang Belum Verifikasi
+            $belumList = [];
+            $sudahList = [];
+            foreach ($tempRekap as $item) {
+                if ($item['status'] === 'Belum Verifikasi') {
+                    $belumList[] = $item;
+                } else {
+                    $sudahList[] = $item;
+                }
+            }
+            $verifikasiRekap = array_merge($belumList, $sudahList);
         }
 
         view()->share(compact(

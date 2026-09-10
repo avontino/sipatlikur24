@@ -263,7 +263,17 @@
             <div class="card-body bg-light border-bottom py-3 px-2">
               <div id="verifikasiCardSlider" class="d-flex overflow-auto pb-2 px-1 gap-2" style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
                 @foreach($verifikasiRekap as $rekap)
-                  <div class="card border shadow-sm flex-shrink-0" style="min-width: 220px; max-width: 240px; border-radius: 12px; background: #ffffff;">
+                  @php
+                    $modalId = 'modalDetailAbsen' . Str::slug($rekap['kelas']);
+                    $siswaAbsen = $rekap['siswa_absen'] ?? [];
+                  @endphp
+                  <div class="card border shadow-sm flex-shrink-0 verifikasi-card" 
+                       style="min-width: 220px; max-width: 240px; border-radius: 12px; background: #ffffff; cursor: pointer; transition: all 0.2s ease-in-out;"
+                       data-bs-toggle="modal" data-bs-target="#{{ $modalId }}"
+                       data-toggle="modal" data-target="#{{ $modalId }}"
+                       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 18px rgba(0,0,0,0.12)';"
+                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';"
+                       title="Klik untuk melihat siswa yang tidak masuk">
                     <div class="card-body p-2">
                       <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-bold text-dark" style="font-size: 14px;">Kelas {{ $rekap['kelas'] }}</span>
@@ -290,27 +300,34 @@
                         <span><i class="fas fa-user me-1"></i>{{ Str::limit($rekap['verified_by'], 12) }}</span>
                         <span><i class="far fa-clock me-1"></i>{{ $rekap['time'] }}</span>
                       </div>
+                      <div class="text-center pt-1 mt-1 border-top" style="font-size: 10px;">
+                        <span class="text-primary fw-bold"><i class="fas fa-search me-1"></i>Klik: Cek Siswa Tidak Masuk</span>
+                      </div>
                     </div>
                   </div>
                 @endforeach
               </div>
             </div>
 
-            <!-- Table View (With Horizontal Scroll/Slide Support for Mobile) -->
+            <!-- Table View (Lengkap Seluruh Kelas Tanpa Slider Vertikal) -->
             <div class="card-body p-0">
-              <div class="table-responsive" style="max-height: 350px; overflow-x: auto !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch;">
+              <div class="table-responsive" style="overflow-x: auto !important; -webkit-overflow-scrolling: touch;">
                 <table class="table table-bordered table-striped table-hover table-sm m-0" style="font-size: 12px; min-width: 680px;">
-                  <thead class="table-light sticky-top" style="z-index: 1;">
+                  <thead class="table-light">
                     <tr>
-                      <th class="py-2 text-center" style="width: 15%;">Kelas</th>
-                      <th class="py-2 text-center" style="width: 25%;">Status Verifikasi</th>
-                      <th class="py-2" style="width: 35%;">Keterangan Detail Kehadiran</th>
-                      <th class="py-2 text-center" style="width: 15%;">Diverifikasi Oleh</th>
+                      <th class="py-2 text-center" style="width: 12%;">Kelas</th>
+                      <th class="py-2 text-center" style="width: 22%;">Status Verifikasi</th>
+                      <th class="py-2" style="width: 38%;">Keterangan Detail Kehadiran</th>
+                      <th class="py-2 text-center" style="width: 18%;">Diverifikasi Oleh</th>
                       <th class="py-2 text-center" style="width: 10%;">Jam</th>
                     </tr>
                   </thead>
                   <tbody>
                     @foreach($verifikasiRekap as $rekap)
+                      @php
+                        $modalId = 'modalDetailAbsen' . Str::slug($rekap['kelas']);
+                        $siswaAbsen = $rekap['siswa_absen'] ?? [];
+                      @endphp
                       <tr>
                         <td class="py-2 text-center font-weight-bold text-dark">{{ $rekap['kelas'] }}</td>
                         <td class="py-2 text-center">
@@ -320,7 +337,20 @@
                             <span class="badge bg-danger" style="font-size: 10px;"><i class="fas fa-minus-circle me-1"></i> Belum Verifikasi</span>
                           @endif
                         </td>
-                        <td class="py-2"><span class="badge bg-primary me-2 fw-bold" style="font-size: 11px;">{{ $rekap['hadir'] }} / {{ $rekap['total'] }} Hadir</span> {{ $rekap['detail'] }}</td>
+                        <td class="py-2">
+                          <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
+                            <div>
+                              <span class="badge bg-primary me-2 fw-bold" style="font-size: 11px;">{{ $rekap['hadir'] }} / {{ $rekap['total'] }} Hadir</span>
+                              <span>{{ $rekap['detail'] }}</span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 10.5px; border-radius: 4px;"
+                                    data-bs-toggle="modal" data-bs-target="#{{ $modalId }}"
+                                    data-toggle="modal" data-target="#{{ $modalId }}"
+                                    title="Lihat rincian siswa tidak masuk">
+                              <i class="fas fa-user-times me-1"></i>Detail
+                            </button>
+                          </div>
+                        </td>
                         <td class="py-2 text-center text-muted">{{ $rekap['verified_by'] }}</td>
                         <td class="py-2 text-center text-muted">{{ $rekap['time'] }}</td>
                       </tr>
@@ -330,6 +360,97 @@
               </div>
             </div>
           </div>
+
+          <!-- Modals Detail Siswa Tidak Masuk Per Kelas -->
+          @foreach($verifikasiRekap as $rekap)
+            @php
+              $modalId = 'modalDetailAbsen' . Str::slug($rekap['kelas']);
+              $siswaAbsen = $rekap['siswa_absen'] ?? [];
+            @endphp
+            <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow">
+                  <div class="modal-header {{ $rekap['status'] === 'Sudah Verifikasi' ? 'bg-success text-white' : 'bg-primary text-white' }} py-2 px-3">
+                    <h6 class="modal-title font-weight-bold mb-0" id="{{ $modalId }}Label" style="font-size: 15px;">
+                      <i class="fas fa-user-times me-2"></i> Daftar Siswa Tidak Masuk - Kelas {{ $rekap['kelas'] }}
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body p-3">
+                    <!-- Summary Card -->
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 p-2 mb-3 rounded bg-light border">
+                      <div>
+                        <span class="text-muted small">Status Verifikasi:</span>
+                        @if($rekap['status'] === 'Sudah Verifikasi')
+                          <span class="badge bg-success ms-1"><i class="fas fa-check-circle me-1"></i>Sudah Verifikasi</span>
+                        @else
+                          <span class="badge bg-danger ms-1"><i class="fas fa-clock me-1"></i>Belum Verifikasi</span>
+                        @endif
+                        <span class="text-muted small ms-2"><i class="far fa-calendar-alt me-1"></i>{{ \Carbon\Carbon::now()->isoFormat('D MMMM Y') }}</span>
+                      </div>
+                      <div>
+                        <span class="badge bg-primary px-2 py-1" style="font-size: 12px;">{{ $rekap['hadir'] }} / {{ $rekap['total'] }} Hadir</span>
+                        <span class="badge bg-danger px-2 py-1 ms-1" style="font-size: 12px;">{{ count($siswaAbsen) }} Tidak Masuk</span>
+                      </div>
+                    </div>
+
+                    @if(count($siswaAbsen) > 0)
+                      <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover table-sm align-middle m-0" style="font-size: 12.5px;">
+                          <thead class="table-light">
+                            <tr class="text-center">
+                              <th style="width: 8%;">No</th>
+                              <th style="width: 48%;">Nama Siswa</th>
+                              <th style="width: 24%;">Keterangan</th>
+                              <th style="width: 20%;">Waktu Catat</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @foreach($siswaAbsen as $idx => $s)
+                              <tr>
+                                <td class="text-center fw-bold">{{ $idx + 1 }}</td>
+                                <td class="fw-bold text-dark">{{ $s['nama'] }}</td>
+                                <td class="text-center">
+                                  @php
+                                    $ketLower = strtolower($s['ket']);
+                                    $badgeClass = 'bg-secondary text-white';
+                                    if (str_contains($ketLower, 'sakit')) {
+                                      $badgeClass = 'bg-warning text-dark';
+                                    } elseif (str_contains($ketLower, 'izin') || str_contains($ketLower, 'ijin')) {
+                                      $badgeClass = 'bg-info text-dark';
+                                    } elseif (str_contains($ketLower, 'alpha')) {
+                                      $badgeClass = 'bg-danger text-white';
+                                    } elseif (str_contains($ketLower, 'dispen')) {
+                                      $badgeClass = 'bg-primary text-white';
+                                    }
+                                  @endphp
+                                  <span class="badge {{ $badgeClass }} px-2 py-1" style="font-size: 11px;">
+                                    {{ $s['ket'] }}
+                                  </span>
+                                </td>
+                                <td class="text-center text-muted"><i class="far fa-clock me-1"></i>{{ $s['jam'] }}</td>
+                              </tr>
+                            @endforeach
+                          </tbody>
+                        </table>
+                      </div>
+                    @else
+                      <div class="text-center py-4 px-2">
+                        <div class="mb-2">
+                          <i class="fas fa-check-circle text-success" style="font-size: 40px;"></i>
+                        </div>
+                        <h6 class="fw-bold text-success mb-1">NIHIL - Seluruh Siswa Hadir</h6>
+                        <p class="text-muted small mb-0">Tidak ada catatan siswa yang sakit, izin, alpha, atau dispensasi untuk kelas {{ $rekap['kelas'] }} hari ini.</p>
+                      </div>
+                    @endif
+                  </div>
+                  <div class="modal-footer py-2 px-3 bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" data-dismiss="modal">Tutup</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          @endforeach
 
           <script>
           function scrollVerifikasiSlider(amount) {
