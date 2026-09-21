@@ -44,10 +44,6 @@ class IjinController extends Controller
                 'tglmasuk' => 'required|date',
                 'sia' => 'required|in:' . implode(',', $allowedSia),
                 'jumlah' => 'nullable',
-                'attachment' => 'nullable|file|mimes:pdf,png,jpg,jpeg|max:2048'
-            ], [
-                'attachment.mimes' => 'Format lampiran harus berupa PDF, PNG, JPG, atau JPEG.',
-                'attachment.max' => 'Ukuran lampiran maksimal adalah 2 MB.'
             ]);
 
             $data = $request->except('attachment');
@@ -104,13 +100,23 @@ class IjinController extends Controller
 
             if ($request->hasFile('attachment')) {
                 $file = $request->file('attachment');
-                $uploadDir = public_path('uploads/ijin_guru');
-                if (!file_exists($uploadDir)) {
-                    @mkdir($uploadDir, 0777, true);
+                if ($file && $file->isValid()) {
+                    $ext = strtolower($file->getClientOriginalExtension() ?: '');
+                    $allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+                    if (!in_array($ext, $allowedExts)) {
+                        return redirect()->back()->withInput()->with('gagal', 'Format lampiran harus berupa PDF, JPG, JPEG, PNG, atau WEBP.');
+                    }
+                    if ($file->getSize() > 5242880) { // 5 MB
+                        return redirect()->back()->withInput()->with('gagal', 'Ukuran berkas lampiran maksimal adalah 5 MB.');
+                    }
+                    $uploadDir = public_path('uploads/ijin_guru');
+                    if (!file_exists($uploadDir)) {
+                        @mkdir($uploadDir, 0777, true);
+                    }
+                    $fileName = 'permit_' . time() . '_' . uniqid() . '.' . $ext;
+                    $file->move($uploadDir, $fileName);
+                    $data['attachment'] = 'uploads/ijin_guru/' . $fileName;
                 }
-                $fileName = 'permit_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                $file->move($uploadDir, $fileName);
-                $data['attachment'] = 'uploads/ijin_guru/' . $fileName;
             }
             
             $ijin = \App\Models\Ijin::create($data);
