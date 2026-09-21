@@ -114,7 +114,36 @@
       </ul>
     </li>
 
-    {{-- Presensi & Lokasi Guru (Disembunyikan) --}}
+    <!-- CATEGORY: KEBERADAAN & IZIN GURU -->
+    <li class="nav-item {{ Request::is('ijin*', 'tambahijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ Request::is('ijin*', 'tambahijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-chalkboard-teacher text-warning"></i>
+        <p>
+          Presensi & Izin Guru
+          <i class="nav-arrow fas fa-angle-left"></i>
+        </p>
+      </a>
+      <ul class="nav nav-treeview ps-2">
+        <li class="nav-item">
+          <a href="/ijin/live" class="nav-link {{ Request::is('ijin/live*') || Request::is('presensi-guru/live*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-broadcast-tower text-success"></i>
+            <p>Live Monitoring Guru</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/ijin" class="nav-link {{ Request::is('ijin') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-clipboard-list text-info"></i>
+            <p>Daftar Izin Guru</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/tambahijin" class="nav-link {{ Request::is('tambahijin*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-file-medical text-primary"></i>
+            <p>Tambah Izin Guru</p>
+          </a>
+        </li>
+      </ul>
+    </li>
 
     <!-- CATEGORY: PENGAWASAN SISWA & KEDISIPLINAN -->
     <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #86efac !important;">Siswa & Kedisiplinan</li>
@@ -265,8 +294,8 @@
     </li>
 
     <!-- Presensi & Izin Guru -->
-    <li class="nav-item {{ Request::is('tambahijin*', 'ijin*') && !Request::is('ijinsiswa*') ? 'menu-open' : '' }}">
-      <a href="#" class="nav-link {{ Request::is('tambahijin*', 'ijin*') && !Request::is('ijinsiswa*') ? 'active' : '' }}">
+    <li class="nav-item {{ Request::is('tambahijin*', 'ijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ Request::is('tambahijin*', 'ijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'active' : '' }}">
         <i class="nav-icon fas fa-chalkboard-teacher text-warning"></i>
         <p>
           Presensi & Izin Guru
@@ -275,14 +304,20 @@
       </a>
       <ul class="nav nav-treeview ps-2">
         <li class="nav-item">
+          <a href="/ijin/live" class="nav-link {{ Request::is('ijin/live*') || Request::is('presensi-guru/live*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-broadcast-tower text-success"></i>
+            <p>Live Monitoring Guru</p>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="/tambahijin" class="nav-link {{ Request::is('tambahijin*') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-file-medical"></i>
+            <i class="nav-icon fas fa-file-medical text-info"></i>
             <p>Tambah Izin Guru</p>
           </a>
         </li>
         <li class="nav-item">
           <a href="/ijin" class="nav-link {{ Request::is('ijin') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-clipboard-list"></i>
+            <i class="nav-icon fas fa-clipboard-list text-primary"></i>
             <p>Daftar Izin Guru</p>
           </a>
         </li>
@@ -453,6 +488,12 @@
       <a href="/jurnalh?view=kurikulum" class="nav-link {{ Request::is('jurnalh*') && request()->query('view') === 'kurikulum' ? 'active' : '' }}">
         <i class="nav-icon fas fa-calendar-day text-info"></i>
         <p>Jurnal Harian</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/ijin/live" class="nav-link {{ Request::is('ijin/live*') || Request::is('presensi-guru/live*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-broadcast-tower text-success"></i>
+        <p>Live Monitoring Guru</p>
       </a>
     </li>
     <li class="nav-item">

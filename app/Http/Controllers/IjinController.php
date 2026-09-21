@@ -26,31 +26,64 @@ class IjinController extends Controller
 
     public function create(Request $request)
     {	
+        $allowedSia = [
+            'Tugas Kedinasan',
+            'Sakit',
+            'Izin Terlambat',
+            'Izin Keluar Jam Dinas',
+            'Izin Pulang Sebelum Waktunya',
+            'Keperluan Pribadi',
+            'Cuti',
+            'Terlambat',
+            'Ijin',
+            'Alpha'
+        ];
+
         $request->validate([
             'tglmasuk' => 'required|date',
-            'sia' => 'required|in:Sakit,Ijin,Alpha,Terlambat',
-            'jumlah' => 'required',
+            'sia' => 'required|in:' . implode(',', $allowedSia),
+            'jumlah' => 'nullable',
             'attachment' => 'nullable|file|mimes:pdf,png,jpg,jpeg|max:2048'
         ], [
             'attachment.mimes' => 'Format lampiran harus berupa PDF, PNG, JPG, atau JPEG.',
             'attachment.max' => 'Ukuran lampiran maksimal adalah 2 MB.'
         ]);
 
-        // Validasi untuk field jam_terlambat jika status adalah "Terlambat"
-        if($request->sia == 'Terlambat') {
-            $request->validate([
-                'jam_terlambat' => 'required',
-            ]);
-            // Set jumlah hari ke 0 untuk terlambat
-            $request->merge(['jumlah' => 0]);
-        } else {
-            // Jika bukan terlambat, set jam_terlambat ke null
-            $request->merge(['jam_terlambat' => null]);
-        }
-        
         $data = $request->except('attachment');
-        $data['user_id'] = auth()->user()->id;
-        $data['approval_status'] = (auth()->user()->role == 'admin') ? 'approved' : 'pending';
+
+        // Penanganan input waktu spesifik
+        if (in_array($request->sia, ['Izin Terlambat', 'Terlambat'])) {
+            $data['jumlah'] = 0;
+            if ($request->filled('jam_terlambat')) {
+                $data['jam_terlambat'] = $request->jam_terlambat;
+            }
+        } elseif ($request->sia == 'Izin Keluar Jam Dinas') {
+            $data['jumlah'] = 0;
+            $data['jam_keluar'] = $request->jam_keluar ?? null;
+            $data['jam_kembali'] = $request->jam_kembali ?? null;
+        } elseif ($request->sia == 'Izin Pulang Sebelum Waktunya') {
+            $data['jumlah'] = 0;
+            $data['jam_keluar'] = $request->jam_keluar ?? ($request->jam_terlambat ?? null);
+        } else {
+            $data['jumlah'] = $request->jumlah ?: 1;
+        }
+
+        // Tentukan guru: jika admin/piket memilih guru lain
+        if ($request->filled('guru_id') && (auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->user()->role == 'pembina' || auth()->user()->role == 'kesiswaan')) {
+            $targetUser = \App\Models\User::find($request->guru_id);
+            if ($targetUser) {
+                $data['user_id'] = $targetUser->id;
+                $data['guru'] = $targetUser->name;
+            } else {
+                $data['user_id'] = auth()->user()->id;
+                $data['guru'] = $request->guru ?: auth()->user()->name;
+            }
+        } else {
+            $data['user_id'] = auth()->user()->id;
+            $data['guru'] = auth()->user()->name;
+        }
+
+        $data['approval_status'] = (auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum') ? 'approved' : 'pending';
         $data['tahun_ajaran'] = session('tahun_ajaran');
         $data['semester'] = session('semester');
 
@@ -61,19 +94,21 @@ class IjinController extends Controller
             $data['attachment'] = 'uploads/ijin_guru/' . $fileName;
         }
         
-    	$ijin = \App\Models\Ijin::create($data);
+        $ijin = \App\Models\Ijin::create($data);
+
         if ($data['approval_status'] === 'pending') {
-            $admins = \App\Models\User::where('role', 'admin')->get();
+            $admins = \App\Models\User::whereIn('role', ['admin', 'kurikulum', 'kepala'])->get();
             foreach ($admins as $u) {
                 $u->sendNotification(
                     "Pengajuan Izin Guru Baru",
-                    "Pengajuan Izin Guru Baru: " . auth()->user()->name . " ({$request->sia}). Mohon tinjau di menu Presensi & Izin Guru.",
+                    "Pengajuan Izin Guru Baru: " . $data['guru'] . " ({$request->sia}). Mohon tinjau di menu Presensi & Izin Guru.",
                     '/ijin',
                     'ijin'
                 );
             }
         }
-    	return redirect('/tambahijin')->with('sukses','Ijin Berhasil Ditambahkan');
+
+        return redirect()->back()->with('sukses', 'Izin Guru (' . $data['guru'] . ' - ' . $request->sia . ') Berhasil Disimpan!');
     }
 
     public function index(Request $request)
@@ -206,5 +241,182 @@ class IjinController extends Controller
         }
 
         return redirect('/ijin')->with('sukses', 'Izin guru berhasil ditolak');
+    }
+
+    /**
+     * Halaman Live Monitoring Rekap Presensi & Izin Guru Real-time
+     * Konsep ala Google Apps Script: Guru yang tidak mengisi izin otomatis dianggap Hadir di Sekolah.
+     */
+    public function liveMonitoring(Request $request)
+    {
+        $targetDateStr = $request->input('tanggal', Carbon::today()->toDateString());
+        $targetCarbon = Carbon::parse($targetDateStr);
+        $hariIndonesia = $targetCarbon->isoFormat('dddd, D MMMM Y');
+
+        // Ambil seluruh guru dan tendik aktif di sekolah
+        $allTeachers = User::whereIn('role', ['guru', 'walikelas', 'tendik', 'kurikulum', 'kesiswaan', 'kepala'])
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name', 'role', 'username']);
+
+        $totalTeachers = $allTeachers->count();
+
+        // Ambil data izin untuk tanggal terpilih yang tidak ditolak
+        $ijinToday = Ijin::whereDate('tglmasuk', $targetDateStr)
+            ->where('approval_status', '!=', 'rejected')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Peta lookup izin guru
+        $teachersIzinMap = [];
+        $teachersIzinByName = [];
+
+        foreach ($ijinToday as $ij) {
+            if ($ij->user_id) {
+                $teachersIzinMap[$ij->user_id] = $ij;
+            }
+            if ($ij->guru) {
+                $teachersIzinByName[strtolower(trim($ij->guru))] = $ij;
+            }
+        }
+
+        // Definisi Struktur Kategori (Mengadopsi dari Google Apps Script)
+        $kategoriList = [
+            'Tugas Kedinasan' => [
+                'label' => 'Tugas Kedinasan (Dinas Luar)',
+                'icon'  => 'fas fa-briefcase',
+                'color' => '#0284c7', // Sky blue
+                'badge' => 'bg-info text-white',
+                'bar_color' => '#0284c7',
+                'members' => []
+            ],
+            'Sakit' => [
+                'label' => 'Sakit',
+                'icon'  => 'fas fa-medkit',
+                'color' => '#ea580c', // Orange
+                'badge' => 'bg-warning text-dark',
+                'bar_color' => '#ea580c',
+                'members' => []
+            ],
+            'Izin Terlambat' => [
+                'label' => 'Izin Terlambat',
+                'icon'  => 'fas fa-clock',
+                'color' => '#eab308', // Amber
+                'badge' => 'bg-warning text-dark',
+                'bar_color' => '#eab308',
+                'members' => []
+            ],
+            'Izin Keluar Jam Dinas' => [
+                'label' => 'Izin Keluar Saat Jam Dinas (Kembali)',
+                'icon'  => 'fas fa-sign-out-alt',
+                'color' => '#d97706', // Amber-600
+                'badge' => 'bg-warning text-dark',
+                'bar_color' => '#d97706',
+                'members' => []
+            ],
+            'Izin Pulang Sebelum Waktunya' => [
+                'label' => 'Izin Pulang Sebelum Waktunya',
+                'icon'  => 'fas fa-door-open',
+                'color' => '#f59e0b', // Amber-500
+                'badge' => 'bg-warning text-dark',
+                'bar_color' => '#f59e0b',
+                'members' => []
+            ],
+            'Cuti' => [
+                'label' => 'Cuti',
+                'icon'  => 'fas fa-calendar-minus',
+                'color' => '#8b5cf6', // Purple
+                'badge' => 'bg-purple text-white',
+                'bar_color' => '#8b5cf6',
+                'members' => []
+            ],
+            'Keperluan Pribadi' => [
+                'label' => 'Keperluan Pribadi',
+                'icon'  => 'fas fa-user-clock',
+                'color' => '#64748b', // Slate
+                'badge' => 'bg-secondary text-white',
+                'bar_color' => '#64748b',
+                'members' => []
+            ],
+        ];
+
+        $hadirList = [];
+        $totalIzinCount = 0;
+
+        foreach ($allTeachers as $teacher) {
+            $tNameClean = strtolower(trim($teacher->name));
+            $ijinData = $teachersIzinMap[$teacher->id] ?? ($teachersIzinByName[$tNameClean] ?? null);
+
+            // Fallback substring jika ada sedikit perbedaan gelar/spasi
+            if (!$ijinData) {
+                foreach ($teachersIzinByName as $ijName => $ijObj) {
+                    if (str_contains($tNameClean, $ijName) || str_contains($ijName, $tNameClean)) {
+                        $ijinData = $ijObj;
+                        break;
+                    }
+                }
+            }
+
+            if ($ijinData) {
+                $totalIzinCount++;
+                $sia = trim($ijinData->sia);
+
+                // Normalisasi kategori target
+                $targetKey = 'Keperluan Pribadi';
+                if (stripos($sia, 'tugas') !== false || stripos($sia, 'dinas') !== false) {
+                    $targetKey = 'Tugas Kedinasan';
+                } elseif (stripos($sia, 'sakit') !== false) {
+                    $targetKey = 'Sakit';
+                } elseif (stripos($sia, 'keluar') !== false) {
+                    $targetKey = 'Izin Keluar Jam Dinas';
+                } elseif (stripos($sia, 'pulang') !== false) {
+                    $targetKey = 'Izin Pulang Sebelum Waktunya';
+                } elseif (stripos($sia, 'terlambat') !== false) {
+                    $targetKey = 'Izin Terlambat';
+                } elseif (stripos($sia, 'cuti') !== false) {
+                    $targetKey = 'Cuti';
+                } elseif (stripos($sia, 'pribadi') !== false || stripos($sia, 'ijin') !== false) {
+                    $targetKey = 'Keperluan Pribadi';
+                }
+
+                // Format keterangan jam izin
+                $jamKet = '';
+                if ($ijinData->jam_keluar && $ijinData->jam_kembali) {
+                    $jamKet = substr($ijinData->jam_keluar, 0, 5) . ' - ' . substr($ijinData->jam_kembali, 0, 5) . ' WIB';
+                } elseif ($ijinData->jam_keluar) {
+                    $jamKet = 'Jam ' . substr($ijinData->jam_keluar, 0, 5) . ' WIB';
+                } elseif ($ijinData->jam_terlambat) {
+                    $jamKet = 'Pukul ' . substr($ijinData->jam_terlambat, 0, 5) . ' WIB';
+                } elseif ($ijinData->created_at) {
+                    $jamKet = Carbon::parse($ijinData->created_at)->format('H:i') . ' WIB';
+                }
+
+                $kategoriList[$targetKey]['members'][] = [
+                    'id' => $teacher->id,
+                    'name' => $teacher->name,
+                    'role' => $teacher->role,
+                    'mapel' => $ijinData->mapel ?? '-',
+                    'jam' => $jamKet,
+                    'keterangan' => $ijinData->ket,
+                    'attachment' => $ijinData->attachment,
+                    'approval' => $ijinData->approval_status
+                ];
+            } else {
+                // ATURAN UTAMA: Tanpa GPS, yang tidak izin otomatis Hadir di Sekolah!
+                $hadirList[] = [
+                    'id' => $teacher->id,
+                    'name' => $teacher->name,
+                    'role' => $teacher->role,
+                ];
+            }
+        }
+
+        $totalHadir = count($hadirList);
+        $persenHadir = $totalTeachers > 0 ? round(($totalHadir / $totalTeachers) * 100, 1) : 0;
+        $ma_pel = Mapel::all();
+
+        return view('ijin.live', compact(
+            'targetDateStr', 'hariIndonesia', 'allTeachers', 'totalTeachers',
+            'hadirList', 'totalHadir', 'persenHadir', 'kategoriList', 'totalIzinCount', 'ma_pel'
+        ));
     }
 }

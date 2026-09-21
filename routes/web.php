@@ -152,7 +152,8 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			Route::get('/ijin/export','IjinController@export');
 			// Route::get('/ijin/{id}/edit','IjinController@edit');
 			Route::post('/ijin/update','IjinController@update');
-			Route::get('/ijin/{id}/delete','IjinController@delete');
+			Route::get('/ijin/live','IjinController@liveMonitoring')->name('ijin.live');
+			Route::get('/presensi-guru/live','IjinController@liveMonitoring');
 			Route::get('/ijin/rekaphadir','IjinController@rekaphadir');
 
 			//route laporan kasus

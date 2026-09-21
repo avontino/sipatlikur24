@@ -1,89 +1,224 @@
 @extends('layouts.master')
 
 @section('content')
+<section class="content-header pt-3">
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h4 class="fw-bold mb-1" style="color: #004d1a;">
+          <i class="fas fa-file-signature me-2"></i>Formulir Permohonan Izin Guru & Pegawai
+        </h4>
+        <p class="text-muted small mb-0">
+          <i class="fas fa-info-circle me-1 text-primary"></i>Abaikan formulir ini jika Anda hadir di sekolah seperti biasa.
+        </p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="/ijin/live" class="btn btn-sm btn-info text-white shadow-sm fw-bold">
+          <i class="fas fa-broadcast-tower me-1"></i> Live Monitoring Hari Ini
+        </a>
+        <a href="/ijin" class="btn btn-sm btn-outline-secondary shadow-sm">
+          <i class="fas fa-list me-1"></i> Daftar Riwayat Izin
+        </a>
+      </div>
+    </div>
 
-<section class="content-header">
-      <div class="container-fluid">
+    @if(session('sukses'))
+      <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fa fa-check-circle me-2"></i> {{ session('sukses') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    @endif
 
-	@if(session('sukses'))
-	<div class="alert alert-success alert-dismissible" role="alert">
-										<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
-										<i class="fa fa-check-circle"></i> 
+    @if($errors->any())
+      <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> Mohon periksa kembali formulir Anda:
+        <ul class="mb-0 mt-1">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    @endif
 
-  	{{session('sukses')}}
-	</div>
-	@endif
-	<div class="card">
-			<div class="row">
-				<div class="col-md-12">
-						<div class="panel">
-								<div class="card-header">
-									<h3 class="panel-title">Tambah Ijin Absen</h3>
-								</div>
-								<div class="card-body">
-									
-						  <form action="/ijin/create" method="POST" enctype="multipart/form-data"> 
-				        	{{csrf_field()}}
+    <div class="card shadow-sm border-0" style="border-radius: 12px;">
+      <div class="card-header bg-light py-3 border-bottom">
+        <h6 class="fw-bold m-0 text-dark">
+          <i class="fas fa-edit me-2 text-success"></i>Isi Data Keterangan Izin
+        </h6>
+      </div>
+      <div class="card-body p-4">
+        <form action="/ijin/create" method="POST" enctype="multipart/form-data">
+          @csrf
 
-						  <div class="form-group">
-						    <label >Hari/Tanggal Ijin</label>
-							<input name="tglmasuk" type="date" class="form-control" id="tglmasuk" aria-describedby="emailHelp" required>
-						  	</div>
-					
-						  	<div class="form-group">
-						    <label >Guru</label>
-					    	<input name="guru" value="{{auth()->user()->name}}" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" readonly>
-							</div>
+          <div class="row g-3">
+            <!-- Tanggal Izin -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-dark">Tanggal Izin <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text bg-light"><i class="far fa-calendar-alt text-muted"></i></span>
+                <input name="tglmasuk" type="date" class="form-control" id="tglmasuk" value="{{ old('tglmasuk', date('Y-m-d')) }}" required>
+              </div>
+            </div>
 
-						  <div class="form-group">
-						    <label >Mata Pelajaran</label>
-						    <select name="mapel" class="form-control" >
-						    @foreach($ma_pel as $mapel)
-						    	<option value="{{$mapel->mapel}}">{{$mapel->mapel}}</option>
-						    @endforeach						    	
-						    </select>
+            <!-- Nama Guru / Pegawai -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-dark">Nama Guru / Pegawai <span class="text-danger">*</span></label>
+              @if(auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->user()->role == 'pembina' || auth()->user()->role == 'kesiswaan')
+                <!-- Admin/Piket dapat memilih guru lain jika mewakili input -->
+                <select name="guru_id" class="form-control select2" id="selectGuru">
+                  @foreach(\App\Models\User::whereIn('role', ['guru', 'walikelas', 'tendik', 'kurikulum', 'kesiswaan', 'kepala'])->orderBy('name', 'asc')->get() as $u)
+                    <option value="{{ $u->id }}" {{ $u->id == auth()->id() ? 'selected' : '' }}>
+                      {{ $u->name }} ({{ strtoupper($u->role) }})
+                    </option>
+                  @endforeach
+                </select>
+                <input type="hidden" name="guru" value="{{ auth()->user()->name }}" id="guruNameHidden">
+              @else
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="far fa-user text-muted"></i></span>
+                  <input name="guru" value="{{ auth()->user()->name }}" type="text" class="form-control bg-light" readonly>
+                </div>
+              @endif
+            </div>
 
-						  	</div>
+            <!-- Kategori Izin (Sesuai Kebutuhan Riil GAS) -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-dark">Kategori Izin <span class="text-danger">*</span></label>
+              <select name="sia" class="form-control form-select" id="selectKategori" onchange="toggleKategoriFields()" required>
+                <option value="" disabled selected>-- Pilih Kategori Izin --</option>
+                <option value="Tugas Kedinasan" {{ old('sia') == 'Tugas Kedinasan' ? 'selected' : '' }}>
+                  Tugas Kedinasan (Dinas Luar / Lomba / MGMP / Diklat)
+                </option>
+                <option value="Sakit" {{ old('sia') == 'Sakit' ? 'selected' : '' }}>
+                  Sakit
+                </option>
+                <option value="Izin Terlambat" {{ old('sia') == 'Izin Terlambat' ? 'selected' : '' }}>
+                  Izin Terlambat (Datang Lebih Lambat)
+                </option>
+                <option value="Izin Keluar Jam Dinas" {{ old('sia') == 'Izin Keluar Jam Dinas' ? 'selected' : '' }}>
+                  Izin Keluar Saat Jam Dinas (Keperluan Penting & Kembali ke Sekolah)
+                </option>
+                <option value="Izin Pulang Sebelum Waktunya" {{ old('sia') == 'Izin Pulang Sebelum Waktunya' ? 'selected' : '' }}>
+                  Izin Pulang Sebelum Waktunya (Pulang Lebih Awal)
+                </option>
+                <option value="Keperluan Pribadi" {{ old('sia') == 'Keperluan Pribadi' ? 'selected' : '' }}>
+                  Keperluan Pribadi / Keluarga
+                </option>
+                <option value="Cuti" {{ old('sia') == 'Cuti' ? 'selected' : '' }}>
+                  Cuti (Tahunan / Melahirkan / Alasan Penting)
+                </option>
+              </select>
+            </div>
 
-						  <div class="form-group">
-						    <label for="exampleFormControlSelect1">S/I/A/T</label>
-						    <select name="sia" class="form-control" id="exampleFormControlSelect1" onchange="toggleJamTerlambat()">
-						      <option value="Sakit">Sakit</option>
-						      <option value="Ijin">Ijin</option>
-						      <option value="Alpha">Alpha</option>
-						      <option value="Terlambat">Terlambat</option>
-						    </select>
-						  </div>
+            <!-- Mata Pelajaran yang Diampu -->
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-dark">Mata Pelajaran (Opsional)</label>
+              <select name="mapel" class="form-control form-select">
+                <option value="-">- Bukan Guru Mapel / Umum -</option>
+                @foreach($ma_pel as $mapel)
+                  <option value="{{ $mapel->mapel }}">{{ $mapel->mapel }}</option>
+                @endforeach
+              </select>
+            </div>
 
-						  <div class="form-group">
-						    <label for="exampleInputEmail1">Jumlah Hari</label>
-						    <input name="jumlah" type="text" class="form-control" id="jumlah" aria-describedby="emailHelp" value='1'>
-						  </div>
+            <!-- BIDANG DINAMIS: Izin Keluar Jam Dinas (Jam Keluar & Estimasi Kembali) -->
+            <div class="col-md-12 mb-3" id="group_izin_keluar" style="display: none;">
+              <div class="p-3 bg-light border border-warning rounded">
+                <h6 class="fw-bold text-dark mb-2"><i class="fas fa-clock text-warning me-2"></i>Rentang Waktu Izin Keluar</h6>
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Jam Keluar Sekolah (HH:mm) <span class="text-danger">*</span></label>
+                    <input name="jam_keluar" type="time" class="form-control" id="jam_keluar" value="{{ old('jam_keluar') }}">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Estimasi Jam Kembali ke Sekolah (HH:mm) <span class="text-danger">*</span></label>
+                    <input name="jam_kembali" type="time" class="form-control" id="jam_kembali" value="{{ old('jam_kembali') }}">
+                  </div>
+                </div>
+                <small class="text-muted mt-1 d-block">
+                  * Catatan: Guru piket dan pimpinan dapat memantau estimasi jam kedatangan kembali Anda di sekolah.
+                </small>
+              </div>
+            </div>
 
-						  <div class="form-group" id="jam_terlambat_group" style="display: none;">
-						    <label for="jam_terlambat">Jam Terlambat (HH:MM)</label>
-						    <input name="jam_terlambat" type="time" class="form-control" id="jam_terlambat" aria-describedby="emailHelp">
-						  </div>
+            <!-- BIDANG DINAMIS: Izin Terlambat -->
+            <div class="col-md-6 mb-3" id="group_jam_terlambat" style="display: none;">
+              <label class="form-label fw-semibold text-dark">Estimasi Jam Tiba di Sekolah (HH:mm) <span class="text-danger">*</span></label>
+              <input name="jam_terlambat" type="time" class="form-control" id="jam_terlambat" value="{{ old('jam_terlambat') }}">
+            </div>
 
-						  <div class="form-group">
-						    <label for="exampleFormControlTextarea1">Keterangan</label>
-						    <textarea name="ket" class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="Tuliskan keterangan detail..."></textarea>
-						  </div>
+            <!-- BIDANG DINAMIS: Izin Pulang Lebih Awal -->
+            <div class="col-md-6 mb-3" id="group_jam_pulang_cepat" style="display: none;">
+              <label class="form-label fw-semibold text-dark">Jam Kepulangan (HH:mm) <span class="text-danger">*</span></label>
+              <input name="jam_pulang_cepat" type="time" class="form-control" id="jam_pulang_cepat" value="{{ old('jam_pulang_cepat') }}" onchange="document.getElementById('jam_keluar').value = this.value">
+            </div>
 
-						  <div class="form-group mb-3">
-						    <label for="attachment" class="small fw-bold">Bukti Fisik / Surat Tugas / Surat Dokter (PDF/Gambar, Maks. 2MB)</label>
-						    <input name="attachment" type="file" class="form-control" id="attachment" accept=".pdf,.png,.jpg,.jpeg">
-						  </div>
+            <!-- Jumlah Hari (Jika Cuti / Sakit / Tugas Dinas Panjang) -->
+            <div class="col-md-6 mb-3" id="group_jumlah_hari">
+              <label class="form-label fw-semibold text-dark">Jumlah Hari Izin</label>
+              <div class="input-group">
+                <input name="jumlah" type="number" min="1" max="30" class="form-control" id="jumlah" value="{{ old('jumlah', 1) }}">
+                <span class="input-group-text bg-light">Hari</span>
+              </div>
+            </div>
 
-						  <button type="submit" class="btn btn-primary">Tambah</button>
+            <!-- Keterangan Detail -->
+            <div class="col-md-12 mb-3">
+              <label class="form-label fw-semibold text-dark">Keterangan / Alasan Izin <span class="text-danger">*</span></label>
+              <textarea name="ket" class="form-control" rows="3" placeholder="Tuliskan keterangan detail keperluan/kondisi izin Anda..." required>{{ old('ket') }}</textarea>
+            </div>
 
-								</div>
-							</div>
-				</div>
-			</div>
-		</div>
-	</div>
+            <!-- Bukti Fisik / Surat Tugas / Surat Dokter -->
+            <div class="col-md-12 mb-3">
+              <label class="form-label fw-semibold text-dark">
+                Lampiran Dokumen / Bukti Foto / Surat Tugas / Surat Dokter <small class="text-muted">(Opsional, PDF/JPG/PNG maks. 2MB)</small>
+              </label>
+              <input name="attachment" type="file" class="form-control" accept=".pdf,.png,.jpg,.jpeg">
+            </div>
+          </div>
 
+          <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+            <a href="/ijin/live" class="btn btn-outline-secondary px-4">Batal</a>
+            <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm" style="background-color: #00a884; border-color: #00a884;">
+              <i class="fas fa-paper-plane me-1"></i> Kirim Permohonan Izin
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
 
+<script>
+  function toggleKategoriFields() {
+    const kat = document.getElementById('selectKategori').value;
+    const groupKeluar = document.getElementById('group_izin_keluar');
+    const groupTerlambat = document.getElementById('group_jam_terlambat');
+    const groupPulang = document.getElementById('group_jam_pulang_cepat');
+    const groupJumlah = document.getElementById('group_jumlah_hari');
 
+    // Sembunyikan semua bidang khusus terlebih dahulu
+    groupKeluar.style.display = 'none';
+    groupTerlambat.style.display = 'none';
+    groupPulang.style.display = 'none';
+    groupJumlah.style.display = 'block';
+
+    if (kat === 'Izin Keluar Jam Dinas') {
+      groupKeluar.style.display = 'block';
+      groupJumlah.style.display = 'none';
+    } else if (kat === 'Izin Terlambat') {
+      groupTerlambat.style.display = 'block';
+      groupJumlah.style.display = 'none';
+    } else if (kat === 'Izin Pulang Sebelum Waktunya') {
+      groupPulang.style.display = 'block';
+      groupJumlah.style.display = 'none';
+    }
+  }
+
+  // Trigger saat pertama kali load (misal redirect back with error)
+  document.addEventListener('DOMContentLoaded', function() {
+    toggleKategoriFields();
+  });
+</script>
 @endsection

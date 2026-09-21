@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      background-color: #1e1e1e;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h2 { font-size: 1.2rem; margin-bottom: 5px; }
+    p.subtitle { color: #aaaaaa; font-size: 0.9rem; margin-top: 0; margin-bottom: 20px;}
+    
+    .form-group { margin-bottom: 15px; }
+    select {
+      width: 100%; padding: 12px; border-radius: 8px;
+      border: 1px solid #444; background-color: #2a2a2a; color: white;
+      box-sizing: border-box; font-size: 1rem;
+    }
+    button {
+      width: 100%; padding: 12px; border-radius: 8px;
+      border: none; background-color: #00a884; color: white;
+      font-size: 1rem; font-weight: bold; cursor: pointer;
+    }
+    button:disabled { background-color: #555; }
+    
+    .poll-container { margin-top: 30px; }
+    .poll-item { margin-bottom: 15px; }
+    .poll-header {
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; padding: 5px 0;
+    }
+    .poll-title { font-size: 0.95rem; font-weight: 500; }
+    .poll-count { font-size: 0.9rem; font-weight: bold; }
+    .poll-bar-bg {
+      width: 100%; background-color: #333; height: 8px; border-radius: 4px; overflow: hidden;
+      margin-top: 5px;
+    }
+    .poll-bar-fill {
+      height: 100%; width: 0%; transition: width 0.5s ease-in-out;
+    }
+    .fill-green { background-color: #00a884; }
+    .fill-blue { background-color: #3498db; } 
+    
+    .user-list {
+      display: none; padding: 10px; background-color: #2a2a2a;
+      border-radius: 8px; margin-top: 8px; font-size: 0.85rem; color: #ddd;
+    }
+    .user-item {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #444;
+    }
+    .user-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .time-badge { color: #888; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Formulir Izin Guru</h2>
+  <p class="subtitle">Abaikan form ini jika Anda hadir di sekolah.</p>
+
+  <div class="form-group">
+    <select id="namaGuru" required>
+      <option value="" disabled selected>Memuat daftar guru...</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <select id="kategoriIzin" required>
+      <option value="" disabled selected>Pilih Keterangan Izin...</option>
+      <option value="Tugas kedinasan">Tugas kedinasan</option>
+      <option value="Sakit">Sakit</option>
+      <option value="Izin terlambat">Izin terlambat</option>
+      <option value="Izin keluar saat jam dinas (keperluan penting, dan kembali ke sekolah)">Izin keluar saat jam dinas (keperluan penting)</option>
+      <option value="Izin pulang sebelum waktunya">Izin pulang sebelum waktunya</option>
+      <option value="Keperluan pribadi">Keperluan pribadi</option>
+      <option value="Cuti">Cuti</option>
+    </select>
+  </div>
+  <button id="btnKirim" onclick="kirimData()">Kirim</button>
+
+  <div class="poll-container">
+    <h2 id="tanggalText" style="margin-top: 30px; border-top: 1px solid #444; padding-top:20px;">Memuat data hari ini...</h2>
+    <div id="pollResults"></div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    loadData();
+  });
+
+  function loadData() {
+    google.script.run
+      .withSuccessHandler(renderData)
+      .withFailureHandler(function(err) { alert("Gagal memuat data: " + err); })
+      .getTodayData();
+  }
+
+  function kirimData() {
+    const nama = document.getElementById("namaGuru").value;
+    const kategori = document.getElementById("kategoriIzin").value;
+    
+    if (nama === "" || kategori === "") {
+      alert("Mohon pilih Nama Anda dan Keterangan!");
+      return;
+    }
+
+    const btn = document.getElementById("btnKirim");
+    btn.innerText = "Mengirim...";
+    btn.disabled = true;
+
+    google.script.run
+      .withSuccessHandler(function(data) {
+        document.getElementById("namaGuru").selectedIndex = 0;
+        document.getElementById("kategoriIzin").selectedIndex = 0;
+        btn.innerText = "Kirim";
+        btn.disabled = false;
+        renderData(data);
+      })
+      .withFailureHandler(function(err) {
+        alert("Gagal mengirim data: " + err);
+        btn.innerText = "Kirim";
+        btn.disabled = false;
+      })
+      .submitIzin(nama, kategori);
+  }
+
+  function buatItemPoll(judul, daftarNama, totalGuru, warnaClass, idUnik) {
+    const count = daftarNama.length;
+    const persentase = totalGuru > 0 ? (count / totalGuru) * 100 : 0;
+    
+    let userListHtml = "";
+    if (count > 0) {
+      userListHtml = `<div class="user-list" id="${idUnik}">`;
+      daftarNama.forEach(item => {
+        // Cek apakah item adalah string biasa (untuk "Hadir") atau object (untuk "Izin" yang ada jamnya)
+        if (typeof item === 'object') {
+          userListHtml += `<div class="user-item">
+                             <span>👤 ${item.nama}</span>
+                             <span class="time-badge">${item.jam} WIB</span>
+                           </div>`;
+        } else {
+          userListHtml += `<div class="user-item">
+                             <span>👤 ${item}</span>
+                           </div>`;
+        }
+      });
+      userListHtml += `</div>`;
+    }
+
+    return `
+      <div class="poll-item">
+        <div class="poll-header" onclick="toggleList('${idUnik}')">
+          <div class="poll-title">${judul}</div>
+          <div class="poll-count">${count}</div>
+        </div>
+        <div class="poll-bar-bg">
+          <div class="poll-bar-fill ${warnaClass}" style="width: ${persentase}%"></div>
+        </div>
+        ${userListHtml}
+      </div>
+    `;
+  }
+
+  function renderData(data) {
+    const selectGuru = document.getElementById("namaGuru");
+    selectGuru.innerHTML = '<option value="" disabled selected>Pilih Nama Anda...</option>';
+    
+    if (data.daftarGuru && data.daftarGuru.length > 0) {
+      data.daftarGuru.forEach(guru => {
+        const option = document.createElement("option");
+        option.value = guru;
+        option.text = guru;
+        selectGuru.appendChild(option);
+      });
+    }
+
+    const hari = {"Sunday": "Minggu", "Monday": "Senin", "Tuesday": "Selasa", "Wednesday": "Rabu", "Thursday": "Kamis", "Friday": "Jumat", "Saturday": "Sabtu"};
+    let tanggalIndo = data.tanggal.replace(/[a-zA-Z]+/, match => hari[match] || match);
+    document.getElementById("tanggalText").innerText = "Rekap Hari Ini: " + tanggalIndo;
+    
+    const container = document.getElementById("pollResults");
+    let htmlContent = "";
+    const totalGuru = data.totalGuru;
+
+    htmlContent += buatItemPoll("Hadir (Di Sekolah)", data.hadir, totalGuru, "fill-blue", "list-hadir");
+
+    for (const [kategori, users] of Object.entries(data.rekap)) {
+      let idUnik = "list-" + kategori.replace(/[^a-zA-Z0-9]/g, '');
+      htmlContent += buatItemPoll(kategori, users, totalGuru, "fill-green", idUnik);
+    }
+
+    container.innerHTML = htmlContent;
+  }
+
+  function toggleList(id) {
+    const list = document.getElementById(id);
+    if (list) {
+      list.style.display = (list.style.display === "block") ? "none" : "block";
+    }
+  }
+</script>
+</body>
+</html>
