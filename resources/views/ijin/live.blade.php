@@ -33,10 +33,13 @@
     gap: 8px;
   }
   .poll-count-badge {
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    padding: 5px 14px !important;
+    border-radius: 20px !important;
+    color: #ffffff !important;
+    display: inline-block !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   }
   .poll-bar-bg {
     width: 100%;
@@ -119,7 +122,7 @@
     <!-- Collapsible Quick Izin Form -->
     <div class="collapse mb-3" id="formIzinCepat">
       <div class="card shadow-sm border-warning" style="border-radius: 12px;">
-        <div class="card-header bg-warning bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+        <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #fef3c7;">
           <span class="fw-bold text-dark"><i class="fas fa-edit me-1 text-warning"></i> Formulir Pengajuan Izin Cepat</span>
           <button type="button" class="btn-close btn-sm" data-bs-toggle="collapse" data-bs-target="#formIzinCepat"></button>
         </div>
@@ -252,7 +255,7 @@
               <span class="text-muted small fw-normal">(Otomatis tanpa izin)</span>
             </div>
             <div class="d-flex align-items-center gap-2">
-              <span class="poll-count-badge bg-success bg-opacity-10 text-success fw-bold">
+              <span class="poll-count-badge" style="background-color: #059669; color: #ffffff !important;">
                 {{ $totalHadir }} Guru ({{ $persenHadir }}%)
               </span>
               <i class="fas fa-chevron-down text-muted small transition-chevron" id="chevron-list-hadir"></i>
@@ -269,12 +272,12 @@
                 <div class="col-md-4 col-sm-6">
                   <div class="user-item-row bg-white border rounded p-2">
                     <div class="d-flex align-items-center gap-2 text-truncate">
-                      <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 11px;">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 11px; background-color: #d1fae5; color: #065f46;">
                         {{ strtoupper(substr($g['name'], 0, 1)) }}
                       </div>
                       <span class="fw-semibold text-dark text-truncate" title="{{ $g['name'] }}">{{ $g['name'] }}</span>
                     </div>
-                    <span class="badge bg-light text-success border border-success" style="font-size: 9.5px;">Di Sekolah</span>
+                    <span class="badge" style="font-size: 10px; background-color: #ecfdf5; color: #047857; border: 1px solid #10b981;">Di Sekolah</span>
                   </div>
                 </div>
               @empty
@@ -303,7 +306,7 @@
                 <span>{{ $cat['label'] }}</span>
               </div>
               <div class="d-flex align-items-center gap-2">
-                <span class="poll-count-badge" style="background-color: {{ $count > 0 ? $cat['color'] : '#94a3b8' }}; color: #ffffff;">
+                <span class="poll-count-badge" style="background-color: {{ $count > 0 ? $cat['color'] : '#64748b' }}; color: #ffffff !important;">
                   {{ $count }} Guru ({{ $persen }}%)
                 </span>
                 <i class="fas fa-chevron-down text-muted small transition-chevron" id="chevron-{{ $slugId }}"></i>
