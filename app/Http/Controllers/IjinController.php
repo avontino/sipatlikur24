@@ -26,89 +26,116 @@ class IjinController extends Controller
 
     public function create(Request $request)
     {	
-        $allowedSia = [
-            'Tugas Kedinasan',
-            'Sakit',
-            'Izin Terlambat',
-            'Izin Keluar Jam Dinas',
-            'Izin Pulang Sebelum Waktunya',
-            'Keperluan Pribadi',
-            'Cuti',
-            'Terlambat',
-            'Ijin',
-            'Alpha'
-        ];
+        try {
+            $allowedSia = [
+                'Tugas Kedinasan',
+                'Sakit',
+                'Izin Terlambat',
+                'Izin Keluar Jam Dinas',
+                'Izin Pulang Sebelum Waktunya',
+                'Keperluan Pribadi',
+                'Cuti',
+                'Terlambat',
+                'Ijin',
+                'Alpha'
+            ];
 
-        $request->validate([
-            'tglmasuk' => 'required|date',
-            'sia' => 'required|in:' . implode(',', $allowedSia),
-            'jumlah' => 'nullable',
-            'attachment' => 'nullable|file|mimes:pdf,png,jpg,jpeg|max:2048'
-        ], [
-            'attachment.mimes' => 'Format lampiran harus berupa PDF, PNG, JPG, atau JPEG.',
-            'attachment.max' => 'Ukuran lampiran maksimal adalah 2 MB.'
-        ]);
+            $request->validate([
+                'tglmasuk' => 'required|date',
+                'sia' => 'required|in:' . implode(',', $allowedSia),
+                'jumlah' => 'nullable',
+                'attachment' => 'nullable|file|mimes:pdf,png,jpg,jpeg|max:2048'
+            ], [
+                'attachment.mimes' => 'Format lampiran harus berupa PDF, PNG, JPG, atau JPEG.',
+                'attachment.max' => 'Ukuran lampiran maksimal adalah 2 MB.'
+            ]);
 
-        $data = $request->except('attachment');
+            $data = $request->except('attachment');
 
-        // Penanganan input waktu spesifik
-        if (in_array($request->sia, ['Izin Terlambat', 'Terlambat'])) {
-            $data['jumlah'] = 0;
-            if ($request->filled('jam_terlambat')) {
-                $data['jam_terlambat'] = $request->jam_terlambat;
+            // Penanganan input waktu spesifik
+            if (in_array($request->sia, ['Izin Terlambat', 'Terlambat'])) {
+                $data['jumlah'] = 0;
+                if ($request->filled('jam_terlambat')) {
+                    $data['jam_terlambat'] = $request->jam_terlambat;
+                }
+            } elseif ($request->sia == 'Izin Keluar Jam Dinas') {
+                $data['jumlah'] = 0;
+                $data['jam_keluar'] = $request->jam_keluar ?? null;
+                $data['jam_kembali'] = $request->jam_kembali ?? null;
+            } elseif ($request->sia == 'Izin Pulang Sebelum Waktunya') {
+                $data['jumlah'] = 0;
+                $data['jam_keluar'] = $request->jam_keluar ?? ($request->jam_terlambat ?? null);
+            } else {
+                $data['jumlah'] = $request->jumlah ?: 1;
             }
-        } elseif ($request->sia == 'Izin Keluar Jam Dinas') {
-            $data['jumlah'] = 0;
-            $data['jam_keluar'] = $request->jam_keluar ?? null;
-            $data['jam_kembali'] = $request->jam_kembali ?? null;
-        } elseif ($request->sia == 'Izin Pulang Sebelum Waktunya') {
-            $data['jumlah'] = 0;
-            $data['jam_keluar'] = $request->jam_keluar ?? ($request->jam_terlambat ?? null);
-        } else {
-            $data['jumlah'] = $request->jumlah ?: 1;
-        }
 
-        // Tentukan guru: jika admin/piket memilih guru lain
-        if ($request->filled('guru_id') && (auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->user()->role == 'pembina' || auth()->user()->role == 'kesiswaan')) {
-            $targetUser = \App\Models\User::find($request->guru_id);
-            if ($targetUser) {
-                $data['user_id'] = $targetUser->id;
-                $data['guru'] = $targetUser->name;
+            // Tentukan guru: jika admin/piket memilih guru lain
+            if ($request->filled('guru_id') && (auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->user()->role == 'pembina' || auth()->user()->role == 'kesiswaan')) {
+                $targetUser = \App\Models\User::find($request->guru_id);
+                if ($targetUser) {
+                    $data['user_id'] = $targetUser->id;
+                    $data['guru'] = $targetUser->name;
+                } else {
+                    $data['user_id'] = auth()->user()->id;
+                    $data['guru'] = $request->guru ?: auth()->user()->name;
+                }
             } else {
                 $data['user_id'] = auth()->user()->id;
                 $data['guru'] = $request->guru ?: auth()->user()->name;
             }
-        } else {
-            $data['user_id'] = auth()->user()->id;
-            $data['guru'] = auth()->user()->name;
-        }
 
-        $data['approval_status'] = (auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum') ? 'approved' : 'pending';
-        $data['tahun_ajaran'] = session('tahun_ajaran');
-        $data['semester'] = session('semester');
+            // Otomatis tentukan mapel agar tidak melanggar field NOT NULL di database
+            $cleanName = trim(preg_replace('/[,.].*$/', '', $data['guru']));
+            $data['mapel'] = $request->mapel ?: (\App\Models\Jadwal::where('guru', $data['guru'])
+                ->orWhere('guru', 'LIKE', '%' . $cleanName . '%')
+                ->value('mapel') ?: '-');
 
-        if ($request->hasFile('attachment')) {
-            $file = $request->file('attachment');
-            $fileName = 'permit_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/ijin_guru'), $fileName);
-            $data['attachment'] = 'uploads/ijin_guru/' . $fileName;
-        }
-        
-        $ijin = \App\Models\Ijin::create($data);
-
-        if ($data['approval_status'] === 'pending') {
-            $admins = \App\Models\User::whereIn('role', ['admin', 'kurikulum', 'kepala'])->get();
-            foreach ($admins as $u) {
-                $u->sendNotification(
-                    "Pengajuan Izin Guru Baru",
-                    "Pengajuan Izin Guru Baru: " . $data['guru'] . " ({$request->sia}). Mohon tinjau di menu Presensi & Izin Guru.",
-                    '/ijin',
-                    'ijin'
-                );
+            $data['approval_status'] = (auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum') ? 'approved' : 'pending';
+            
+            // Otomatis tentukan tahun ajaran dan semester jika kosong di session
+            $data['tahun_ajaran'] = session('tahun_ajaran');
+            $data['semester'] = session('semester');
+            if (empty($data['tahun_ajaran'])) {
+                $m = (int)date('m');
+                $y = (int)date('Y');
+                $data['tahun_ajaran'] = $m >= 7 ? "$y/" . ($y + 1) : ($y - 1) . "/$y";
+                $data['semester'] = $m >= 7 ? 'Ganjil' : 'Genap';
             }
-        }
 
-        return redirect()->back()->with('sukses', 'Izin Guru (' . $data['guru'] . ' - ' . $request->sia . ') Berhasil Disimpan!');
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+                $uploadDir = public_path('uploads/ijin_guru');
+                if (!file_exists($uploadDir)) {
+                    @mkdir($uploadDir, 0777, true);
+                }
+                $fileName = 'permit_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move($uploadDir, $fileName);
+                $data['attachment'] = 'uploads/ijin_guru/' . $fileName;
+            }
+            
+            $ijin = \App\Models\Ijin::create($data);
+
+            if ($data['approval_status'] === 'pending') {
+                try {
+                    $admins = \App\Models\User::whereIn('role', ['admin', 'kurikulum', 'kepala'])->get();
+                    foreach ($admins as $u) {
+                        $u->sendNotification(
+                            "Pengajuan Izin Guru Baru",
+                            "Pengajuan Izin Guru Baru: " . $data['guru'] . " ({$request->sia}). Mohon tinjau di menu Presensi & Izin Guru.",
+                            '/ijin',
+                            'ijin'
+                        );
+                    }
+                } catch (\Throwable $ne) {
+                    \Log::warning('Gagal kirim notifikasi izin: ' . $ne->getMessage());
+                }
+            }
+
+            return redirect()->back()->with('sukses', 'Izin Guru (' . $data['guru'] . ' - ' . $request->sia . ') Berhasil Disimpan!');
+        } catch (\Throwable $e) {
+            \Log::error('IjinController create error: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('gagal', 'Gagal menyimpan permohonan izin: ' . $e->getMessage());
+        }
     }
 
     public function index(Request $request)
