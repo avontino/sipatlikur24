@@ -33,10 +33,8 @@
       box-sizing: border-box;
     }
 
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
+    html {
+      min-height: 100%;
     }
 
     body {
@@ -44,18 +42,25 @@
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: 30px 15px;
       position: relative;
       background: linear-gradient(135deg, rgba(0, 150, 56, 0.88) 0%, rgba(0, 77, 26, 0.95) 100%), 
                   url("{{ asset('adminlte/img/background.png') }}") no-repeat center center;
       background-size: cover;
+      background-attachment: fixed;
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .login-container {
       width: 100%;
       max-width: 420px;
-      padding: 20px;
+      margin: auto; /* Mencegah elemen terpotong ke atas dan mengaktifkan scrolling alami */
+      padding: 10px;
     }
 
     .login-card {
@@ -63,13 +68,70 @@
       border-radius: 20px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.8);
-      padding: 40px 30px;
+      padding: 36px 28px;
       backdrop-filter: blur(8px);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .login-card:hover {
       box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+    }
+
+    @media (max-width: 576px) {
+      body {
+        padding: 20px 10px;
+        align-items: flex-start; /* Pada layar HP, posisi mulai dari atas agar logo tidak terpotong */
+      }
+      .login-container {
+        padding: 0;
+        margin: auto;
+      }
+      .login-card {
+        padding: 24px 18px;
+        border-radius: 18px;
+      }
+      .login-header {
+        margin-bottom: 20px !important;
+      }
+      .login-logo-img {
+        width: 72px !important;
+        height: 72px !important;
+        margin-bottom: 8px !important;
+      }
+      .login-title {
+        font-size: 26px !important;
+      }
+      .login-subtitle {
+        font-size: 11.5px !important;
+      }
+      .input-wrapper {
+        margin-bottom: 14px !important;
+      }
+      .input-wrapper .form-control {
+        height: 46px !important;
+        font-size: 14px !important;
+        padding-left: 46px !important;
+      }
+      .input-wrapper i {
+        font-size: 15px !important;
+        left: 17px !important;
+      }
+      .btn-signin {
+        height: 46px !important;
+        font-size: 15px !important;
+        margin-top: 5px !important;
+      }
+      .qr-download-container {
+        padding: 10px !important;
+        gap: 10px !important;
+      }
+      .qr-img {
+        width: 65px !important;
+        height: 65px !important;
+      }
+      .forgot-link {
+        font-size: 12.5px !important;
+      }
     }
 
     .login-header {
@@ -340,9 +402,9 @@
 
       <!-- QR CODE DOWNLOAD APK SECTION -->
       <div class="mt-4 pt-3 border-top text-center">
-        <div class="d-flex align-items-center justify-content-center gap-3 p-3 shadow-sm border" style="border-radius: 16px !important; background-color: #f8fafc !important; border-color: #e2e8f0 !important;">
+        <div class="d-flex align-items-center justify-content-center gap-3 p-3 shadow-sm border qr-download-container" style="border-radius: 16px !important; background-color: #f8fafc !important; border-color: #e2e8f0 !important;">
           <div style="background: white; padding: 6px; border-radius: 12px; border: 1px solid #cbd5e1; flex-shrink: 0;">
-            <img src="{{ asset('images/qr-download-apk.png') }}" alt="QR Code Download APK SIPATLIKUR" style="width: 85px; height: 85px; object-fit: contain;">
+            <img src="{{ asset('images/qr-download-apk.png') }}" alt="QR Code Download APK SIPATLIKUR" class="qr-img" style="width: 85px; height: 85px; object-fit: contain;">
           </div>
           <div class="text-start" style="flex: 1;">
             <div class="fw-bold mb-1" style="font-size: 13px; color: #0f172a !important;">
