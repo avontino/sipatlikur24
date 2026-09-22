@@ -155,6 +155,8 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			Route::get('/ijin/live','IjinController@liveMonitoring')->name('ijin.live');
 			Route::get('/presensi-guru/live','IjinController@liveMonitoring');
 			Route::get('/ijin/rekaphadir','IjinController@rekaphadir');
+			Route::post('/ijin/{id}/konfirmasi-tiba', 'IjinController@konfirmasiTiba')->name('ijin.konfirmasiTiba');
+			Route::post('/ijin/{id}/batal-tiba', 'IjinController@batalTiba')->name('ijin.batalTiba');
 
 			//route laporan kasus
 			Route::get('/tambahkasus','KasusController@tambahk');

@@ -285,6 +285,60 @@ class IjinController extends Controller
     }
 
     /**
+     * Konfirmasi kedatangan guru yang izin terlambat atau izin keluar dinas
+     */
+    public function konfirmasiTiba($id, Request $request)
+    {
+        $ijin = \App\Models\Ijin::findOrFail($id);
+        $user = auth()->user();
+
+        // Otorisasi: Guru bersangkutan, admin, kurikulum, kesiswaan, atau pembina
+        $isOwner = ($ijin->user_id && $ijin->user_id == $user->id) || ($ijin->guru == $user->name);
+        $isStaff = in_array($user->role, ['admin', 'kurikulum', 'kesiswaan', 'pembina']) || 
+                   $user->hasRole('admin') || $user->hasRole('kurikulum');
+
+        if (!$isOwner && !$isStaff) {
+            return redirect()->back()->with('gagal', 'Anda tidak memiliki izin untuk mengonfirmasi kehadiran ini.');
+        }
+
+        $waktuTiba = $request->input('waktu_tiba', Carbon::now()->format('H:i:s'));
+        
+        if (\Illuminate\Support\Facades\Schema::hasColumn('ijin', 'waktu_tiba')) {
+            $ijin->waktu_tiba = $waktuTiba;
+            $ijin->save();
+        } else {
+            $ijin->ket = trim(($ijin->ket ? $ijin->ket . ' ' : '') . '[Tiba: ' . substr($waktuTiba, 0, 5) . ']');
+            $ijin->save();
+        }
+
+        return redirect()->back()->with('sukses', "Kehadiran guru {$ijin->guru} berhasil dikonfirmasi (Tiba pukul " . substr($waktuTiba, 0, 5) . " WIB) dan otomatis bertambah ke Hadir di Sekolah!");
+    }
+
+    /**
+     * Batalkan status kedatangan guru
+     */
+    public function batalTiba($id)
+    {
+        $ijin = \App\Models\Ijin::findOrFail($id);
+        $user = auth()->user();
+
+        $isOwner = ($ijin->user_id && $ijin->user_id == $user->id) || ($ijin->guru == $user->name);
+        $isStaff = in_array($user->role, ['admin', 'kurikulum', 'kesiswaan', 'pembina']) || 
+                   $user->hasRole('admin') || $user->hasRole('kurikulum');
+
+        if (!$isOwner && !$isStaff) {
+            return redirect()->back()->with('gagal', 'Anda tidak memiliki izin.');
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('ijin', 'waktu_tiba')) {
+            $ijin->waktu_tiba = null;
+            $ijin->save();
+        }
+
+        return redirect()->back()->with('sukses', "Status kedatangan guru {$ijin->guru} berhasil dibatalkan.");
+    }
+
+    /**
      * Halaman Live Monitoring Rekap Presensi & Izin Guru Real-time
      * Konsep ala Google Apps Script: Guru yang tidak mengisi izin otomatis dianggap Hadir di Sekolah.
      */
@@ -405,7 +459,6 @@ class IjinController extends Controller
             }
 
             if ($ijinData) {
-                $totalIzinCount++;
                 $sia = trim($ijinData->sia);
 
                 // Normalisasi kategori target
@@ -426,6 +479,26 @@ class IjinController extends Controller
                     $targetKey = 'Keperluan Pribadi';
                 }
 
+                // Cek status kedatangan guru untuk izin sementara (Terlambat & Keluar Jam Dinas)
+                $isArrived = false;
+                $waktuTibaFormatted = null;
+
+                if ($targetKey === 'Izin Terlambat' || $targetKey === 'Izin Keluar Jam Dinas') {
+                    if (!empty($ijinData->waktu_tiba)) {
+                        $isArrived = true;
+                        $waktuTibaFormatted = substr($ijinData->waktu_tiba, 0, 5) . ' WIB';
+                    } elseif ($targetDateStr === Carbon::today()->toDateString()) {
+                        $currTime = Carbon::now()->format('H:i:s');
+                        if ($targetKey === 'Izin Terlambat' && !empty($ijinData->jam_terlambat) && $currTime >= $ijinData->jam_terlambat) {
+                            $isArrived = true;
+                            $waktuTibaFormatted = substr($ijinData->jam_terlambat, 0, 5) . ' WIB (Otomatis)';
+                        } elseif ($targetKey === 'Izin Keluar Jam Dinas' && !empty($ijinData->jam_kembali) && $currTime >= $ijinData->jam_kembali) {
+                            $isArrived = true;
+                            $waktuTibaFormatted = substr($ijinData->jam_kembali, 0, 5) . ' WIB (Otomatis)';
+                        }
+                    }
+                }
+
                 // Format keterangan jam izin
                 $jamKet = '';
                 if ($ijinData->jam_keluar && $ijinData->jam_kembali) {
@@ -438,6 +511,20 @@ class IjinController extends Controller
                     $jamKet = Carbon::parse($ijinData->created_at)->format('H:i') . ' WIB';
                 }
 
+                if ($isArrived) {
+                    // Guru sudah berada di sekolah! Otomatis bertambah ke Hadir di Sekolah
+                    $hadirList[] = [
+                        'id' => $teacher->id,
+                        'name' => $teacher->name,
+                        'role' => $teacher->role,
+                        'catatan' => ($targetKey === 'Izin Terlambat' ? 'Datang Terlambat' : 'Kembali ke Sekolah') . " ($waktuTibaFormatted)",
+                        'status_hadir' => 'terlambat_hadir',
+                    ];
+                } else {
+                    // Masih belum tiba / izin aktif
+                    $totalIzinCount++;
+                }
+
                 $kategoriList[$targetKey]['members'][] = [
                     'id' => $teacher->id,
                     'name' => $teacher->name,
@@ -446,7 +533,11 @@ class IjinController extends Controller
                     'jam' => $jamKet,
                     'keterangan' => $ijinData->ket,
                     'attachment' => $ijinData->attachment,
-                    'approval' => $ijinData->approval_status
+                    'approval' => $ijinData->approval_status,
+                    'ijin_id' => $ijinData->id,
+                    'is_arrived' => $isArrived,
+                    'waktu_tiba' => $waktuTibaFormatted,
+                    'can_confirm' => ($targetKey === 'Izin Terlambat' || $targetKey === 'Izin Keluar Jam Dinas'),
                 ];
             } else {
                 // ATURAN UTAMA: Tanpa GPS, yang tidak izin otomatis Hadir di Sekolah!
@@ -454,6 +545,8 @@ class IjinController extends Controller
                     'id' => $teacher->id,
                     'name' => $teacher->name,
                     'role' => $teacher->role,
+                    'catatan' => null,
+                    'status_hadir' => 'tepat_waktu',
                 ];
             }
         }

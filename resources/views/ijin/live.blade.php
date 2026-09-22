@@ -277,7 +277,13 @@
                       </div>
                       <span class="fw-semibold text-dark text-truncate" title="{{ $g['name'] }}">{{ $g['name'] }}</span>
                     </div>
-                    <span class="badge" style="font-size: 10px; background-color: #ecfdf5; color: #047857; border: 1px solid #10b981;">Di Sekolah</span>
+                    @if(!empty($g['catatan']))
+                      <span class="badge" style="font-size: 10px; background-color: #fef3c7; color: #b45309; border: 1px solid #f59e0b;" title="{{ $g['catatan'] }}">
+                        <i class="fas fa-clock me-1"></i>{{ $g['catatan'] }}
+                      </span>
+                    @else
+                      <span class="badge" style="font-size: 10px; background-color: #ecfdf5; color: #047857; border: 1px solid #10b981;">Di Sekolah</span>
+                    @endif
                   </div>
                 </div>
               @empty
@@ -292,8 +298,10 @@
         <!-- 2. Kategori: SELURUH KATEGORI IZIN -->
         @foreach($kategoriList as $key => $cat)
           @php
-            $count = count($cat['members']);
-            $persen = $totalTeachers > 0 ? round(($count / $totalTeachers) * 100, 1) : 0;
+            $totalMembers = count($cat['members']);
+            $arrivedMembers = count(array_filter($cat['members'], function($m) { return !empty($m['is_arrived']); }));
+            $activeMembers = $totalMembers - $arrivedMembers;
+            $persen = $totalTeachers > 0 ? round(($activeMembers / $totalTeachers) * 100, 1) : 0;
             $slugId = 'list-' . Str::slug($key);
           @endphp
 
@@ -306,9 +314,16 @@
                 <span>{{ $cat['label'] }}</span>
               </div>
               <div class="d-flex align-items-center gap-2">
-                <span class="poll-count-badge" style="background-color: {{ $count > 0 ? $cat['color'] : '#64748b' }}; color: #ffffff !important;">
-                  {{ $count }} Guru ({{ $persen }}%)
-                </span>
+                @if($arrivedMembers > 0)
+                  <span class="poll-count-badge" style="background-color: #059669; color: #ffffff !important;" title="{{ $arrivedMembers }} guru sudah berada di sekolah">
+                    <i class="fas fa-check-circle me-1"></i>{{ $arrivedMembers }} Sudah di Sekolah
+                  </span>
+                @endif
+                @if($activeMembers > 0 || $totalMembers == 0)
+                  <span class="poll-count-badge" style="background-color: {{ $activeMembers > 0 ? $cat['color'] : '#64748b' }}; color: #ffffff !important;">
+                    {{ $activeMembers }} Guru ({{ $persen }}%)
+                  </span>
+                @endif
                 <i class="fas fa-chevron-down text-muted small transition-chevron" id="chevron-{{ $slugId }}"></i>
               </div>
             </div>
@@ -318,7 +333,7 @@
 
             <!-- Rincian Nama Guru Izin -->
             <div class="user-list-container" id="{{ $slugId }}" onclick="event.stopPropagation();">
-              @if($count > 0)
+              @if($totalMembers > 0)
                 <div class="row g-2">
                   @foreach($cat['members'] as $m)
                     <div class="col-md-6">
@@ -345,8 +360,37 @@
                                 <i class="far fa-clock me-1 text-muted"></i>{{ $m['jam'] }}
                               </span>
                             @endif
+
+                            @if(!empty($m['can_confirm']))
+                              @if(!empty($m['is_arrived']))
+                                <span class="badge bg-success text-white d-block mb-1" style="font-size: 10.5px;">
+                                  <i class="fas fa-check-circle me-1"></i>Sudah di Sekolah ({{ $m['waktu_tiba'] }})
+                                </span>
+                                @if(auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->id() == $m['id'])
+                                  <form action="/ijin/{{ $m['ijin_id'] }}/batal-tiba" method="POST" class="d-inline" onsubmit="return confirm('Batalkan status kedatangan?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-link text-danger p-0 border-0" style="font-size: 10px; text-decoration: none;">
+                                      <i class="fas fa-undo me-1"></i>Batal
+                                    </button>
+                                  </form>
+                                @endif
+                              @else
+                                <span class="badge bg-warning text-dark d-block mb-1" style="font-size: 10.5px;">
+                                  <i class="fas fa-hourglass-half me-1"></i>Belum Tiba
+                                </span>
+                                @if(auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->id() == $m['id'])
+                                  <form action="/ijin/{{ $m['ijin_id'] }}/konfirmasi-tiba" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-xs btn-success py-1 px-2 fw-bold shadow-sm" style="font-size: 10.5px;">
+                                      <i class="fas fa-check-circle me-1"></i>Tiba di Sekolah
+                                    </button>
+                                  </form>
+                                @endif
+                              @endif
+                            @endif
+
                             @if($m['attachment'])
-                              <a href="{{ asset($m['attachment']) }}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size: 10px;">
+                              <a href="{{ asset($m['attachment']) }}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2 mt-1" style="font-size: 10px;">
                                 <i class="fas fa-file-alt me-1"></i> Surat
                               </a>
                             @endif
