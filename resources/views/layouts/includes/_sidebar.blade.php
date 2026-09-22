@@ -294,8 +294,13 @@
     </li>
 
     <!-- Presensi & Izin Guru -->
-    <li class="nav-item {{ Request::is('tambahijin*', 'ijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'menu-open' : '' }}">
-      <a href="#" class="nav-link {{ Request::is('tambahijin*', 'ijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'active' : '' }}">
+    @php
+      $isKurikulumUser = auth()->user()->hasRole('kurikulum') || auth()->user()->role === 'kurikulum';
+      $isPresensiGuruActive = Request::is('tambahijin*', 'presensi-guru*') || 
+          (Request::is('ijin*') && !Request::is('ijinsiswa*') && (!$isKurikulumUser || !Request::is('ijin/live*')));
+    @endphp
+    <li class="nav-item {{ $isPresensiGuruActive ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ $isPresensiGuruActive ? 'active' : '' }}">
         <i class="nav-icon fas fa-chalkboard-teacher text-warning"></i>
         <p>
           Presensi & Izin Guru
@@ -303,12 +308,14 @@
         </p>
       </a>
       <ul class="nav nav-treeview ps-2">
+        @if(!$isKurikulumUser)
         <li class="nav-item">
           <a href="/ijin/live" class="nav-link {{ Request::is('ijin/live*') || Request::is('presensi-guru/live*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-broadcast-tower text-success"></i>
             <p>Live Monitoring Guru</p>
           </a>
         </li>
+        @endif
         <li class="nav-item">
           <a href="/tambahijin" class="nav-link {{ Request::is('tambahijin*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-file-medical text-info"></i>
