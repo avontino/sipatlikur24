@@ -48,7 +48,7 @@
     <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #93c5fd !important;">Pengawasan KBM & Guru</li>
     
     <li class="nav-item">
-      <a href="/jurnalh?view=kurikulum" class="nav-link {{ Request::is('jurnalh*') ? 'active' : '' }}">
+      <a href="/jurnalh?view=kurikulum" class="nav-link {{ Request::is('jurnalh', 'jurnalh/*') ? 'active' : '' }}">
         <i class="nav-icon fas fa-calendar-day text-info"></i>
         <p>Jurnal Harian Sekolah</p>
       </a>
@@ -244,13 +244,13 @@
     {{-- Presensi Guru (Disembunyikan) --}}
     @if(auth()->user()->role !== 'siswa' && !auth()->user()->hasRole('siswa'))
     <li class="nav-item">
-      <a href="/jurnalh" class="nav-link {{ Request::is('jurnalh*') && !request()->filled('view') ? 'active' : '' }}">
+      <a href="/jurnalh" class="nav-link {{ Request::is('jurnalh', 'jurnalh/*') && !request()->filled('view') ? 'active' : '' }}">
         <i class="nav-icon fas fa-calendar-day text-success"></i>
         <p>Jurnal Harian Saya</p>
       </a>
     </li>
     <li class="nav-item">
-      <a href="/jurnal" class="nav-link {{ Request::is('jurnal*') && !request()->filled('view') ? 'active' : '' }}">
+      <a href="/jurnal" class="nav-link {{ Request::is('jurnal', 'jurnal/*') && !request()->filled('view') ? 'active' : '' }}">
         <i class="nav-icon fas fa-book-open text-primary"></i>
         <p>Riwayat Jurnal Saya</p>
       </a>
@@ -416,7 +416,7 @@
     </li>
 
     <li class="nav-item">
-      <a href="/jurnalh?view=walikelas" class="nav-link {{ Request::is('jurnalh*') && request()->query('view') === 'walikelas' ? 'active' : '' }}">
+      <a href="/jurnalh?view=walikelas" class="nav-link {{ Request::is('jurnalh', 'jurnalh/*') && request()->query('view') === 'walikelas' ? 'active' : '' }}">
         <i class="nav-icon fas fa-calendar-day text-success"></i>
         <p>Jurnal Harian</p>
       </a>
@@ -434,7 +434,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a href="/jurnal?view=walikelas" class="nav-link {{ Request::is('jurnal*') && request()->query('view') === 'walikelas' ? 'active' : '' }}">
+      <a href="/jurnal?view=walikelas" class="nav-link {{ Request::is('jurnal', 'jurnal/*') && request()->query('view') === 'walikelas' ? 'active' : '' }}">
         <i class="nav-icon fas fa-history text-success"></i>
         <p>Riwayat Jurnal</p>
       </a>
@@ -485,7 +485,7 @@
     <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #93c5fd !important;">Menu Kurikulum</li>
 
     <li class="nav-item">
-      <a href="/jurnalh?view=kurikulum" class="nav-link {{ Request::is('jurnalh*') && request()->query('view') === 'kurikulum' ? 'active' : '' }}">
+      <a href="/jurnalh?view=kurikulum" class="nav-link {{ Request::is('jurnalh', 'jurnalh/*') && request()->query('view') === 'kurikulum' ? 'active' : '' }}">
         <i class="nav-icon fas fa-calendar-day text-info"></i>
         <p>Jurnal Harian</p>
       </a>
