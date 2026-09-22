@@ -160,7 +160,15 @@ class IjinController extends Controller
             $isGuru = ($userRole == 'guru');
 
             if ($request->filled('filter')) {
-                $query = \App\Models\Ijin::whereDate('tglmasuk', $request->filter);
+                $filterDate = $request->filter;
+                $query = \App\Models\Ijin::where(function($q) use ($filterDate) {
+                    $q->whereDate('tglmasuk', $filterDate)
+                      ->orWhere(function($sub) use ($filterDate) {
+                          $sub->where('jumlah', '>', 1)
+                              ->whereDate('tglmasuk', '<=', $filterDate)
+                              ->whereRaw("DATE_ADD(DATE(tglmasuk), INTERVAL (jumlah - 1) DAY) >= ?", [$filterDate]);
+                      });
+                });
             } else {
                 $query = \App\Models\Ijin::query();
             }
@@ -293,9 +301,16 @@ class IjinController extends Controller
 
         $totalTeachers = $allTeachers->count();
 
-        // Ambil data izin untuk tanggal terpilih yang tidak ditolak
-        $ijinToday = Ijin::whereDate('tglmasuk', $targetDateStr)
-            ->where('approval_status', '!=', 'rejected')
+        // Ambil data izin untuk tanggal terpilih yang tidak ditolak (termasuk izin multi-hari: durasi/jumlah)
+        $ijinToday = Ijin::where('approval_status', '!=', 'rejected')
+            ->where(function($q) use ($targetDateStr) {
+                $q->whereDate('tglmasuk', $targetDateStr)
+                  ->orWhere(function($sub) use ($targetDateStr) {
+                      $sub->where('jumlah', '>', 1)
+                          ->whereDate('tglmasuk', '<=', $targetDateStr)
+                          ->whereRaw("DATE_ADD(DATE(tglmasuk), INTERVAL (jumlah - 1) DAY) >= ?", [$targetDateStr]);
+                  });
+            })
             ->orderBy('created_at', 'asc')
             ->get();
 

@@ -577,9 +577,16 @@ class JurnalhController extends Controller
 
     public function getAbsensiguru($tgl)
     {
-        // Ambil data absensi berdasarkan kelas dan tanggal
-        $absensiguru = Ijin::whereDate('created_at', $tgl)
-                             ->get();
+        // Ambil data absensi guru berdasarkan tanggal (termasuk izin multi-hari)
+        $absensiguru = Ijin::where(function($q) use ($tgl) {
+            $q->whereDate('tglmasuk', $tgl)
+              ->orWhere(function($sub) use ($tgl) {
+                  $sub->where('jumlah', '>', 1)
+                      ->whereDate('tglmasuk', '<=', $tgl)
+                      ->whereRaw("DATE_ADD(DATE(tglmasuk), INTERVAL (jumlah - 1) DAY) >= ?", [$tgl]);
+              })
+              ->orWhereDate('created_at', $tgl);
+        })->get();
 
         // Kembalikan data absensi dalam bentuk JSON
         return response()->json($absensiguru);

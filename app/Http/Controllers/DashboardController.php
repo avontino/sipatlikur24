@@ -140,7 +140,14 @@ class DashboardController extends Controller
                     $status = ($presensi->status_datang == 'Terlambat') ? 'terlambat' : 'tepat_waktu';
                 } else {
                     $ijinQuery = \App\Models\Ijin::where('guru', auth()->user()->name)
-                        ->whereDate('tglmasuk', $dateStr);
+                        ->where(function($q) use ($dateStr) {
+                            $q->whereDate('tglmasuk', $dateStr)
+                              ->orWhere(function($sub) use ($dateStr) {
+                                  $sub->where('jumlah', '>', 1)
+                                      ->whereDate('tglmasuk', '<=', $dateStr)
+                                      ->whereRaw("DATE_ADD(DATE(tglmasuk), INTERVAL (jumlah - 1) DAY) >= ?", [$dateStr]);
+                              });
+                        });
                     if (\Illuminate\Support\Facades\Schema::hasColumn('ijin', 'approval_status')) {
                         $ijinQuery->where('approval_status', 'approved');
                     }
