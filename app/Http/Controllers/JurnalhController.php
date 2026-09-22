@@ -40,7 +40,9 @@ class JurnalhController extends Controller
         $isAdmin = auth()->user()->hasRole('admin') || auth()->user()->role == 'admin';
         $isKurikulum = auth()->user()->hasRole('kurikulum') || auth()->user()->role == 'kurikulum';
 
-        if ($isAdmin || ($isKurikulum && $view === 'kurikulum')) {
+        $isSchoolView = ($view === 'kurikulum' && ($isAdmin || $isKurikulum)) || ($isAdmin && empty($view)) || ($request->has('draw') && ($isAdmin || $isKurikulum));
+
+        if ($isSchoolView) {
 
         // Memeriksa jika tombol "hapus_sinkron" ditekan
         if ($request->has('action') && $request->action == 'hapus_sinkron') {

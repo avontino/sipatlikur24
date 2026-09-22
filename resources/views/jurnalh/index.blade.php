@@ -36,7 +36,18 @@
             <div class="col-12">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-light py-3">
-                        <h3 class="fw-bold m-0" style="color: #004d1a;"><i class="fas fa-newspaper me-2"></i>Data Jurnal Harian Sekolah</h3>
+                        <h3 class="fw-bold m-0" style="color: #004d1a;">
+                            <i class="fas fa-newspaper me-2"></i>
+                            @if(request()->query('view') === 'kurikulum')
+                                Data Jurnal Harian Sekolah
+                            @elseif(request()->query('view') === 'walikelas')
+                                Data Jurnal Harian Kelas {{ $myClass ?? '' }}
+                            @elseif(auth()->user()->role === 'siswa')
+                                Data Jurnal Harian Kelas {{ $myClass ?? '' }}
+                            @else
+                                Data Jurnal Harian Mengajar Saya
+                            @endif
+                        </h3>
                     </div>
                     
                     <div class="card-body px-4">
@@ -360,8 +371,18 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#jurnalh-table').DataTable().destroy();
     }
 
-    @if(auth()->user()->role=='admin' || auth()->user()->role=='kurikulum' || auth()->user()->hasRole('admin') || auth()->user()->hasRole('kurikulum'))
-    // Server-Side mode untuk admin/kurikulum
+    @php
+        $user = auth()->user();
+        $isAdminUser = ($user->role == 'admin' || $user->hasRole('admin'));
+        $isKurikulumUser = ($user->role == 'kurikulum' || $user->hasRole('kurikulum'));
+        $isKurikulumView = request()->query('view') === 'kurikulum';
+
+        // Server-Side DataTables HANYA untuk Jurnal Harian Sekolah (view=kurikulum) atau Admin murni tanpa filter
+        $isServerSide = ($isKurikulumView && ($isAdminUser || $isKurikulumUser)) || ($isAdminUser && !request()->filled('view') && !request()->has('tanggal'));
+    @endphp
+
+    @if($isServerSide)
+    // Server-Side mode untuk admin/kurikulum (Data Jurnal Harian Sekolah)
     $('#jurnalh-table').DataTable({
         processing: true,
         serverSide: true,
@@ -369,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ajax: {
             url: "{{ url('/jurnalh') }}",
             data: function(d) {
-                d.view = "{{ request('view') }}";
+                d.view = "kurikulum";
             }
         },
         columns: [
@@ -402,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ]
     });
     @else
-    // Client-side mode untuk role lain (data sedikit)
+    // Client-side mode untuk Jurnal Harian Saya, Wali Kelas, Siswa, dll.
     $('#jurnalh-table').DataTable({
         scrollX: true,
         paging: true,
@@ -415,9 +436,9 @@ document.addEventListener('DOMContentLoaded', function() {
             search: "Cari Data:",
             lengthMenu: "Tampilkan _MENU_ data per halaman",
             info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-            infoEmpty: "Belum ada data jurnal harian untuk kelas {{ $myClass ?? '-' }} pada tanggal {{ \Carbon\Carbon::parse($targetDate ?? date('Y-m-d'))->format('d-m-Y') }}",
-            zeroRecords: "Belum ada data jurnal harian untuk kelas {{ $myClass ?? '-' }} pada tanggal {{ \Carbon\Carbon::parse($targetDate ?? date('Y-m-d'))->format('d-m-Y') }}",
-            emptyTable: "Belum ada data jurnal harian untuk kelas {{ $myClass ?? '-' }} pada tanggal {{ \Carbon\Carbon::parse($targetDate ?? date('Y-m-d'))->format('d-m-Y') }}"
+            infoEmpty: "Belum ada data jurnal harian untuk tanggal {{ \Carbon\Carbon::parse($targetDate ?? date('Y-m-d'))->format('d-m-Y') }}",
+            zeroRecords: "Belum ada data jurnal harian untuk tanggal {{ \Carbon\Carbon::parse($targetDate ?? date('Y-m-d'))->format('d-m-Y') }}",
+            emptyTable: "Belum ada data jurnal harian untuk tanggal {{ \Carbon\Carbon::parse($targetDate ?? date('Y-m-d'))->format('d-m-Y') }}"
         }
     });
     @endif
