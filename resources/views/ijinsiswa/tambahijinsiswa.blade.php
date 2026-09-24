@@ -32,25 +32,63 @@
             <form action="/tambahijinsiswa/create" method="POST" enctype="multipart/form-data"> 
               {{csrf_field()}}
 
-              <div class="form-group">
-                <label>Nama Siswa</label>
-                <input name="nama" value="{{auth()->user()->name}}" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" readonly>               
+              @if(auth()->user()->role === 'siswa')
+              <div class="form-group mb-3">
+                <label class="form-label fw-bold">Nama Siswa</label>
+                <input name="nama" value="{{auth()->user()->name}}" type="text" class="form-control" readonly>               
               </div>
 
-              <div class="form-group">
-                <label>Kelas</label>
-                <input name="kelas" value="{{$siswa->kelas}}" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" readonly>
+              <div class="form-group mb-3">
+                <label class="form-label fw-bold">Kelas</label>
+                <input name="kelas" value="{{$siswa->kelas}}" type="text" class="form-control" readonly>
+              </div>
+              @else
+              {{-- Guru Piket / Staff View --}}
+              <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3">
+                <i class="fas fa-info-circle fa-lg me-2"></i>
+                <div>
+                  <strong>Mode Guru Piket:</strong> Pilih kelas dan siswa yang meminta izin pulang saat jam sekolah. Izin akan otomatis diverifikasi & disetujui.
+                </div>
               </div>
 
-              <div class="form-group">
-                <label>Jenis Ijin</label>
-                <select id="ijinSelect" name="ijin" class="form-control" required>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label fw-bold">Pilih Kelas <span class="text-danger">*</span></label>
+                  <select id="selectKelasPage" class="form-select" required>
+                    <option value="">-- Pilih Kelas Siswa --</option>
+                    @if(isset($kelasList))
+                      @foreach($kelasList as $k)
+                        <option value="{{ $k }}">{{ $k }}</option>
+                      @endforeach
+                    @endif
+                  </select>
+                  <input type="hidden" name="kelas" id="inputKelasPage" required>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label fw-bold">Pilih Siswa <span class="text-danger">*</span></label>
+                  <select id="selectSiswaPage" class="form-select" disabled required>
+                    <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                  </select>
+                  <input type="hidden" name="nama" id="inputNamaPage" required>
+                </div>
+              </div>
+              @endif
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-bold">Jenis Izin <span class="text-danger">*</span></label>
+                <select id="ijinSelect" name="ijin" class="form-select" required>
                     <option value="">-- Pilih Jenis Izin --</option>
-                    <option value="Izin Keluar / Pulang Karena Sakit">Izin Keluar / Pulang Karena Sakit</option>
-                    <option value="Izin Keluar / Pulang Keperluan Keluarga">Izin Keluar / Pulang Keperluan Keluarga</option>
+                    <option value="Izin Pulang Saat Jam Sekolah (Sakit)" {{ auth()->user()->role !== 'siswa' ? 'selected' : '' }}>Izin Pulang Saat Jam Sekolah (Sakit)</option>
+                    <option value="Izin Pulang Saat Jam Sekolah (Keperluan Keluarga / Mendesak)">Izin Pulang Saat Jam Sekolah (Keperluan Keluarga / Mendesak)</option>
                     <option value="Izin Meninggalkan Sekolah Sementara">Izin Meninggalkan Sekolah Sementara (Tugas/Dinas/Lomba)</option>
                     <option value="Izin Tidak Masuk Sekolah (Sakit / Izin Harian)">Izin Tidak Masuk Sekolah (Sakit / Izin Harian)</option>
                 </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label fw-bold">Keterangan / Alasan Izin</label>
+                <textarea name="keterangan" class="form-control" rows="2" placeholder="Tuliskan alasan izin / keterangan penjemput jika ada..."></textarea>
               </div>
 
               <div id="sisaIjin" class="alert alert-info mt-3" style="display: none;">
@@ -58,13 +96,23 @@
                 <span id="sisaText"></span>
               </div>
 
-              <div class="form-group mt-3" id="fileUploadGroup" style="display: none;">
-                <label for="file" class="form-label font-weight-bold">Upload Foto / Surat Bukti Izin <span class="text-danger">* (Wajib Foto)</span></label>
+              @if(auth()->user()->role === 'siswa')
+              <div class="form-group mb-3" id="fileUploadGroup" style="display: none;">
+                <label for="file" class="form-label fw-bold">Upload Foto / Surat Bukti Izin <span class="text-danger">* (Wajib Foto)</span></label>
                 <input type="file" name="file" id="fileUploadInput" class="form-control" accept=".jpg, .jpeg, .png, .gif, .webp" required>
                 <small class="text-muted">Harap lampirkan foto surat dokter / foto bukti surat izin (JPG, PNG).</small>
               </div>
+              @else
+              <div class="form-group mb-3">
+                <label for="file" class="form-label fw-bold">Upload Foto / Surat Bukti Izin <span class="text-muted fw-normal">(Opsional untuk Guru Piket)</span></label>
+                <input type="file" name="file" class="form-control" accept=".jpg, .jpeg, .png, .gif, .webp">
+                <small class="text-muted">Boleh dikosongkan karena izin telah diverifikasi langsung oleh Guru Piket di sekolah.</small>
+              </div>
+              @endif
 
-              <button type="submit" class="btn btn-primary">Tambah</button>
+              <button type="submit" class="btn btn-primary fw-bold">
+                <i class="fas fa-check-circle me-1"></i> {{ auth()->user()->role === 'siswa' ? 'Tambah Izin' : 'Simpan & Setujui Izin (Guru Piket)' }}
+              </button>
             </form>
           </div>
         </div>
@@ -246,19 +294,64 @@
     var sisaIjin = document.getElementById('sisaIjin');
     var fileUploadGroup = document.getElementById('fileUploadGroup');
 	
+    if (selectElement && fileUploadGroup) {
+        selectElement.addEventListener('change', function () {
+            var selectedOption = this.value;
+            if (sisaIjin) sisaIjin.style.display = 'none';
 
-    selectElement.addEventListener('change', function () {
-        var selectedOption = this.value;
-        sisaIjin.style.display = 'none';
+            if (selectedOption !== '') {
+                fileUploadGroup.style.display = 'block';
+            } else {
+                fileUploadGroup.style.display = 'none';
+            }
+        });
+    }
 
-        if (selectedOption !== '') {
-            fileUploadGroup.style.display = 'block';
-        } else {
-            fileUploadGroup.style.display = 'none';
-        }
-    });
+    // Dynamic student loading for Guru Piket
+    var selectKelasPage = document.getElementById('selectKelasPage');
+    var selectSiswaPage = document.getElementById('selectSiswaPage');
+    var inputKelasPage  = document.getElementById('inputKelasPage');
+    var inputNamaPage   = document.getElementById('inputNamaPage');
+
+    if (selectKelasPage && selectSiswaPage) {
+        selectKelasPage.addEventListener('change', function() {
+            var kelas = this.value;
+            inputKelasPage.value = kelas;
+            selectSiswaPage.innerHTML = '<option value="">Memuat daftar siswa...</option>';
+            selectSiswaPage.disabled = true;
+            inputNamaPage.value = '';
+
+            if (!kelas) {
+                selectSiswaPage.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+                return;
+            }
+
+            fetch('/ijinsiswa/get-siswa-by-kelas/' + encodeURIComponent(kelas))
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        var options = '<option value="">-- Pilih Nama Siswa --</option>';
+                        data.forEach(function(s) {
+                            var nisText = s.nis ? ' (' + s.nis + ')' : '';
+                            options += '<option value="' + s.nama + '">' + s.nama + nisText + '</option>';
+                        });
+                        selectSiswaPage.innerHTML = options;
+                        selectSiswaPage.disabled = false;
+                    } else {
+                        selectSiswaPage.innerHTML = '<option value="">(Tidak ada data siswa di kelas ini)</option>';
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Error fetching students:', err);
+                    selectSiswaPage.innerHTML = '<option value="">Gagal memuat siswa</option>';
+                });
+        });
+
+        selectSiswaPage.addEventListener('change', function() {
+            inputNamaPage.value = this.value;
+        });
+    }
 });
-
 </script>
 
 

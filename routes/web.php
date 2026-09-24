@@ -279,9 +279,10 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 				Route::post('/ijinsiswa/{id}/cekin','IjinsiswaController@cekin');
 				Route::get('/ijinsiswa/{id}/delete','IjinsiswaController@delete');
 				Route::get('/ijinsiswa/export','IjinsiswaController@export');
+				Route::get('/ijinsiswa/get-siswa-by-kelas/{kelas}','IjinsiswaController@getSiswaByKelas');
 			});
 
-			Route::group(['middleware' => ['role:admin,guru,siswa']], function() {
+			Route::group(['middleware' => ['role:admin,guru,kurikulum,pembina,kesiswaan,walikelas,kesehatan,satpam,siswa']], function() {
 				Route::get('/tambahijinsiswa','IjinsiswaController@tambah');
 				Route::POST('/tambahijinsiswa/create','IjinsiswaController@create');
 				Route::post('/tambahijinsiswa/uploadulang/{id}','IjinsiswaController@uploadUlang');

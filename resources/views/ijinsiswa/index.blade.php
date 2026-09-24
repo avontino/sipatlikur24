@@ -20,13 +20,25 @@
                         <div class="card-body">
              
     
-                            @if(auth()->user()->role == 'admin')
-                            <form class="form-inline" method="GET" action="/ijinsiswa">
-                                <button type="button" class="btn btn-primary float-end mr-sm-2" data-bs-toggle="modal" data-bs-target="#tambah">Tambah Ijin</button>
-                                <button type="button" class="btn btn-default btn-sm" data-bs-toggle="modal" data-bs-target="#exim">Rekap Ijin Siswa</button>
-                            </form>                                  
-                            @endif
-                            </br>
+                            @php
+                                $canAddIjin = auth()->user()->role !== 'siswa' && auth()->user()->role !== 'satpam';
+                            @endphp
+                            <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                                <div>
+                                    @if($canAddIjin)
+                                    <button type="button" class="btn btn-success fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahPiket">
+                                        <i class="fas fa-plus-circle me-1"></i> Tambah Izin Siswa (Guru Piket)
+                                    </button>
+                                    @endif
+                                </div>
+                                <div class="d-flex gap-2">
+                                    @if(auth()->user()->role == 'admin' || auth()->user()->hasRole('kurikulum'))
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exim">
+                                        <i class="fas fa-file-excel me-1"></i> Rekap Ijin Siswa
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
 
 							@if(auth()->user()->role == 'satpam')
                             <!-- Frame Webcam -->
@@ -190,38 +202,128 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-    <!-- Modal Tambah -->
-    <div class="modal fade" id="tambah" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <h4 class="modal-title" id="myModalLabel">Tambah Data Ijin</h4>
+    <!-- Modal Tambah Izin Siswa oleh Guru Piket -->
+    <div class="modal fade" id="modalTambahPiket" tabindex="-1" aria-labelledby="modalTambahPiketLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content shadow border-0">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="modalTambahPiketLabel">
+                        <i class="fas fa-user-clock me-2"></i> Tambah Izin Siswa (Guru Piket)
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <form action="/ijinsiswa" method="POST">
-                        @csrf
-                        <div class="form-group">
-                            <label for="name">Nama</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
+                <form action="/tambahijinsiswa/create" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body text-start px-4 py-3" style="text-align: left !important;">
+                        <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3">
+                            <i class="fas fa-info-circle fa-lg me-2"></i>
+                            <div>
+                                Guru Piket dapat menambahkan izin bagi siswa yang meminta izin pulang saat jam sekolah berlangsung. Izin yang diinput akan <strong>langsung diverifikasi & disetujui</strong> oleh Guru Piket.
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="role">Role</label>
-                            <select class="form-control" id="role" name="role" required>
-                                <option value="admin">Admin</option>
-                                <option value="kesiswaan">Kesiswaan</option>
-                                <option value="kurikulum">Kurikulum</option>
-                                <option value="humas">Humas</option>
-                                <option value="sarpras">Sarpras</option>
-                                <option value="siswa">Siswa</option>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">1. Pilih Kelas <span class="text-danger">*</span></label>
+                                <select id="piketSelectKelas" class="form-select" required>
+                                    <option value="">-- Pilih Kelas Siswa --</option>
+                                    @if(isset($kelasList))
+                                        @foreach($kelasList as $k)
+                                            <option value="{{ $k }}">{{ $k }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                                <input type="hidden" name="kelas" id="piketInputKelas" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">2. Pilih Siswa <span class="text-danger">*</span></label>
+                                <select id="piketSelectSiswa" class="form-select" disabled required>
+                                    <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
+                                </select>
+                                <input type="hidden" name="nama" id="piketInputNama" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">3. Jenis Izin <span class="text-danger">*</span></label>
+                            <select name="ijin" class="form-select" required>
+                                <option value="Izin Pulang Saat Jam Sekolah (Sakit)" selected>Izin Pulang Saat Jam Sekolah (Sakit)</option>
+                                <option value="Izin Pulang Saat Jam Sekolah (Keperluan Keluarga / Mendesak)">Izin Pulang Saat Jam Sekolah (Keperluan Keluarga / Mendesak)</option>
+                                <option value="Izin Meninggalkan Sekolah Sementara (Tugas / Lomba / Dispensasi)">Izin Meninggalkan Sekolah Sementara (Tugas / Lomba / Dispensasi)</option>
+                                <option value="Izin Tidak Masuk Sekolah (Sakit / Izin Harian)">Izin Tidak Masuk Sekolah (Sakit / Izin Harian)</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Tambah</button>
-                    </form>
-                </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">4. Keterangan / Alasan Izin</label>
+                            <textarea name="keterangan" class="form-control" rows="2" placeholder="Contoh: Mengalami sakit pusing / demam, telah istirahat di UKS dan dijemput orang tua."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">5. Foto / Surat Bukti <span class="text-muted fw-normal">(Opsional)</span></label>
+                            <input type="file" name="file" class="form-control" accept=".jpg, .jpeg, .png, .webp">
+                            <div class="form-text text-muted">Bisa melampirkan foto siswa / surat orang tua / surat dokter jika ada. Boleh dikosongkan karena izin telah diverifikasi langsung oleh Guru Piket di sekolah.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success fw-bold">
+                            <i class="fas fa-check-circle me-1"></i> Simpan & Setujui Izin Pulang
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const piketSelectKelas = document.getElementById('piketSelectKelas');
+        const piketSelectSiswa = document.getElementById('piketSelectSiswa');
+        const piketInputKelas  = document.getElementById('piketInputKelas');
+        const piketInputNama   = document.getElementById('piketInputNama');
+
+        if (piketSelectKelas && piketSelectSiswa) {
+            piketSelectKelas.addEventListener('change', function() {
+                const kelas = this.value;
+                piketInputKelas.value = kelas;
+                piketSelectSiswa.innerHTML = '<option value="">Memuat daftar siswa...</option>';
+                piketSelectSiswa.disabled = true;
+                piketInputNama.value = '';
+
+                if (!kelas) {
+                    piketSelectSiswa.innerHTML = '<option value="">-- Pilih Kelas Terlebih Dahulu --</option>';
+                    return;
+                }
+
+                fetch('/ijinsiswa/get-siswa-by-kelas/' + encodeURIComponent(kelas))
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            let options = '<option value="">-- Pilih Nama Siswa --</option>';
+                            data.forEach(s => {
+                                const nisText = s.nis ? ' (' + s.nis + ')' : '';
+                                options += `<option value="${s.nama}">${s.nama}${nisText}</option>`;
+                            });
+                            piketSelectSiswa.innerHTML = options;
+                            piketSelectSiswa.disabled = false;
+                        } else {
+                            piketSelectSiswa.innerHTML = '<option value="">(Tidak ada data siswa di kelas ini)</option>';
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error fetching students:', err);
+                        piketSelectSiswa.innerHTML = '<option value="">Gagal memuat siswa</option>';
+                    });
+            });
+
+            piketSelectSiswa.addEventListener('change', function() {
+                piketInputNama.value = this.value;
+            });
+        }
+    });
+    </script>
 
     <!-- Modal Lihat File Single Dynamic -->
     <div class="modal fade" id="lihatFileSingleModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -355,25 +457,18 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-    .modal-dialog {
-        width: 50%;
-        max-width: 100%;
+    #modalCekIn .modal-dialog,
+    #lihatFileSingleModal .modal-dialog {
+        max-width: 600px;
     }
 
-.modal-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
+    #modalCekIn .modal-body,
+    #lihatFileSingleModal .modal-body {
+        text-align: center;
+    }
 
-.modal-body {
-    flex: 1;
-    overflow: auto;
-    text-align: center;
-}
-
-.file-image {
-        max-width: 70%;
+    .file-image {
+        max-width: 100%;
         max-height: 70vh;
         width: auto;
         height: auto;

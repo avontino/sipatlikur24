@@ -224,7 +224,31 @@ class IjinsiswaController extends Controller
         }
 
         // ── Render halaman HTML biasa (kosong, DataTables akan isi via AJAX) ──
-        return view('ijinsiswa.index', ['data_ijinsiswa' => collect()]);
+        $kelasList = \App\Models\Kelas::orderBy('kelas')->pluck('kelas');
+        if ($kelasList->isEmpty()) {
+            $kelasList = Siswa::whereNotNull('kelas')->where('kelas', '!=', '')->distinct()->orderBy('kelas')->pluck('kelas');
+        }
+
+        return view('ijinsiswa.index', [
+            'data_ijinsiswa' => collect(),
+            'kelasList'      => $kelasList,
+        ]);
+    }
+
+    public function getSiswaByKelas($kelas)
+    {
+        $tahunAjaran = session('tahun_ajaran');
+        $query = Siswa::where('kelas', $kelas);
+        if ($tahunAjaran) {
+            $query->where(function($q) use ($tahunAjaran) {
+                $q->where('tahun_ajaran', $tahunAjaran)->orWhereNull('tahun_ajaran');
+            });
+        }
+        $siswa = $query->orderBy('nama', 'asc')->get(['id', 'nama', 'nis', 'kelas']);
+        if ($siswa->isEmpty()) {
+            $siswa = Siswa::where('kelas', $kelas)->orderBy('nama', 'asc')->get(['id', 'nama', 'nis', 'kelas']);
+        }
+        return response()->json($siswa);
     }
 
 
@@ -320,71 +344,123 @@ public function suratsalah(Request $request, $id)
     {   
         $user = auth()->user();
         $tahunAjaran = session('tahun_ajaran') ?: '2026/2027';
-        $siswa = Siswa::where('nama', $user->name)->where('tahun_ajaran', $tahunAjaran)->first();
-        if (!$siswa) {
-            $siswa = Siswa::where('nis', $user->username)->orWhere('nama', $user->name)->first();
+
+        $kelasList = \App\Models\Kelas::orderBy('kelas')->pluck('kelas');
+        if ($kelasList->isEmpty()) {
+            $kelasList = Siswa::whereNotNull('kelas')->where('kelas', '!=', '')->distinct()->orderBy('kelas')->pluck('kelas');
         }
 
-        if (!$siswa) {
+        if ($user->role === 'siswa') {
+            $siswa = Siswa::where('nama', $user->name)->where('tahun_ajaran', $tahunAjaran)->first();
+            if (!$siswa) {
+                $siswa = Siswa::where('nis', $user->username)->orWhere('nama', $user->name)->first();
+            }
+
+            if (!$siswa) {
+                $siswa = (object)[
+                    'kelas' => $user->kelas ?? '-',
+                    'nama' => $user->name
+                ];
+            }
+
+            $data_ijinsiswa = Ijinsiswa::where('nama', $user->name)->orderBy('created_at', 'desc')->get();
+        } else {
+            // Guru Piket / Staff view
             $siswa = (object)[
-                'kelas' => $user->kelas ?? '-',
-                'nama' => $user->name
+                'kelas' => '',
+                'nama' => ''
             ];
+            $data_ijinsiswa = Ijinsiswa::where('tahun_ajaran', $tahunAjaran)->orderBy('created_at', 'desc')->take(50)->get();
         }
-
-        $data_ijinsiswa = Ijinsiswa::where('nama', $user->name)->orderBy('created_at', 'desc')->get();
        
-        return view('ijinsiswa.tambahijinsiswa', compact('siswa', 'data_ijinsiswa'));
+        return view('ijinsiswa.tambahijinsiswa', compact('siswa', 'data_ijinsiswa', 'kelasList'));
     }
 
 
     public function create(Request $request)
     {
         try {
-            $request->validate([
+            $user = auth()->user();
+            $isStaff = $user->role !== 'siswa';
+
+            $rules = [
                 'nama' => 'required',
                 'kelas' => 'required',
                 'ijin' => 'required',
-            ]);
+            ];
 
-            if (!$request->hasFile('file')) {
-                return redirect()->back()->with('gagal', 'Wajib melampirkan foto / bukti surat izin!');
+            // If a student submits on their own, the photo of the letter/doctor note is mandatory
+            if (!$isStaff) {
+                if (!$request->hasFile('file')) {
+                    return redirect()->back()->with('gagal', 'Wajib melampirkan foto / bukti surat izin!');
+                }
             }
 
-            $file = $request->file('file');
-            $ext = strtolower($file->getClientOriginalExtension() ?: '');
-            $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-            if (!in_array($ext, $allowedExts)) {
-                return redirect()->back()->with('gagal', 'File yang diunggah harus berupa foto / gambar (JPG, JPEG, PNG)!');
+            $request->validate($rules);
+
+            $file_path = null;
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $ext = strtolower($file->getClientOriginalExtension() ?: '');
+                $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                if (!in_array($ext, $allowedExts)) {
+                    return redirect()->back()->with('gagal', 'File yang diunggah harus berupa foto / gambar (JPG, JPEG, PNG)!');
+                }
+
+                $uploadDir = public_path('uploads');
+                if (!\File::exists($uploadDir)) {
+                    \File::makeDirectory($uploadDir, 0777, true, true);
+                }
+
+                $imageName = 'file_' . time() . '_' . uniqid() . '.' . ($ext ?: 'jpg');
+                $file->move($uploadDir, $imageName);
+                $file_path = '/uploads/' . $imageName;
             }
 
             $ijinsiswa = new IjinSiswa();
             $ijinsiswa->nama = $request->input('nama');
             $ijinsiswa->kelas = $request->input('kelas');
             $ijinsiswa->ketijin = $request->input('ijin');
-
-            // Set default unverified status ('belum') for all authority fields
-            $ijinsiswa->ok_pembina = 'belum';
-            $ijinsiswa->ok_kurikulum = 'belum';
-            $ijinsiswa->ok_walikelas = 'belum';
-            $ijinsiswa->ok_kesehatan = 'belum';
-
-            $ijinsiswa->oksis = 'belum';
-            $ijinsiswa->okkur = 'belum';
-            $ijinsiswa->okbin = 'belum';
-            $ijinsiswa->okas = 'belum';
-
-            $ijinsiswa->filex = 'Menunggu Verifikasi';
+            $ijinsiswa->ket = $request->input('keterangan', $request->input('ijin'));
+            $ijinsiswa->file_path = $file_path;
             $ijinsiswa->tahun_ajaran = session('tahun_ajaran') ?: '2026/2027';
 
-            $uploadDir = public_path('uploads');
-            if (!\File::exists($uploadDir)) {
-                \File::makeDirectory($uploadDir, 0777, true, true);
-            }
+            if ($isStaff) {
+                // Guru Piket approval is auto-granted
+                $ijinsiswa->ok_pembina = 'ok';
+                $ijinsiswa->oksis = 'ok';
+                $ijinsiswa->verifikator_piket = $user->name . ' (Guru Piket)';
 
-            $imageName = 'file_' . time() . '_' . uniqid() . '.' . ($ext ?: 'jpg');
-            $file->move($uploadDir, $imageName);
-            $ijinsiswa->file_path = '/uploads/' . $imageName;
+                // If user is also wali kelas for this class, approve as wali kelas too
+                if ($user->walikelas_kelas && $user->walikelas_kelas == $request->input('kelas')) {
+                    $ijinsiswa->ok_walikelas = 'ok';
+                    $ijinsiswa->okbin = 'ok';
+                    $ijinsiswa->verifikator_walikelas = $user->name . ' (Wali Kelas)';
+                } else {
+                    $ijinsiswa->ok_walikelas = 'belum';
+                    $ijinsiswa->okbin = 'belum';
+                }
+
+                $ijinsiswa->ok_kurikulum = 'belum';
+                $ijinsiswa->okkur = 'belum';
+                $ijinsiswa->ok_kesehatan = 'belum';
+                $ijinsiswa->okas = 'belum';
+
+                $ijinsiswa->filex = 'Surat Sesuai';
+            } else {
+                // Student submission
+                $ijinsiswa->ok_pembina = 'belum';
+                $ijinsiswa->ok_kurikulum = 'belum';
+                $ijinsiswa->ok_walikelas = 'belum';
+                $ijinsiswa->ok_kesehatan = 'belum';
+
+                $ijinsiswa->oksis = 'belum';
+                $ijinsiswa->okkur = 'belum';
+                $ijinsiswa->okbin = 'belum';
+                $ijinsiswa->okas = 'belum';
+
+                $ijinsiswa->filex = 'Menunggu Verifikasi';
+            }
 
             $ijinsiswa->save();
 
@@ -394,7 +470,11 @@ public function suratsalah(Request $request, $id)
                 \Log::error("Failed to dispatch Ijin notification: " . $e->getMessage());
             }
 
-            return redirect()->back()->with('sukses', 'Ijin siswa berhasil ditambahkan!');
+            $msg = $isStaff
+                ? "Izin siswa {$ijinsiswa->nama} ({$ijinsiswa->kelas}) berhasil ditambahkan dan disetujui oleh Guru Piket!"
+                : "Ijin siswa berhasil ditambahkan!";
+
+            return redirect()->back()->with('sukses', $msg);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
