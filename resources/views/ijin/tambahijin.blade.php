@@ -72,14 +72,21 @@
               @if($canChooseOtherTeacher)
                 <!-- Admin/Kurikulum/Piket dapat memilih guru lain jika mewakili input -->
                 <select name="guru_id" class="form-control select2" id="selectGuru" onchange="updateGuruHidden(this)">
-                  @foreach(\App\Models\User::whereIn('role', ['guru', 'walikelas', 'tendik', 'kurikulum', 'kesiswaan', 'kepala', 'admin'])->orderBy('name', 'asc')->get() as $u)
-                    <option value="{{ $u->id }}" data-name="{{ $u->name }}" {{ $u->id == auth()->id() ? 'selected' : '' }}>
-                      {{ $u->name }} ({{ strtoupper($u->role) }})
+                  <optgroup label="Akun Anda Sendiri">
+                    <option value="{{ auth()->id() }}" data-name="{{ auth()->user()->name }}" selected>
+                      ★ Saya Sendiri: {{ auth()->user()->name }} ({{ strtoupper(auth()->user()->role) }})
                     </option>
-                  @endforeach
+                  </optgroup>
+                  <optgroup label="Pilih Guru / Pegawai Lain (Mewakili Input)">
+                    @foreach(\App\Models\User::whereIn('role', ['guru', 'walikelas', 'tendik', 'kurikulum', 'kesiswaan', 'kepala', 'admin'])->where('id', '!=', auth()->id())->orderBy('name', 'asc')->get() as $u)
+                      <option value="{{ $u->id }}" data-name="{{ $u->name }}">
+                        {{ $u->name }} ({{ strtoupper($u->role) }})
+                      </option>
+                    @endforeach
+                  </optgroup>
                 </select>
                 <input type="hidden" name="guru" value="{{ auth()->user()->name }}" id="guruNameHidden">
-                <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1 text-primary"></i>Sebagai Kurikulum/Admin, Anda dapat memilih guru lain yang mengajukan izin.</small>
+                <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1 text-primary"></i>Secara default terpilih <strong>Saya Sendiri</strong>. Anda juga dapat memilih guru lain jika mewakili penginputan izin.</small>
               @else
                 <div class="input-group">
                   <span class="input-group-text bg-light"><i class="far fa-user text-muted"></i></span>

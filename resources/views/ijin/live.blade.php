@@ -140,11 +140,16 @@
                 @endphp
                 @if($canPickTeacher)
                   <select name="guru_id" class="form-control form-control-sm" required>
-                    @foreach($allTeachers as $u)
-                      <option value="{{ $u->id }}" {{ $u->id == auth()->id() ? 'selected' : '' }}>
-                        {{ $u->name }}
-                      </option>
-                    @endforeach
+                    <optgroup label="Akun Anda Sendiri">
+                      <option value="{{ auth()->id() }}" selected>★ Saya Sendiri: {{ auth()->user()->name }}</option>
+                    </optgroup>
+                    <optgroup label="Pilih Guru / Pegawai Lain (Mewakili Input)">
+                      @foreach($allTeachers->where('id', '!=', auth()->id()) as $u)
+                        <option value="{{ $u->id }}">
+                          {{ $u->name }} ({{ strtoupper($u->role) }})
+                        </option>
+                      @endforeach
+                    </optgroup>
                   </select>
                 @else
                   <input type="text" name="guru" value="{{ auth()->user()->name }}" class="form-control form-control-sm bg-light" readonly>
