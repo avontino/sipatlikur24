@@ -147,8 +147,9 @@
 																	data-mysia="{{$ijin->sia}}"
 																	data-myjumlah="{{$ijin->jumlah}}"
 																	data-myjam_terlambat="{{$ijin->jam_terlambat}}"
+																	data-myjamterlambat="{{$ijin->jam_terlambat}}"
 																	data-myket="{{$ijin->ket}}"
-																	data-bs-toggle="modal" data-bs-target="#edit">Edit</button>
+																	data-bs-toggle="modal" data-bs-target="#editijin">Edit</button>
 																<a href="/ijin/{{$ijin->id}}/delete" class="btn btn-danger btn-xs text-white" onclick="return confirm('Hapus izin ini?')">Hapus</a>
 															@else
 																@if($ijin->approval_status == 'pending')
