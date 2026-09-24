@@ -139,7 +139,7 @@
 																		<button type="submit" class="btn btn-xs btn-danger text-white" title="Tolak"><i class="fas fa-times"></i></button>
 																	</form>
 																@endif
-																<button type="button" class="btn btn-warning btn-xs text-white" 
+																<button type="button" class="btn btn-warning btn-xs text-white btn-edit-ijin" 
 																	data-myid="{{$ijin->id}}"
 																	data-mytglmasuk="{{$ijin->tglmasuk}}"
 																	data-myguru="{{$ijin->guru}}"
@@ -149,7 +149,8 @@
 																	data-myjam_terlambat="{{$ijin->jam_terlambat}}"
 																	data-myjamterlambat="{{$ijin->jam_terlambat}}"
 																	data-myket="{{$ijin->ket}}"
-																	data-bs-toggle="modal" data-bs-target="#editijin">Edit</button>
+																	data-bs-toggle="modal" data-bs-target="#editijin"
+																	data-toggle="modal" data-target="#editijin">Edit</button>
 																<a href="/ijin/{{$ijin->id}}/delete" class="btn btn-danger btn-xs text-white" onclick="return confirm('Hapus izin ini?')">Hapus</a>
 															@else
 																@if($ijin->approval_status == 'pending')
@@ -170,76 +171,80 @@
 			</div>
 		</div>
 	</div>
+</section>
 
 <!-- Modal Edit -->
-<div class="modal fade" id="editijin" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="editijin" tabindex="-1" aria-labelledby="editIjinModalLabel" aria-hidden="true">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="exampleModalLabel">Edit Ijin Absen</h5>
-				    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-				          <span aria-hidden="true">&times;</span>
-				        </button>
-				      </div>
-				      <div class="modal-body">
-				        <form action="/ijin/update" method="POST"> 
-				        	{{csrf_field()}}
-				        	<input type="hidden" name="ijinid" id="ijinid" value="">
-						   
-					<div class="form-group">
-						    <label >Hari/Tanggal Ijin</label>
-							<input name="tglmasuk" type="date" class="form-control" id="modal_tglmasuk" aria-describedby="emailHelp">
-						  	</div>
-					
-						  	<div class="form-group">
-						    <label >Guru</label>
-					    	<input name="guru" type="text" class="form-control" id="modal_guru" aria-describedby="emailHelp" readonly>
-							</div>
-
-						  <div class="form-group">
-						    <label >Mata Pelajaran</label>
-						    <select name="mapel" class="form-control" id="modal_mapel">
-						    @foreach($ma_pel as $mapel)
-						    	<option value="{{ $mapel->mapel }}"> {{ $mapel->mapel }}</option>
-						    @endforeach						    	
-						    </select>
-
-						  	</div>
-
-						  <div class="form-group">
-						    <label for="exampleFormControlSelect1">S/I/A/T</label>
-						    <select name="sia" class="form-control" id="modal_sia" onchange="toggleModalJamTerlambat()">
-						      <option value="Sakit">Sakit</option>
-						      <option value="Ijin">Ijin</option>
-						      <option value="Alpha">Alpha</option>
-						      <option value="Terlambat">Terlambat</option>
-						    </select>
-						  </div>
-
-						  <div class="form-group">
-						    <label for="exampleInputEmail1">Jumlah Hari</label>
-						    <input name="jumlah" type="text" class="form-control" id="modal_jumlah" aria-describedby="emailHelp">
-						  </div>
-
-						  <div class="form-group" id="modal_jam_terlambat_group" style="display: none;">
-						    <label for="modal_jam_terlambat">Jam Terlambat (HH:MM)</label>
-						    <input name="jam_terlambat" type="time" class="form-control" id="modal_jam_terlambat">
-						  </div>
-
-						  <div class="form-group">
-						    <label for="exampleFormControlTextarea1">Keterangan</label>
-						    <textarea name="ket" class="form-control" id="modal_ket" rows="3"></textarea>
-						  </div>
-						 						  
-				      </div>
-				      <div class="modal-footer">
-				        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				 		<button type="submit" class="btn btn-primary">Submit</button>
-						</form>
+				<h5 class="modal-title" id="editIjinModalLabel"><i class="fas fa-edit me-1 text-warning"></i> Edit Izin Absen</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" data-dismiss="modal" aria-label="Close"></button>
 			</div>
-		 </div>
+			<form action="/ijin/update" method="POST"> 
+				@csrf
+				<input type="hidden" name="ijinid" id="ijinid" value="">
+				<div class="modal-body">
+					<div class="form-group mb-3">
+						<label class="form-label fw-bold">Hari/Tanggal Izin</label>
+						<input name="tglmasuk" type="date" class="form-control" id="modal_tglmasuk" required>
+					</div>
+				
+					<div class="form-group mb-3">
+						<label class="form-label fw-bold">Guru / Pegawai</label>
+						<input name="guru" type="text" class="form-control" id="modal_guru" readonly style="background-color: #f8f9fa;">
+					</div>
+
+					<div class="form-group mb-3">
+						<label class="form-label fw-bold">Mata Pelajaran</label>
+						<select name="mapel" class="form-control form-select" id="modal_mapel">
+							<option value="-">- Bukan Guru Mapel / Umum -</option>
+							@foreach($ma_pel as $mapel)
+								<option value="{{ $mapel->mapel }}">{{ $mapel->mapel }}</option>
+							@endforeach						    	
+						</select>
+					</div>
+
+					<div class="form-group mb-3">
+						<label class="form-label fw-bold">Kategori Izin</label>
+						<select name="sia" class="form-control form-select" id="modal_sia" onchange="toggleModalJamTerlambat()">
+							<option value="Sakit">Sakit</option>
+							<option value="Ijin">Ijin</option>
+							<option value="Tugas Kedinasan">Tugas Kedinasan (Dinas Luar / Lomba / MGMP / Diklat)</option>
+							<option value="Izin Terlambat">Izin Terlambat</option>
+							<option value="Terlambat">Terlambat</option>
+							<option value="Izin Keluar Jam Dinas">Izin Keluar Jam Dinas</option>
+							<option value="Izin Pulang Sebelum Waktunya">Izin Pulang Sebelum Waktunya</option>
+							<option value="Keperluan Pribadi">Keperluan Pribadi</option>
+							<option value="Cuti">Cuti</option>
+							<option value="Alpha">Alpha</option>
+						</select>
+					</div>
+
+					<div class="form-group mb-3">
+						<label class="form-label fw-bold">Jumlah Hari</label>
+						<input name="jumlah" type="number" min="0" step="1" class="form-control" id="modal_jumlah" required>
+						<small class="text-muted d-block mt-1">Ubah angka hari di sini jika guru/pegawai masuk lebih cepat atau menambah durasi izin.</small>
+					</div>
+
+					<div class="form-group mb-3" id="modal_jam_terlambat_group" style="display: none;">
+						<label class="form-label fw-bold" for="modal_jam_terlambat">Jam Terlambat (HH:MM)</label>
+						<input name="jam_terlambat" type="time" class="form-control" id="modal_jam_terlambat">
+					</div>
+
+					<div class="form-group mb-3">
+						<label class="form-label fw-bold">Keterangan</label>
+						<textarea name="ket" class="form-control" id="modal_ket" rows="3"></textarea>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-dismiss="modal">Batal</button>
+					<button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Simpan Perubahan</button>
+				</div>
+			</form>
+		</div>
 	</div>
-	</div>
+</div>
 
 <!-- MODAL EXPORT PERTANGGAL -->
 <div class="modal fade" id="rk" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -254,14 +259,14 @@
                   {{csrf_field()}}
 
 
-              <div class="form-group">
+              <div class="form-group mb-3">
                 <label for="exampleInputEmail1">DARI TANGGAL</label>
-                <input name="tglawal" type="date" class="form-control" id="tgl" aria-describedby="emailHelp" required>
+                <input name="tglawal" type="date" class="form-control" id="tgl1" required>
               </div>  
 
-              <div class="form-group">
+              <div class="form-group mb-3">
                 <label for="exampleInputEmail1">SAMPAI TANGGAL</label>
-                <input name="tglakhir" type="date" class="form-control" id="tgl" aria-describedby="emailHelp" required>
+                <input name="tglakhir" type="date" class="form-control" id="tgl2" required>
               </div>   
               
 
@@ -276,4 +281,55 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    function openIjinModal(btn) {
+        var $btn = $(btn);
+        var id = $btn.data('myid');
+        var tglmasuk = $btn.data('mytglmasuk');
+        var guru = $btn.data('myguru');
+        var mapel = $btn.data('mymapel');
+        var sia = $btn.data('mysia');
+        var jumlah = $btn.data('myjumlah');
+        var jamterlambat = $btn.data('myjamterlambat') || $btn.data('myjam_terlambat');
+        var ket = $btn.data('myket');
+
+        $('#ijinid').val(id);
+        $('#modal_tglmasuk').val(tglmasuk);
+        $('#modal_guru').val(guru);
+        $('#modal_mapel').val(mapel);
+        
+        if (sia && $('#modal_sia option[value="' + sia + '"]').length === 0) {
+            $('#modal_sia').append(new Option(sia, sia, true, true));
+        }
+        $('#modal_sia').val(sia);
+        
+        $('#modal_jumlah').val(jumlah);
+        $('#modal_jam_terlambat').val(jamterlambat);
+        $('#modal_ket').val(ket);
+
+        if (typeof toggleModalJamTerlambat === 'function') {
+            toggleModalJamTerlambat();
+        }
+
+        var modalEl = document.getElementById('editijin');
+        if (modalEl) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var modalObj = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modalObj.show();
+            } else if ($.fn.modal) {
+                $('#editijin').modal('show');
+            }
+        }
+    }
+
+    $(document).on('click', '.btn-edit-ijin', function(e) {
+        e.preventDefault();
+        openIjinModal(this);
+    });
+});
+</script>
+@endpush
 

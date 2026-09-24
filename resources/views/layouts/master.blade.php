@@ -1548,7 +1548,8 @@ function toggleModalJamTerlambat() {
     
     if (!siaSelect || !jamTerlambatGroup || !jumlahInput) return;
     
-    if (siaSelect.value === 'Terlambat') {
+    var val = (siaSelect.value || '').toLowerCase();
+    if (val.indexOf('terlambat') !== -1) {
         jamTerlambatGroup.style.display = 'block';
         jumlahInput.value = '0';
         jumlahInput.readOnly = true;
@@ -1560,14 +1561,21 @@ function toggleModalJamTerlambat() {
 
 $(document).on('show.bs.modal', '#editijin', function (event) {
     var button = $(event.relatedTarget);
+    if (!button || !button.length || !button.data || !button.data('myid')) return;
     
+    var sia = button.data('mysia');
     $('#ijinid').val(button.data('myid'));
     $('#modal_tglmasuk').val(button.data('mytglmasuk'));
     $('#modal_guru').val(button.data('myguru'));
     $('#modal_mapel').val(button.data('mymapel'));
-    $('#modal_sia').val(button.data('mysia'));
+    
+    if (sia && $('#modal_sia option[value="' + sia + '"]').length === 0) {
+        $('#modal_sia').append(new Option(sia, sia, true, true));
+    }
+    $('#modal_sia').val(sia);
+    
     $('#modal_jumlah').val(button.data('myjumlah'));
-    $('#modal_jam_terlambat').val(button.data('myjamterlambat'));
+    $('#modal_jam_terlambat').val(button.data('myjamterlambat') || button.data('myjam_terlambat'));
     $('#modal_ket').val(button.data('myket'));
     
     // Toggle jam terlambat field based on selected value
