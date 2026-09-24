@@ -133,8 +133,12 @@
 
             <div class="row g-2">
               <div class="col-md-4">
-                <label class="form-label small fw-bold">Nama Guru / Pegawai</label>
-                @if(auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->user()->role == 'pembina' || auth()->user()->role == 'kesiswaan')
+                @php
+                  $canPickTeacher = in_array(auth()->user()->role, ['admin', 'kurikulum', 'pembina', 'kesiswaan', 'kepala'])
+                    || auth()->user()->hasRole('admin')
+                    || auth()->user()->hasRole('kurikulum');
+                @endphp
+                @if($canPickTeacher)
                   <select name="guru_id" class="form-control form-control-sm" required>
                     @foreach($allTeachers as $u)
                       <option value="{{ $u->id }}" {{ $u->id == auth()->id() ? 'selected' : '' }}>

@@ -497,11 +497,35 @@
         <p>Jurnal Harian</p>
       </a>
     </li>
-    <li class="nav-item">
-      <a href="/ijin/live" class="nav-link {{ Request::is('ijin/live*') || Request::is('presensi-guru/live*') ? 'active' : '' }}">
-        <i class="nav-icon fas fa-broadcast-tower text-success"></i>
-        <p>Live Monitoring Guru</p>
+    <!-- Presensi & Izin Guru (Kurikulum) -->
+    <li class="nav-item {{ Request::is('ijin*', 'tambahijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ Request::is('ijin*', 'tambahijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-chalkboard-teacher text-warning"></i>
+        <p>
+          Presensi & Izin Guru
+          <i class="nav-arrow fas fa-angle-left"></i>
+        </p>
       </a>
+      <ul class="nav nav-treeview ps-2">
+        <li class="nav-item">
+          <a href="/ijin/live" class="nav-link {{ Request::is('ijin/live*') || Request::is('presensi-guru/live*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-broadcast-tower text-success"></i>
+            <p>Live Monitoring Guru</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/ijin" class="nav-link {{ Request::is('ijin') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-clipboard-list text-info"></i>
+            <p>Daftar Izin Guru</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/tambahijin" class="nav-link {{ Request::is('tambahijin*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-file-medical text-primary"></i>
+            <p>Tambah Izin Guru</p>
+          </a>
+        </li>
+      </ul>
     </li>
     <li class="nav-item">
       <a href="/ijinsiswa?view=kurikulum" class="nav-link {{ Request::is('ijinsiswa*') && request()->query('view') === 'kurikulum' ? 'active' : '' }}">

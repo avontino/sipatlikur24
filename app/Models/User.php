@@ -86,11 +86,11 @@ class User extends Authenticatable
 
             // Izin
             'izin_view' => ['admin', 'guru', 'kepala', 'pembina', 'kurikulum', 'walikelas', 'kesehatan', 'siswa', 'satpam'],
-            'izin_create' => ['admin', 'guru', 'siswa'],
-            'izin_edit' => ['admin', 'guru', 'kepala'],
-            'izin_delete' => ['admin'],
-            'izin_export' => ['admin'],
-            'izin_import' => ['admin'],
+            'izin_create' => ['admin', 'kurikulum', 'guru', 'siswa'],
+            'izin_edit' => ['admin', 'kurikulum', 'guru', 'kepala'],
+            'izin_delete' => ['admin', 'kurikulum'],
+            'izin_export' => ['admin', 'kurikulum'],
+            'izin_import' => ['admin', 'kurikulum'],
 
             // Kasus & Laporan (Poin)
             'poin_view' => ['admin', 'kesiswaan', 'pembina', 'walikelas', 'guru'],

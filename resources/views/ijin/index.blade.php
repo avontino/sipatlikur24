@@ -128,7 +128,12 @@
 													</td>
 													<td>
 														<div class="d-flex gap-1 flex-wrap">
-															@if(auth()->user()->role == 'admin' || auth()->user()->hasRole('admin'))
+															@php
+																$canManageIjin = in_array(auth()->user()->role, ['admin', 'kurikulum']) 
+																	|| auth()->user()->hasRole('admin') 
+																	|| auth()->user()->hasRole('kurikulum');
+															@endphp
+															@if($canManageIjin)
 																@if(($ijin->approval_status ?? 'approved') == 'pending')
 																	<form action="/ijin/{{ $ijin->id }}/approve" method="POST" class="d-inline">
 																		@csrf

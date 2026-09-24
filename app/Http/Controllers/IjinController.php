@@ -65,19 +65,24 @@ class IjinController extends Controller
                 $data['jumlah'] = $request->jumlah ?: 1;
             }
 
-            // Tentukan guru: jika admin/piket memilih guru lain
-            if ($request->filled('guru_id') && (auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->user()->role == 'pembina' || auth()->user()->role == 'kesiswaan')) {
+            // Tentukan guru: jika admin/kurikulum/piket memilih guru lain
+            $user = auth()->user();
+            $isManager = in_array($user->role, ['admin', 'kurikulum', 'pembina', 'kesiswaan', 'kepala']) 
+                || $user->hasRole('admin') 
+                || $user->hasRole('kurikulum');
+
+            if ($request->filled('guru_id') && $isManager) {
                 $targetUser = \App\Models\User::find($request->guru_id);
                 if ($targetUser) {
                     $data['user_id'] = $targetUser->id;
                     $data['guru'] = $targetUser->name;
                 } else {
-                    $data['user_id'] = auth()->user()->id;
-                    $data['guru'] = $request->guru ?: auth()->user()->name;
+                    $data['user_id'] = $user->id;
+                    $data['guru'] = $request->guru ?: $user->name;
                 }
             } else {
-                $data['user_id'] = auth()->user()->id;
-                $data['guru'] = $request->guru ?: auth()->user()->name;
+                $data['user_id'] = $user->id;
+                $data['guru'] = $request->guru ?: $user->name;
             }
 
             // Otomatis tentukan mapel agar tidak melanggar field NOT NULL di database
@@ -86,7 +91,7 @@ class IjinController extends Controller
                 ->orWhere('guru', 'LIKE', '%' . $cleanName . '%')
                 ->value('mapel') ?: '-');
 
-            $data['approval_status'] = (auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum') ? 'approved' : 'pending';
+            $data['approval_status'] = $isManager ? 'approved' : 'pending';
             
             // Otomatis tentukan tahun ajaran dan semester jika kosong di session
             $data['tahun_ajaran'] = session('tahun_ajaran');
@@ -157,7 +162,9 @@ class IjinController extends Controller
             $ke_las = Kelas::all();
 
             $userRole = strtolower($user->role ?? '');
-            $isGuru = ($userRole == 'guru');
+            $isStaffOrAdmin = in_array($userRole, ['admin', 'kurikulum', 'kepala', 'kesiswaan', 'pembina'])
+                || $user->hasRole('admin')
+                || $user->hasRole('kurikulum');
 
             if ($request->filled('filter')) {
                 $filterDate = $request->filter;
@@ -185,7 +192,8 @@ class IjinController extends Controller
                 }
             }
 
-            if ($isGuru) {
+            // Guru biasa hanya melihat data izin miliknya sendiri
+            if (!$isStaffOrAdmin) {
                 $hasUserId = \Illuminate\Support\Facades\Schema::hasColumn('ijin', 'user_id');
                 $query->where(function($q) use ($user, $hasUserId) {
                     if ($hasUserId) {
@@ -230,9 +238,21 @@ class IjinController extends Controller
 
     public function delete($id)
     {
-        $ijin=\App\Models\Ijin::find($id);
+        $ijin = \App\Models\Ijin::find($id);
+        if (!$ijin) {
+            return redirect('/ijin')->with('gagal', 'Data izin tidak ditemukan');
+        }
+
+        $user = auth()->user();
+        $isManager = in_array($user->role, ['admin', 'kurikulum']) || $user->hasRole('admin') || $user->hasRole('kurikulum');
+        $isOwner = ($ijin->user_id && $ijin->user_id == $user->id) || ($ijin->guru == $user->name);
+
+        if (!$isManager && (!$isOwner || $ijin->approval_status != 'pending')) {
+            return redirect('/ijin')->with('gagal', 'Anda tidak memiliki hak untuk menghapus izin ini.');
+        }
+
         $ijin->delete();
-        return redirect('/ijin')->with('sukses','Ijin Berhasil Dihapus');
+        return redirect('/ijin')->with('sukses', 'Ijin Berhasil Dihapus');
     }
 
     //download excel rekap kehadiran

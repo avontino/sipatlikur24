@@ -155,8 +155,15 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			Route::get('/ijin/live','IjinController@liveMonitoring')->name('ijin.live');
 			Route::get('/presensi-guru/live','IjinController@liveMonitoring');
 			Route::get('/ijin/rekaphadir','IjinController@rekaphadir');
+			Route::get('/ijin/{id}/delete', 'IjinController@delete')->name('ijin.delete');
 			Route::post('/ijin/{id}/konfirmasi-tiba', 'IjinController@konfirmasiTiba')->name('ijin.konfirmasiTiba');
 			Route::post('/ijin/{id}/batal-tiba', 'IjinController@batalTiba')->name('ijin.batalTiba');
+
+			// Route approval izin guru (admin & kurikulum)
+			Route::group(['middleware' => ['role:admin,kurikulum']], function() {
+				Route::post('/ijin/{id}/approve', 'IjinController@approve')->name('ijin.approve');
+				Route::post('/ijin/{id}/reject', 'IjinController@reject')->name('ijin.reject');
+			});
 
 			//route laporan kasus
 			Route::get('/tambahkasus','KasusController@tambahk');
@@ -199,9 +206,6 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 				Route::post('/kategori-poin/update','KategoriPoinController@update');
 				Route::get('/kategori-poin/{id}/delete','KategoriPoinController@delete');
 
-				// route ijin guru approval
-				Route::post('/ijin/{id}/approve', 'IjinController@approve')->name('ijin.approve');
-				Route::post('/ijin/{id}/reject', 'IjinController@reject')->name('ijin.reject');
 
 				// admin audit logs and backup/restore
 				Route::get('/admin/logs', 'AdminController@logs')->name('admin.logs');

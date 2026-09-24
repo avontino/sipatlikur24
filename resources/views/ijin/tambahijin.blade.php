@@ -64,16 +64,22 @@
             <!-- Nama Guru / Pegawai -->
             <div class="col-md-6 mb-3">
               <label class="form-label fw-semibold text-dark">Nama Guru / Pegawai <span class="text-danger">*</span></label>
-              @if(auth()->user()->role == 'admin' || auth()->user()->role == 'kurikulum' || auth()->user()->role == 'pembina' || auth()->user()->role == 'kesiswaan')
-                <!-- Admin/Piket dapat memilih guru lain jika mewakili input -->
-                <select name="guru_id" class="form-control select2" id="selectGuru">
-                  @foreach(\App\Models\User::whereIn('role', ['guru', 'walikelas', 'tendik', 'kurikulum', 'kesiswaan', 'kepala'])->orderBy('name', 'asc')->get() as $u)
-                    <option value="{{ $u->id }}" {{ $u->id == auth()->id() ? 'selected' : '' }}>
+              @php
+                $canChooseOtherTeacher = in_array(auth()->user()->role, ['admin', 'kurikulum', 'pembina', 'kesiswaan', 'kepala']) 
+                  || auth()->user()->hasRole('admin') 
+                  || auth()->user()->hasRole('kurikulum');
+              @endphp
+              @if($canChooseOtherTeacher)
+                <!-- Admin/Kurikulum/Piket dapat memilih guru lain jika mewakili input -->
+                <select name="guru_id" class="form-control select2" id="selectGuru" onchange="updateGuruHidden(this)">
+                  @foreach(\App\Models\User::whereIn('role', ['guru', 'walikelas', 'tendik', 'kurikulum', 'kesiswaan', 'kepala', 'admin'])->orderBy('name', 'asc')->get() as $u)
+                    <option value="{{ $u->id }}" data-name="{{ $u->name }}" {{ $u->id == auth()->id() ? 'selected' : '' }}>
                       {{ $u->name }} ({{ strtoupper($u->role) }})
                     </option>
                   @endforeach
                 </select>
                 <input type="hidden" name="guru" value="{{ auth()->user()->name }}" id="guruNameHidden">
+                <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1 text-primary"></i>Sebagai Kurikulum/Admin, Anda dapat memilih guru lain yang mengajukan izin.</small>
               @else
                 <div class="input-group">
                   <span class="input-group-text bg-light"><i class="far fa-user text-muted"></i></span>
@@ -216,9 +222,25 @@
     }
   }
 
+  function updateGuruHidden(sel) {
+    if (!sel) return;
+    var opt = sel.options[sel.selectedIndex];
+    if (opt) {
+      var name = opt.getAttribute('data-name') || opt.text.replace(/\s*\(.*\)$/, '').trim();
+      var hidden = document.getElementById('guruNameHidden');
+      if (hidden) {
+        hidden.value = name;
+      }
+    }
+  }
+
   // Trigger saat pertama kali load (misal redirect back with error)
   document.addEventListener('DOMContentLoaded', function() {
     toggleKategoriFields();
+    var sel = document.getElementById('selectGuru');
+    if (sel) {
+      updateGuruHidden(sel);
+    }
   });
 </script>
 @endsection
