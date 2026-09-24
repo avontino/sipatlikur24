@@ -31,11 +31,38 @@
 								</div>
 
 								<div class="card-body">
+								  @if(!empty($isStaffOrAdmin))
+								  <div class="mb-3 d-flex gap-2 flex-wrap align-items-center justify-content-between p-2 rounded bg-light border">
+								    <ul class="nav nav-pills gap-1">
+								      <li class="nav-item">
+								        <a class="nav-link py-1 px-3 {{ empty($showAll) ? 'active fw-bold' : 'bg-white text-dark border' }}" href="/ijin{{ request('filter') ? '?filter='.request('filter') : '' }}">
+								          <i class="fas fa-user me-1 text-primary"></i> Izin Saya Sendiri
+								        </a>
+								      </li>
+								      <li class="nav-item">
+								        <a class="nav-link py-1 px-3 {{ !empty($showAll) ? 'active fw-bold' : 'bg-white text-dark border' }}" href="/ijin?view=kurikulum{{ request('filter') ? '&filter='.request('filter') : '' }}">
+								          <i class="fas fa-users-cog me-1 text-success"></i> Kelola Izin Semua Guru
+								        </a>
+								      </li>
+								    </ul>
+								    <div class="small text-muted">
+								      @if(!empty($showAll))
+								        <span class="badge bg-success"><i class="fas fa-eye me-1"></i> Mode Pengawasan (Semua Guru)</span>
+								      @else
+								        <span class="badge bg-primary"><i class="fas fa-user-check me-1"></i> Mode Personal (Izin Pribadi Saya)</span>
+								      @endif
+								    </div>
+								  </div>
+								  @endif
+
 								  <form class="form-inline mb-3 d-flex gap-2 flex-wrap align-items-center" method="GET" action="/ijin">
+								    @if(!empty($showAll))
+								      <input type="hidden" name="view" value="kurikulum">
+								    @endif
 								    <input name="filter" class="form-control form-control-sm" type="date" value="{{ request('filter') }}" style="width: auto;">
 								    <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-filter me-1"></i> Filter</button>
 								    @if(request('filter'))
-								    	<a href="/ijin" class="btn btn-sm btn-outline-secondary">Reset</a>
+								    	<a href="/ijin{{ !empty($showAll) ? '?view=kurikulum' : '' }}" class="btn btn-sm btn-outline-secondary">Reset</a>
 								    @endif
 
 								    <div class="ms-auto d-flex gap-2">

@@ -293,15 +293,14 @@
       </ul>
     </li>
 
-    <!-- Presensi & Izin Guru (Hanya untuk Guru biasa non-Kurikulum karena Kurikulum memiliki menu tersendiri) -->
+    <!-- Presensi & Izin Guru (Menu Guru & Staf - Personal) -->
     @php
-      $isKurikulumUser = auth()->user()->hasRole('kurikulum') || auth()->user()->role === 'kurikulum';
-      $isPresensiGuruActive = Request::is('tambahijin*', 'presensi-guru*') || 
-          (Request::is('ijin*') && !Request::is('ijinsiswa*'));
+      $isStaffView = request()->query('view') === 'kurikulum';
+      $isPresensiGuruStaffActive = (Request::is('ijin*') && !Request::is('ijinsiswa*') && !$isStaffView && !Request::is('ijin/live*'))
+          || Request::is('tambahijin*');
     @endphp
-    @if(!$isKurikulumUser)
-    <li class="nav-item {{ $isPresensiGuruActive ? 'menu-open' : '' }}">
-      <a href="#" class="nav-link {{ $isPresensiGuruActive ? 'active' : '' }}">
+    <li class="nav-item {{ $isPresensiGuruStaffActive ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ $isPresensiGuruStaffActive ? 'active' : '' }}">
         <i class="nav-icon fas fa-chalkboard-teacher text-warning"></i>
         <p>
           Presensi & Izin Guru
@@ -309,12 +308,14 @@
         </p>
       </a>
       <ul class="nav nav-treeview ps-2">
+        @if(!auth()->user()->hasRole('kurikulum'))
         <li class="nav-item">
           <a href="/ijin/live" class="nav-link {{ Request::is('ijin/live*') || Request::is('presensi-guru/live*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-broadcast-tower text-success"></i>
             <p>Live Monitoring Guru</p>
           </a>
         </li>
+        @endif
         <li class="nav-item">
           <a href="/tambahijin" class="nav-link {{ Request::is('tambahijin*') ? 'active' : '' }}">
             <i class="nav-icon fas fa-file-medical text-info"></i>
@@ -322,14 +323,13 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/ijin" class="nav-link {{ Request::is('ijin') ? 'active' : '' }}">
+          <a href="/ijin" class="nav-link {{ Request::is('ijin') && !$isStaffView ? 'active' : '' }}">
             <i class="nav-icon fas fa-clipboard-list text-primary"></i>
             <p>Daftar Izin Guru</p>
           </a>
         </li>
       </ul>
     </li>
-    @endif
     @endif
 
     <!-- Siswa -->
@@ -497,9 +497,13 @@
         <p>Jurnal Harian</p>
       </a>
     </li>
-    <!-- Presensi & Izin Guru (Kurikulum) -->
-    <li class="nav-item {{ Request::is('ijin*', 'tambahijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'menu-open' : '' }}">
-      <a href="#" class="nav-link {{ Request::is('ijin*', 'tambahijin*', 'presensi-guru*') && !Request::is('ijinsiswa*') ? 'active' : '' }}">
+    <!-- Presensi & Izin Guru (Menu Kurikulum - Pengawasan) -->
+    @php
+      $isPresensiKurikulumActive = Request::is('ijin/live*', 'presensi-guru/live*') 
+          || (Request::is('ijin*') && !Request::is('ijinsiswa*') && request()->query('view') === 'kurikulum');
+    @endphp
+    <li class="nav-item {{ $isPresensiKurikulumActive ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ $isPresensiKurikulumActive ? 'active' : '' }}">
         <i class="nav-icon fas fa-chalkboard-teacher text-warning"></i>
         <p>
           Presensi & Izin Guru
@@ -514,15 +518,9 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="/ijin" class="nav-link {{ Request::is('ijin') ? 'active' : '' }}">
+          <a href="/ijin?view=kurikulum" class="nav-link {{ Request::is('ijin*') && request()->query('view') === 'kurikulum' ? 'active' : '' }}">
             <i class="nav-icon fas fa-clipboard-list text-info"></i>
-            <p>Daftar Izin Guru</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="/tambahijin" class="nav-link {{ Request::is('tambahijin*') ? 'active' : '' }}">
-            <i class="nav-icon fas fa-file-medical text-primary"></i>
-            <p>Tambah Izin Guru</p>
+            <p>Kelola Izin Semua Guru</p>
           </a>
         </li>
       </ul>

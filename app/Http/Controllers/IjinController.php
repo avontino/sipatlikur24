@@ -192,8 +192,20 @@ class IjinController extends Controller
                 }
             }
 
-            // Guru biasa hanya melihat data izin miliknya sendiri
-            if (!$isStaffOrAdmin) {
+            $viewMode = $request->query('view');
+            $isAdmin = $user->hasRole('admin') || ($user->role === 'admin');
+            
+            // Tentukan apakah menampilkan semua guru atau hanya izin pribadi:
+            if ($isAdmin && $viewMode !== 'saya') {
+                $showAll = true;
+            } elseif ($isStaffOrAdmin && in_array($viewMode, ['kurikulum', 'semua', 'all'])) {
+                $showAll = true;
+            } else {
+                $showAll = false;
+            }
+
+            // Jika $showAll false, filter hanya menampilkan izin milik akun yang sedang login
+            if (!$showAll) {
                 $hasUserId = \Illuminate\Support\Facades\Schema::hasColumn('ijin', 'user_id');
                 $query->where(function($q) use ($user, $hasUserId) {
                     if ($hasUserId) {
@@ -205,7 +217,11 @@ class IjinController extends Controller
 
             $data_ijin = $query->orderBy('created_at', 'desc')->get();
 
-            return view('ijin.index', ['data_ijin' => $data_ijin], compact('ma_pel', 'gu_ru', 'ke_las'));
+            return view('ijin.index', [
+                'data_ijin' => $data_ijin,
+                'showAll' => $showAll,
+                'isStaffOrAdmin' => $isStaffOrAdmin
+            ], compact('ma_pel', 'gu_ru', 'ke_las'));
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('IjinController index error: ' . $e->getMessage());
             return redirect('/dashboard')->with('gagal', 'Terjadi kesalahan saat memuat halaman izin: ' . $e->getMessage());
