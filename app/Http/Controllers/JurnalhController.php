@@ -268,7 +268,18 @@ class JurnalhController extends Controller
 
     // Bagian kedua: Update tabel Jurnal dengan proteksi yang sama
     foreach ($jadwals as $jadwal) {
-        $user = DB::table('users')->where('name', 'LIKE', '%' . $jadwal->guru . '%')->first();
+        $guruName = trim($jadwal->guru ?? '');
+        $user = DB::table('users')->where('name', $guruName)->first();
+        if (!$user && !empty($guruName)) {
+            $user = DB::table('users')->where('name', 'LIKE', '%' . $guruName . '%')->first();
+        }
+        if (!$user && !empty($guruName)) {
+            $cleanName = explode(',', $guruName)[0];
+            $cleanName = trim(preg_replace('/\b(S\.Pd|M\.Pd|S\.Kom|S\.Ag|S\.Si|M\.Si|Drs|Dra|Ir)\b\.?/i', '', $cleanName));
+            if (!empty($cleanName)) {
+                $user = DB::table('users')->where('name', 'LIKE', '%' . $cleanName . '%')->first();
+            }
+        }
         
         // Cek apakah data sudah ada
         $existingJurnal = Jurnal::where([
@@ -325,14 +336,19 @@ class JurnalhController extends Controller
                     }
                 }
                 
-                // Selalu update guru_id dan jumlahjam karena ini data referensi
-                $updateData['guru_id'] = $user ? $user->id : null;
+                // Selalu update guru_id dan jumlahjam: tidak boleh bernilai NULL
+                $targetGuruId = $user ? $user->id : ($existingJurnal->guru_id ?? 0);
+                $updateData['guru_id'] = $targetGuruId;
                 $updateData['jumlahjam'] = $jadwal->jumlahjam;
                 $updateData['updated_at'] = now();
                 
                 // Update jika ada perubahan
-                if (!empty($updateData)) {
-                    $existingJurnal->update($updateData);
+                try {
+                    if (!empty($updateData)) {
+                        $existingJurnal->update($updateData);
+                    }
+                } catch (\Throwable $updateEx) {
+                    \Illuminate\Support\Facades\Log::warning('Gagal update jurnal untuk guru: ' . $jadwal->guru . ' - ' . $updateEx->getMessage());
                 }
         }
     } // end foreach jadwals
