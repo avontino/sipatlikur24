@@ -121,9 +121,9 @@
         <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
           <div class="card-header bg-white border-bottom border-light-subtle d-flex justify-content-between align-items-center py-3 px-4">
             <div class="d-flex align-items-center">
-              <div class="me-2 rounded-circle p-2 bg-primary bg-opacity-10 text-primary">
+              <span class="badge rounded-circle p-2 me-2 d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: #eff6ff; color: #1d4ed8; font-size: 14px;">
                 <i class="fas fa-clipboard-check"></i>
-              </div>
+              </span>
               <h5 class="fw-bold mb-0 text-dark">1. Tes Diagnostik TKA</h5>
             </div>
             @if($diagnostik)
@@ -194,9 +194,9 @@
         <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
           <div class="card-header bg-white border-bottom border-light-subtle d-flex justify-content-between align-items-center py-3 px-4">
             <div class="d-flex align-items-center">
-              <div class="me-2 rounded-circle p-2 bg-success bg-opacity-10 text-success">
-                <i class="fas fa-pencil-alt"></i>
-              </div>
+              <span class="badge rounded-circle p-2 me-2 d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px; background: #e8f5e9; color: #009638; font-size: 14px;">
+                <i class="fas fa-edit"></i>
+              </span>
               <h5 class="fw-bold mb-0 text-dark">2. Try Out 1 (TO-1) TKA</h5>
             </div>
             @if($to1)
