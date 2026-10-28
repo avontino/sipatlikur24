@@ -133,8 +133,8 @@
     <table class="header-table">
         <tr>
             <td style="width: 80px; text-align: left; vertical-align: middle;">
-                @if(!empty($logoBase64))
-                <img src="{{ $logoBase64 }}" class="logo" alt="Logo SMPN 24">
+                @if(!empty($logoPemkotBase64))
+                <img src="{{ $logoPemkotBase64 }}" class="logo" alt="Logo Pemkot Malang">
                 @endif
             </td>
             <td class="kop-text" style="vertical-align: middle;">
@@ -145,8 +145,8 @@
                 <p>{{ $kopHtml['kontak'] }}</p>
             </td>
             <td style="width: 80px; text-align: right; vertical-align: middle;">
-                @if(!empty($logoPemkotBase64))
-                <img src="{{ $logoPemkotBase64 }}" class="logo" alt="Logo Pemkot Malang">
+                @if(!empty($logoBase64))
+                <img src="{{ $logoBase64 }}" class="logo" alt="Logo SMPN 24 Malang">
                 @endif
             </td>
         </tr>
