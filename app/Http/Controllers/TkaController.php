@@ -104,10 +104,11 @@ class TkaController extends Controller
             }
         }
 
-        $logoBase64 = $this->getLogoBase64();
-        $kopHtml    = $this->getKopText();
+        $logoBase64       = $this->getLogoBase64();
+        $logoPemkotBase64 = $this->getLogoPemkotBase64();
+        $kopHtml          = $this->getKopText();
 
-        $pdf = Pdf::loadView('tka.pdf', compact('tka', 'logoBase64', 'kopHtml'))
+        $pdf = Pdf::loadView('tka.pdf', compact('tka', 'logoBase64', 'logoPemkotBase64', 'kopHtml'))
                   ->setPaper('A4', 'portrait');
 
         $cleanNama = preg_replace('/[^a-zA-Z0-9_-]/', '_', $tka->nama);
@@ -139,10 +140,11 @@ class TkaController extends Controller
         $diagnostik = $records->firstWhere('jenis_tes', 'diagnostik');
         $to1        = $records->firstWhere('jenis_tes', 'to_1');
 
-        $logoBase64 = $this->getLogoBase64();
-        $kopHtml    = $this->getKopText();
+        $logoBase64       = $this->getLogoBase64();
+        $logoPemkotBase64 = $this->getLogoPemkotBase64();
+        $kopHtml          = $this->getKopText();
 
-        $pdf = Pdf::loadView('tka.pdf_rekap', compact('identitas', 'diagnostik', 'to1', 'logoBase64', 'kopHtml'))
+        $pdf = Pdf::loadView('tka.pdf_rekap', compact('identitas', 'diagnostik', 'to1', 'logoBase64', 'logoPemkotBase64', 'kopHtml'))
                   ->setPaper('A4', 'portrait');
 
         $cleanNama = preg_replace('/[^a-zA-Z0-9_-]/', '_', $identitas->nama);
@@ -174,7 +176,7 @@ class TkaController extends Controller
     }
 
     /**
-     * Helper: Ambil logo SMPN 24 Malang dalam format base64
+     * Helper: Ambil logo SMPN 24 Malang dalam format base64 (Kiri)
      */
     private function getLogoBase64()
     {
@@ -183,6 +185,27 @@ class TkaController extends Controller
             $type = pathinfo($logoPath, PATHINFO_EXTENSION);
             $data = file_get_contents($logoPath);
             return 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+        return null;
+    }
+
+    /**
+     * Helper: Ambil logo Pemkot Malang dalam format base64 (Kanan)
+     */
+    private function getLogoPemkotBase64()
+    {
+        // Cek file di data_lama atau public
+        $candidates = [
+            base_path('data_lama/logo_pemkot.png'),
+            public_path('adminlte/img/logo_pemkot.png'),
+        ];
+
+        foreach ($candidates as $path) {
+            if (file_exists($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $data = file_get_contents($path);
+                return 'data:image/' . $type . ';base64,' . base64_encode($data);
+            }
         }
         return null;
     }

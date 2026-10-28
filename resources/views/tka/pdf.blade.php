@@ -134,17 +134,22 @@
     {{-- KOP SURAT --}}
     <table class="header-table">
         <tr>
-            @if(!empty($logoBase64))
-            <td style="width: 85px; text-align: left;">
+            <td style="width: 80px; text-align: left; vertical-align: middle;">
+                @if(!empty($logoBase64))
                 <img src="{{ $logoBase64 }}" class="logo" alt="Logo SMPN 24">
+                @endif
             </td>
-            @endif
-            <td class="kop-text">
+            <td class="kop-text" style="vertical-align: middle;">
                 <h4>{{ $kopHtml['pemerintah'] }}</h4>
                 <h3>{{ $kopHtml['dinas'] }}</h3>
                 <h2>{{ $kopHtml['sekolah'] }}</h2>
                 <p>{{ $kopHtml['alamat'] }}</p>
                 <p>{{ $kopHtml['kontak'] }}</p>
+            </td>
+            <td style="width: 80px; text-align: right; vertical-align: middle;">
+                @if(!empty($logoPemkotBase64))
+                <img src="{{ $logoPemkotBase64 }}" class="logo" alt="Logo Pemkot Malang">
+                @endif
             </td>
         </tr>
     </table>
