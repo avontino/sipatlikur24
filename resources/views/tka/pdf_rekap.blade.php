@@ -238,40 +238,6 @@
         </tbody>
     </table>
 
-    {{-- KRITERIA PREDIKAT --}}
-    <div style="font-size: 9.5pt; font-weight: bold; margin-bottom: 3px;">Keterangan Kategori Capaian Kemampuan Akademik:</div>
-    <table class="scale-table">
-        <thead>
-            <tr>
-                <th style="width: 22%;">Rentang Nilai</th>
-                <th style="width: 20%;">Predikat</th>
-                <th style="width: 58%;">Keterangan</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="text-center">95.00 – 100.00</td>
-                <td class="text-center fw-bold">ISTIMEWA</td>
-                <td>Kemampuan akademik sangat tinggi, menguasai konsep dan penalaran materi secara mendalam.</td>
-            </tr>
-            <tr>
-                <td class="text-center">76.00 – 94.99</td>
-                <td class="text-center fw-bold">BAIK</td>
-                <td>Kemampuan akademik baik, mampu menyelesaikan persoalan literasi dan numerasi dengan tepat.</td>
-            </tr>
-            <tr>
-                <td class="text-center">50.00 – 75.99</td>
-                <td class="text-center fw-bold">MEMADAI</td>
-                <td>Kemampuan akademik memadai, perlu penguatan latihan soal penalaran secara berkelanjutan.</td>
-            </tr>
-            <tr>
-                <td class="text-center">&lt; 50.00</td>
-                <td class="text-center fw-bold">KURANG</td>
-                <td>Perlu bimbingan dan pendampingan belajar khusus untuk memperkuat pemahaman konsep dasar.</td>
-            </tr>
-        </tbody>
-    </table>
-
     {{-- TANDA TANGAN --}}
     <table class="ttd-table">
         <tr>

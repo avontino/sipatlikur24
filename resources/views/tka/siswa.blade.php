@@ -264,50 +264,6 @@
 
     </div>
 
-    {{-- KETERANGAN SKALA PREDIKAT --}}
-    <div class="card border-0 shadow-sm mb-4">
-      <div class="card-header bg-white py-3">
-        <h6 class="fw-bold mb-0 text-dark">
-          <i class="fas fa-info-circle text-info me-2"></i>Keterangan Skala Predikat Tes Kemampuan Akademik (TKA)
-        </h6>
-      </div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-bordered mb-0 text-center">
-            <thead class="table-light">
-              <tr>
-                <th>Rentang Nilai</th>
-                <th>Predikat Kemampuan</th>
-                <th>Deskripsi Capaian</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="fw-bold">95.00 – 100.00</td>
-                <td><span class="badge bg-success px-3 py-1">ISTIMEWA</span></td>
-                <td class="text-start">Penguasaan materi sangat mendalam, penalaran akademik sangat tinggi dan konsisten.</td>
-              </tr>
-              <tr>
-                <td class="fw-bold">76.00 – 94.99</td>
-                <td><span class="badge bg-primary px-3 py-1">BAIK</span></td>
-                <td class="text-start">Memahami konsep dengan baik, mampu menyelesaikan persoalan akademik secara tepat.</td>
-              </tr>
-              <tr>
-                <td class="fw-bold">50.00 – 75.99</td>
-                <td><span class="badge bg-warning text-dark px-3 py-1">MEMADAI</span></td>
-                <td class="text-start">Memahami konsep dasar, perlu bimbingan dan latihan lebih intensif pada soal penalaran.</td>
-              </tr>
-              <tr>
-                <td class="fw-bold">&lt; 50.00</td>
-                <td><span class="badge bg-danger px-3 py-1">KURANG</span></td>
-                <td class="text-start">Membutuhkan remedial materi fundamental dan pendampingan khusus secara berkala.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
     @endif
   </div>
 </section>
