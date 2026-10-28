@@ -1,18 +1,29 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="content-header">
+<div class="content-header py-4 px-3 mb-3" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
   <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col-sm-6">
-        <h1 class="m-0 text-dark fw-bold">
-          <i class="fas fa-graduation-cap text-warning me-2"></i>Data Nilai TKA Siswa Kelas 9
-        </h1>
+    <div class="row align-items-center">
+      <div class="col-sm-7">
+        <div class="d-flex align-items-center">
+          <div class="me-3 p-3 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #009638, #004d1a); color: #fff;">
+            <i class="fas fa-graduation-cap fa-2x"></i>
+          </div>
+          <div>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 mb-1 fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">
+              <i class="fas fa-chalkboard-teacher me-1 text-warning"></i> MANAJEMEN ASESMEN
+            </span>
+            <h2 class="m-0 text-dark fw-bolder" style="letter-spacing: -0.5px; font-size: 1.65rem;">
+              Data Nilai TKA Siswa Kelas 9
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Kelola nilai Diagnostik & Try Out, filter kelas, import data Excel, dan cetak rapor</p>
+          </div>
+        </div>
       </div>
-      <div class="col-sm-6">
-        <ol class="breadcrumb float-sm-end">
-          <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
-          <li class="breadcrumb-item active">Data TKA Kelas 9</li>
+      <div class="col-sm-5 mt-3 mt-sm-0 text-sm-end">
+        <ol class="breadcrumb float-sm-end bg-white px-3 py-2 rounded-pill shadow-sm border mb-0">
+          <li class="breadcrumb-item"><a href="/dashboard" class="text-decoration-none text-secondary"><i class="fas fa-home me-1"></i> Dashboard</a></li>
+          <li class="breadcrumb-item active text-success fw-bold">Data TKA Kelas 9</li>
         </ol>
       </div>
     </div>
