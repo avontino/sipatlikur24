@@ -44,15 +44,32 @@ class TkaController extends Controller
         $selectedTes   = $request->query('jenis_tes', 'all');
         $search        = trim((string)$request->query('search', ''));
 
-        // Jika user adalah wali kelas dan tidak memilih kelas, defaultkan ke kelas binaannya
-        if ($selectedKelas === 'all' && $user->walikelas_kelas && in_array($user->walikelas_kelas, $kelasList)) {
-            $selectedKelas = $user->walikelas_kelas;
+        // Normalisasi format kelas user (misal '9A', '9-A', 'IX A' -> 'IX-A')
+        $userKelasNorm = null;
+        if ($user->walikelas_kelas) {
+            $raw = strtoupper(str_replace([' ', '-'], '', $user->walikelas_kelas));
+            // Cek jika dimulai dengan 9 atau IX
+            if (preg_match('/^(?:9|IX)([A-G])$/', $raw, $m)) {
+                $userKelasNorm = 'IX-' . $m[1];
+            }
+        }
+
+        // Jika user adalah wali kelas 9 dan tidak memilih filter, defaultkan ke kelas binaannya
+        if ($selectedKelas === 'all' && $userKelasNorm && in_array($userKelasNorm, $kelasList)) {
+            $selectedKelas = $userKelasNorm;
         }
 
         $query = TkaSiswa::query();
 
         if ($selectedKelas !== 'all') {
-            $query->where('kelas', $selectedKelas);
+            // Cocokkan kelas baik format 'IX-A' maupun '9A' / 'IX A'
+            $letter = substr($selectedKelas, -1);
+            $query->where(function($q) use ($selectedKelas, $letter) {
+                $q->where('kelas', $selectedKelas)
+                  ->orWhere('kelas', '9' . $letter)
+                  ->orWhere('kelas', 'IX ' . $letter)
+                  ->orWhere('kelas', '9-' . $letter);
+            });
         }
 
         if ($selectedTes !== 'all') {
