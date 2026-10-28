@@ -220,7 +220,7 @@ class TkaController extends Controller
             'dinas'      => 'DINAS PENDIDIKAN DAN KEBUDAYAAN',
             'sekolah'    => 'SMP NEGERI 24 MALANG',
             'alamat'     => 'Jl. Simpang Laksda Adi Sucipto, Kec. Blimbing, Kota Malang 65126',
-            'kontak'     => 'Telp: (0341) 415415 | E-mail: smpn-24mlg@yahoo.co.id',
+            'kontak'     => 'Telp: (0341) 415415 | E-mail: admin@smpn24-mlg.sch.id',
         ];
     }
 }
