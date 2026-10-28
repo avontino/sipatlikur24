@@ -192,16 +192,10 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th rowspan="2" style="width: 6%;">No</th>
-                <th rowspan="2" style="width: 34%;">Mata Pelajaran</th>
-                <th colspan="2" style="width: 30%;">Tes Diagnostik</th>
-                <th colspan="2" style="width: 30%;">Try Out 1 (TO-1)</th>
-            </tr>
-            <tr>
-                <th style="width: 14%;">Nilai</th>
-                <th style="width: 16%;">Predikat</th>
-                <th style="width: 14%;">Nilai</th>
-                <th style="width: 16%;">Predikat</th>
+                <th style="width: 8%;">No</th>
+                <th style="width: 46%;">Mata Pelajaran</th>
+                <th style="width: 23%;">Tes Diagnostik</th>
+                <th style="width: 23%;">Try Out 1 (TO-1)</th>
             </tr>
         </thead>
         <tbody>
@@ -209,31 +203,23 @@
                 <td class="text-center">1</td>
                 <td>Bahasa Indonesia</td>
                 <td class="text-center fw-bold">{{ $diagnostik ? number_format($diagnostik->nilai_bindo, 2) : '-' }}</td>
-                <td class="text-center fw-bold">{{ $diagnostik->ket_bindo ?? '-' }}</td>
                 <td class="text-center fw-bold">{{ $to1 ? number_format($to1->nilai_bindo, 2) : '-' }}</td>
-                <td class="text-center fw-bold">{{ $to1->ket_bindo ?? '-' }}</td>
             </tr>
             <tr>
                 <td class="text-center">2</td>
                 <td>Matematika</td>
                 <td class="text-center fw-bold">{{ $diagnostik ? number_format($diagnostik->nilai_mtk, 2) : '-' }}</td>
-                <td class="text-center fw-bold">{{ $diagnostik->ket_mtk ?? '-' }}</td>
                 <td class="text-center fw-bold">{{ $to1 ? number_format($to1->nilai_mtk, 2) : '-' }}</td>
-                <td class="text-center fw-bold">{{ $to1->ket_mtk ?? '-' }}</td>
             </tr>
             <tr style="background-color: #fafafa;">
                 <td colspan="2" class="text-center fw-bold">RATA-RATA NILAI</td>
                 <td class="text-center fw-bold">{{ $diagnostik ? number_format($diagnostik->nilai_rata_rata, 2) : '-' }}</td>
-                <td class="text-center">-</td>
                 <td class="text-center fw-bold">{{ $to1 ? number_format($to1->nilai_rata_rata, 2) : '-' }}</td>
-                <td class="text-center">-</td>
             </tr>
             <tr style="background-color: #fafafa;">
                 <td colspan="2" class="text-center fw-bold">TOTAL SKOR</td>
                 <td class="text-center fw-bold">{{ $diagnostik ? number_format($diagnostik->nilai_total, 2) : '-' }}</td>
-                <td class="text-center">-</td>
                 <td class="text-center fw-bold">{{ $to1 ? number_format($to1->nilai_total, 2) : '-' }}</td>
-                <td class="text-center">-</td>
             </tr>
         </tbody>
     </table>

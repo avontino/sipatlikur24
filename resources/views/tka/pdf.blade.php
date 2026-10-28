@@ -195,9 +195,8 @@
         <thead>
             <tr>
                 <th style="width: 8%;">No</th>
-                <th style="width: 50%;">Mata Pelajaran yang Diujikan</th>
-                <th style="width: 18%;">Nilai Angka</th>
-                <th style="width: 24%;">Kategori Capaian</th>
+                <th style="width: 62%;">Mata Pelajaran yang Diujikan</th>
+                <th style="width: 30%;">Nilai Angka</th>
             </tr>
         </thead>
         <tbody>
@@ -205,23 +204,19 @@
                 <td class="text-center">1</td>
                 <td>Bahasa Indonesia</td>
                 <td class="text-center fw-bold">{{ number_format($tka->nilai_bindo, 2) }}</td>
-                <td class="text-center fw-bold">{{ $tka->ket_bindo ?: '-' }}</td>
             </tr>
             <tr>
                 <td class="text-center">2</td>
                 <td>Matematika</td>
                 <td class="text-center fw-bold">{{ number_format($tka->nilai_mtk, 2) }}</td>
-                <td class="text-center fw-bold">{{ $tka->ket_mtk ?: '-' }}</td>
             </tr>
             <tr style="background-color: #fafafa;">
                 <td colspan="2" class="text-center fw-bold">RATA-RATA NILAI</td>
                 <td class="text-center fw-bold">{{ number_format($tka->nilai_rata_rata, 2) }}</td>
-                <td class="text-center">-</td>
             </tr>
             <tr style="background-color: #fafafa;">
                 <td colspan="2" class="text-center fw-bold">TOTAL SKOR NILAI</td>
                 <td class="text-center fw-bold">{{ number_format($tka->nilai_total, 2) }}</td>
-                <td class="text-center">-</td>
             </tr>
         </tbody>
     </table>
