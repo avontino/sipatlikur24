@@ -166,6 +166,12 @@
         <p>Ijin Siswa (Semua)</p>
       </a>
     </li>
+    <li class="nav-item">
+      <a href="/tka" class="nav-link {{ Request::is('tka*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-graduation-cap text-warning"></i>
+        <p>Data TKA Siswa (Kelas 9)</p>
+      </a>
+    </li>
     
     <li class="nav-item {{ Request::is('tambahkasus*', 'lihatkasus*', 'kasus*', 'kategori-poin*', 'history-poin*', 'poin-siswa*') ? 'menu-open' : '' }}">
       <a href="#" class="nav-link {{ Request::is('tambahkasus*', 'lihatkasus*', 'kasus*', 'kategori-poin*', 'history-poin*', 'poin-siswa*') ? 'active' : '' }}">
@@ -378,6 +384,18 @@
     @if(auth()->user()->role == 'siswa')
     <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #fde047 !important;">Menu Siswa</li>
     
+    @php
+      $uKelas = (string)(auth()->user()->kelas ?? '');
+      $isSiswa9 = preg_match('/^(IX|9)[-\s]?/i', $uKelas) || \App\Models\TkaSiswa::where('nis', auth()->user()->username)->exists();
+    @endphp
+    @if($isSiswa9)
+    <li class="nav-item">
+      <a href="/tka" class="nav-link {{ Request::is('tka*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-graduation-cap text-warning"></i>
+        <p>Nilai TKA Saya</p>
+      </a>
+    </li>
+    @endif
     <li class="nav-item">
       <a href="/tambahijinsiswa" class="nav-link {{ Request::is('tambahijinsiswa*') ? 'active' : '' }}">
         <i class="nav-icon fas fa-user-clock text-warning"></i>
@@ -470,6 +488,14 @@
         <p>Poin Siswa</p>
       </a>
     </li>
+    @if($isWaliKelas && preg_match('/^(IX|9)[-\s]?/i', (string)$u->walikelas_kelas))
+    <li class="nav-item">
+      <a href="/tka" class="nav-link {{ Request::is('tka*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-graduation-cap text-success"></i>
+        <p>Nilai TKA Kelas Saya</p>
+      </a>
+    </li>
+    @endif
     @if($isWaliKelas)
     <li class="nav-item">
       <a href="/rekap-verifikasi" class="nav-link {{ Request::is('rekap-verifikasi*') ? 'active' : '' }}">
@@ -529,6 +555,12 @@
       <a href="/ijinsiswa?view=kurikulum" class="nav-link {{ Request::is('ijinsiswa*') && request()->query('view') === 'kurikulum' ? 'active' : '' }}">
         <i class="nav-icon fas fa-id-card text-info"></i>
         <p>Ijin Siswa</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/tka" class="nav-link {{ Request::is('tka*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-graduation-cap text-warning"></i>
+        <p>Data TKA Kelas 9</p>
       </a>
     </li>
     <li class="nav-item">

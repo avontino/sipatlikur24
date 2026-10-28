@@ -287,6 +287,17 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 				Route::POST('/tambahijinsiswa/create','IjinsiswaController@create');
 				Route::post('/tambahijinsiswa/uploadulang/{id}','IjinsiswaController@uploadUlang');
 			});
+
+			// Route TKA (Tes Kemampuan Akademik) Siswa Kelas 9
+			Route::group(['middleware' => ['role:admin,guru,walikelas,kurikulum,siswa']], function() {
+				Route::get('/tka', 'TkaController@index')->name('tka.index');
+				Route::get('/tka/{id}/pdf', 'TkaController@downloadPdf')->name('tka.pdf');
+				Route::get('/tka/rekap/{nis}/pdf', 'TkaController@downloadRekapPdf')->name('tka.rekap_pdf');
+			});
+
+			Route::group(['middleware' => ['role:admin,kurikulum']], function() {
+				Route::post('/tka/import', 'TkaController@importExcel')->name('tka.import');
+			});
   
 			Route::group(['middleware' => ['role:admin,keuangan']], function() {
 				Route::post('tagihan/import', 'TagihanController@import')->name('tagihan.import');
