@@ -171,6 +171,134 @@ class TkaController extends Controller
     }
 
     /**
+     * Simpan / Tambah Data Nilai TKA Manual (Siswa Baru / Susulan)
+     */
+    public function store(Request $request)
+    {
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'kurikulum'])) {
+            abort(403, 'Hanya Admin atau Kurikulum yang berhak menambah nilai TKA.');
+        }
+
+        $request->validate([
+            'nis'         => 'required|string|max:50',
+            'nama'        => 'required|string|max:255',
+            'kelas'       => 'required|string|max:20',
+            'jenis_tes'   => 'required|in:diagnostik,to_1',
+            'nilai_bindo' => 'required|numeric|min:0|max:100',
+            'nilai_mtk'   => 'required|numeric|min:0|max:100',
+        ]);
+
+        $nis   = trim($request->nis);
+        $nama  = trim($request->nama);
+        $kelas = strtoupper(trim($request->kelas));
+        $bindo = (float)$request->nilai_bindo;
+        $mtk   = (float)$request->nilai_mtk;
+
+        // Cari data pelengkap dari tabel siswa jika ada
+        $siswa = \App\Models\Siswa::where('nis', $nis)->first();
+        $nisn  = $siswa ? $siswa->nisn : ($request->nisn ?? null);
+        $jk    = $siswa ? $siswa->jenis_kelamin : ($request->jenis_kelamin ?? null);
+
+        // Ambil wali kelas dari data TKA kelas yang sama jika ada
+        $sample = TkaSiswa::where('kelas', $kelas)->whereNotNull('wali_kelas')->first();
+        $walas = $sample ? $sample->wali_kelas : null;
+        $nip   = $sample ? $sample->nip_wali_kelas : null;
+
+        $namaTes = $request->jenis_tes === 'diagnostik' ? 'Tes Diagnostik TKA' : 'Try Out 1 (TO-1)';
+        $rataRata = round(($bindo + $mtk) / 2, 2);
+        $total    = round($bindo + $mtk, 2);
+
+        TkaSiswa::updateOrCreate(
+            [
+                'nis'          => $nis,
+                'jenis_tes'    => $request->jenis_tes,
+                'tahun_ajaran' => '2026/2027',
+            ],
+            [
+                'nisn'              => $nisn,
+                'nama'              => $nama,
+                'kelas'             => $kelas,
+                'jenis_kelamin'     => $jk,
+                'wali_kelas'        => $walas,
+                'nip_wali_kelas'    => $nip,
+                'nama_tes'          => $namaTes,
+                'nilai_bindo'       => $bindo,
+                'nilai_bindo_bulat' => (int)round($bindo),
+                'ket_bindo'         => $this->determinePredikat($bindo),
+                'nilai_mtk'         => $mtk,
+                'nilai_mtk_bulat'   => (int)round($mtk),
+                'ket_mtk'           => $this->determinePredikat($mtk),
+                'nilai_rata_rata'   => $rataRata,
+                'nilai_total'       => $total,
+            ]
+        );
+
+        return redirect()->back()->with('sukses', "Nilai TKA {$namaTes} untuk siswa {$nama} ({$kelas}) berhasil disimpan!");
+    }
+
+    /**
+     * Update Nilai TKA Siswa
+     */
+    public function update(Request $request, $id)
+    {
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'kurikulum'])) {
+            abort(403, 'Hanya Admin atau Kurikulum yang berhak mengubah nilai TKA.');
+        }
+
+        $request->validate([
+            'nilai_bindo' => 'required|numeric|min:0|max:100',
+            'nilai_mtk'   => 'required|numeric|min:0|max:100',
+        ]);
+
+        $tka = TkaSiswa::findOrFail($id);
+        $bindo = (float)$request->nilai_bindo;
+        $mtk   = (float)$request->nilai_mtk;
+
+        $tka->update([
+            'nilai_bindo'       => $bindo,
+            'nilai_bindo_bulat' => (int)round($bindo),
+            'ket_bindo'         => $this->determinePredikat($bindo),
+            'nilai_mtk'         => $mtk,
+            'nilai_mtk_bulat'   => (int)round($mtk),
+            'ket_mtk'           => $this->determinePredikat($mtk),
+            'nilai_rata_rata'   => round(($bindo + $mtk) / 2, 2),
+            'nilai_total'       => round($bindo + $mtk, 2),
+        ]);
+
+        return redirect()->back()->with('sukses', "Nilai TKA {$tka->nama} berhasil diperbarui!");
+    }
+
+    /**
+     * Hapus Data Nilai TKA
+     */
+    public function destroy($id)
+    {
+        $user = auth()->user();
+        if (!in_array($user->role, ['admin', 'kurikulum'])) {
+            abort(403, 'Hanya Admin atau Kurikulum yang berhak menghapus nilai TKA.');
+        }
+
+        $tka = TkaSiswa::findOrFail($id);
+        $nama = $tka->nama;
+        $tka->delete();
+
+        return redirect()->back()->with('sukses', "Data nilai TKA {$nama} berhasil dihapus.");
+    }
+
+    /**
+     * Helper Penentuan Predikat Sesuai Standar TKA
+     */
+    private function determinePredikat($nilai)
+    {
+        if ($nilai >= 95.0) return 'ISTIMEWA';
+        if ($nilai >= 76.0) return 'BAIK';
+        if ($nilai >= 50.0) return 'MEMADAI';
+        return 'KURANG';
+    }
+
+    /**
      * Import File Excel Nilai TKA oleh Admin/Kurikulum
      */
     public function importExcel(Request $request)

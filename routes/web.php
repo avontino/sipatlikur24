@@ -296,6 +296,9 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			});
 
 			Route::group(['middleware' => ['role:admin,kurikulum']], function() {
+				Route::post('/tka', 'TkaController@store')->name('tka.store');
+				Route::put('/tka/{id}', 'TkaController@update')->name('tka.update');
+				Route::delete('/tka/{id}', 'TkaController@destroy')->name('tka.destroy');
 				Route::post('/tka/import', 'TkaController@importExcel')->name('tka.import');
 			});
   

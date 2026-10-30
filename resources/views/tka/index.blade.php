@@ -86,7 +86,10 @@
           </h5>
 
           @if(in_array(auth()->user()->role, ['admin', 'kurikulum']))
-          <div>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalTambahManual">
+              <i class="fas fa-plus-circle me-1"></i> Tambah Nilai Manual
+            </button>
             <button type="button" class="btn btn-success btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
               <i class="fas fa-file-excel me-1"></i> Import / Update Nilai Excel
             </button>
@@ -180,13 +183,69 @@
                 <td class="text-center fw-bold text-primary">{{ $tka->nilai_rata_rata }}</td>
                 <td class="text-center">
                   <div class="btn-group btn-group-sm">
-                    <a href="/tka/{{ $tka->id }}/pdf" class="btn btn-danger" title="Download PDF Tes Ini">
+                    <a href="/tka/{{ $tka->id }}/pdf" class="btn btn-outline-danger" title="Download PDF Tes Ini">
                       <i class="fas fa-file-pdf"></i>
                     </a>
-                    <a href="/tka/rekap/{{ $tka->nis }}/pdf" class="btn btn-warning text-dark" title="Download Rekap Lengkap Siswa">
+                    <a href="/tka/rekap/{{ $tka->nis }}/pdf" class="btn btn-outline-warning text-dark" title="Download Rekap Lengkap Siswa">
                       <i class="fas fa-print"></i>
                     </a>
+                    @if(in_array(auth()->user()->role, ['admin', 'kurikulum']))
+                    <button type="button" class="btn btn-outline-primary" title="Edit Nilai"
+                            data-bs-toggle="modal" data-bs-target="#modalEditNilai{{ $tka->id }}">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" title="Hapus Nilai"
+                            onclick="if(confirm('Apakah Anda yakin ingin menghapus data nilai TKA untuk {{ $tka->nama }} ({{ $tka->nama_tes }})?')) { document.getElementById('delete-tka-{{ $tka->id }}').submit(); }">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                    <form id="delete-tka-{{ $tka->id }}" action="/tka/{{ $tka->id }}" method="POST" style="display: none;">
+                      @csrf
+                      @method('DELETE')
+                    </form>
+                    @endif
                   </div>
+
+                  @if(in_array(auth()->user()->role, ['admin', 'kurikulum']))
+                  {{-- MODAL EDIT PER SISWA --}}
+                  <div class="modal fade text-start" id="modalEditNilai{{ $tka->id }}" tabindex="-1" aria-labelledby="modalEditLabel{{ $tka->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-primary text-white">
+                          <h6 class="modal-title fw-bold" id="modalEditLabel{{ $tka->id }}">
+                            <i class="fas fa-edit me-1"></i> Edit Nilai TKA - {{ $tka->nama }}
+                          </h6>
+                          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="/tka/{{ $tka->id }}" method="POST">
+                          @csrf
+                          @method('PUT')
+                          <div class="modal-body p-4">
+                            <div class="bg-light p-3 rounded mb-3">
+                              <div class="small text-muted">Siswa: <strong>{{ $tka->nama }}</strong> (NIS: {{ $tka->nis }})</div>
+                              <div class="small text-muted">Kelas: <strong>{{ $tka->kelas }}</strong> • Tes: <strong>{{ $tka->nama_tes }}</strong></div>
+                            </div>
+                            <div class="row g-3">
+                              <div class="col-6">
+                                <label class="form-label fw-bold small">Nilai Bahasa Indonesia <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" max="100" name="nilai_bindo" class="form-control" value="{{ $tka->nilai_bindo }}" required>
+                              </div>
+                              <div class="col-6">
+                                <label class="form-label fw-bold small">Nilai Matematika <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" max="100" name="nilai_mtk" class="form-control" value="{{ $tka->nilai_mtk }}" required>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary btn-sm fw-bold">
+                              <i class="fas fa-save me-1"></i> Simpan Perubahan
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  @endif
                 </td>
               </tr>
               @empty
@@ -216,8 +275,72 @@
   </div>
 </section>
 
-{{-- MODAL IMPORT EXCEL --}}
+{{-- MODAL TAMBAH NILAI MANUAL --}}
 @if(in_array(auth()->user()->role, ['admin', 'kurikulum']))
+<div class="modal fade" id="modalTambahManual" tabindex="-1" aria-labelledby="modalTambahManualLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold" id="modalTambahManualLabel">
+          <i class="fas fa-plus-circle me-2"></i>Tambah Nilai TKA Manual
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/tka" method="POST">
+        @csrf
+        <div class="modal-body p-4">
+          <div class="alert alert-primary py-2 px-3 small d-flex align-items-center mb-3">
+            <i class="fas fa-info-circle fa-lg me-2"></i>
+            <div>Gunakan form ini untuk menginput nilai siswa susulan atau siswa yang belum terdata di Excel.</div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small">NIS Siswa <span class="text-danger">*</span></label>
+              <input type="text" name="nis" class="form-control" placeholder="Contoh: 12345" required>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small">Kelas <span class="text-danger">*</span></label>
+              <select name="kelas" class="form-select" required>
+                <option value="">-- Pilih Kelas --</option>
+                @foreach($kelasList as $k)
+                  <option value="{{ $k }}">Kelas {{ $k }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold small">Nama Lengkap Siswa <span class="text-danger">*</span></label>
+              <input type="text" name="nama" class="form-control" placeholder="Nama Lengkap Siswa" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold small">Jenis Asesmen <span class="text-danger">*</span></label>
+              <select name="jenis_tes" class="form-select" required>
+                <option value="diagnostik">Tes Diagnostik TKA</option>
+                <option value="to_1">Try Out 1 (TO-1)</option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small">Nilai Bahasa Indonesia <span class="text-danger">*</span></label>
+              <input type="number" step="0.01" min="0" max="100" name="nilai_bindo" class="form-control" placeholder="0.00 - 100" required>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-bold small">Nilai Matematika <span class="text-danger">*</span></label>
+              <input type="number" step="0.01" min="0" max="100" name="nilai_mtk" class="form-control" placeholder="0.00 - 100" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary fw-bold">
+            <i class="fas fa-save me-1"></i> Simpan Data Siswa
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{{-- MODAL IMPORT EXCEL --}}
 <div class="modal fade" id="modalImportExcel" tabindex="-1" aria-labelledby="modalImportExcelLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow">
