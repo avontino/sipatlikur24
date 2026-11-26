@@ -301,6 +301,46 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 				Route::delete('/tka/{id}', 'TkaController@destroy')->name('tka.destroy');
 				Route::post('/tka/import', 'TkaController@importExcel')->name('tka.import');
 			});
+
+			// Route Manajemen SDM (Sistem Informasi Sumber Daya Manusia)
+			Route::group(['middleware' => ['role:admin,kepala,kurikulum,kesiswaan,lihat,tamu']], function() {
+				Route::get('/sdm', 'SdmController@dashboard')->name('sdm.dashboard');
+				Route::get('/sdm/ringkasan', 'SdmController@ringkasan')->name('sdm.ringkasan');
+				Route::get('/sdm/rekap', 'SdmController@rekap')->name('sdm.rekap');
+				Route::get('/sdm/guru', 'SdmController@laporanGuru')->name('sdm.guru');
+				Route::get('/sdm/tendik', 'SdmController@laporanTendik')->name('sdm.tendik');
+				Route::get('/sdm/siswa', 'SdmController@laporanSiswa')->name('sdm.siswa');
+				Route::get('/sdm/tugas-mengajar', 'SdmController@tugasMengajar')->name('sdm.tugas_mengajar');
+				Route::get('/sdm/tugas-tambahan', 'SdmController@tugasTambahan')->name('sdm.tugas_tambahan');
+				Route::get('/sdm/guru/template', 'SdmController@templateGuru')->name('sdm.guru.template');
+				Route::get('/sdm/guru/export', 'SdmController@exportGuru')->name('sdm.guru.export');
+				Route::get('/sdm/tendik/template', 'SdmController@templateTendik')->name('sdm.tendik.template');
+				Route::get('/sdm/tendik/export', 'SdmController@exportTendik')->name('sdm.tendik.export');
+				Route::get('/sdm/siswa/template', 'SdmController@templateSiswa')->name('sdm.siswa.template');
+				Route::get('/sdm/siswa/export', 'SdmController@exportSiswa')->name('sdm.siswa.export');
+			});
+
+			Route::group(['middleware' => ['role:admin,kepala,kurikulum']], function() {
+				Route::post('/sdm/sync-users', 'SdmController@syncFromUsers')->name('sdm.sync_users');
+				Route::post('/sdm/pegawai', 'SdmController@storePegawai')->name('sdm.pegawai.store');
+				Route::delete('/sdm/pegawai/{id}', 'SdmController@destroyPegawai')->name('sdm.pegawai.destroy');
+				Route::post('/sdm/guru/import', 'SdmController@importGuru')->name('sdm.guru.import');
+				Route::post('/sdm/tendik/import', 'SdmController@importTendik')->name('sdm.tendik.import');
+				Route::post('/sdm/tugas-tambahan', 'SdmController@storeTugasTambahan')->name('sdm.tugas_tambahan.store');
+				Route::delete('/sdm/tugas-tambahan/{id}', 'SdmController@destroyTugasTambahan')->name('sdm.tugas_tambahan.destroy');
+				Route::post('/sdm/cuti/{id}/status', 'SdmController@updateStatusCuti')->name('sdm.cuti.status');
+			});
+
+			Route::group(['middleware' => ['role:admin,kesiswaan,kurikulum']], function() {
+				Route::post('/sdm/siswa/import', 'SdmController@importSiswa')->name('sdm.siswa.import');
+				Route::post('/sdm/siswa/{id}/update', 'SdmController@updateSiswaSdm')->name('sdm.siswa.update');
+			});
+
+			Route::group(['middleware' => ['role:admin,kepala,kurikulum,kesiswaan,guru,tendik,lihat,tamu']], function() {
+				Route::get('/sdm/cuti', 'SdmController@cuti')->name('sdm.cuti');
+				Route::post('/sdm/cuti', 'SdmController@storeCuti')->name('sdm.cuti.store');
+				Route::delete('/sdm/cuti/{id}', 'SdmController@destroyCuti')->name('sdm.cuti.destroy');
+			});
   
 			Route::group(['middleware' => ['role:admin,keuangan']], function() {
 				Route::post('tagihan/import', 'TagihanController@import')->name('tagihan.import');

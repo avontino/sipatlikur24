@@ -217,6 +217,62 @@
 
     {{-- Garjas & Tagihan Siswa (Disembunyikan) --}}
 
+    <!-- CATEGORY: MANAJEMEN SDM -->
+    <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #c084fc !important;">Manajemen SDM</li>
+    <li class="nav-item {{ Request::is('sdm*') ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ Request::is('sdm*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-users-cog text-info"></i>
+        <p>
+          Manajemen SDM
+          <i class="nav-arrow fas fa-angle-left"></i>
+        </p>
+      </a>
+      <ul class="nav nav-treeview ps-2">
+        <li class="nav-item">
+          <a href="/sdm" class="nav-link {{ Request::is('sdm') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-chart-pie text-info"></i>
+            <p>Dashboard Analitik SDM</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/guru" class="nav-link {{ Request::is('sdm/guru*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-chalkboard-teacher"></i>
+            <p>Data & Laporan Guru</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/tendik" class="nav-link {{ Request::is('sdm/tendik*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-user-cog"></i>
+            <p>Data & Laporan Tendik</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/siswa" class="nav-link {{ Request::is('sdm/siswa*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-user-graduate"></i>
+            <p>Demografi Siswa</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/tugas-mengajar" class="nav-link {{ Request::is('sdm/tugas-mengajar*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-book-reader"></i>
+            <p>Tugas Mengajar (Jadwal)</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/tugas-tambahan" class="nav-link {{ Request::is('sdm/tugas-tambahan*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-award"></i>
+            <p>Tugas Tambahan</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/cuti" class="nav-link {{ Request::is('sdm/cuti*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-calendar-check text-warning"></i>
+            <p>Cuti Pegawai</p>
+          </a>
+        </li>
+      </ul>
+    </li>
+
     <!-- CATEGORY: PEMELIHARAAN SISTEM -->
     <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #f43f5e !important;">Pemeliharaan Sistem</li>
     
@@ -677,6 +733,72 @@
           </a>
         </li>
       </ul>
+    </li>
+    @endif
+
+    <!-- CATEGORY: MANAJEMEN SDM (KEPALA SEKOLAH, KURIKULUM, KESISWAAN, GURU/TENDIK) -->
+    @if(auth()->user()->hasRole('kepala') || auth()->user()->hasRole('kurikulum') || auth()->user()->hasRole('kesiswaan') || auth()->user()->hasRole('lihat') || auth()->user()->hasRole('tamu'))
+    <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #c084fc !important;">Manajemen SDM</li>
+    <li class="nav-item {{ Request::is('sdm*') ? 'menu-open' : '' }}">
+      <a href="#" class="nav-link {{ Request::is('sdm*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-users-cog text-info"></i>
+        <p>
+          Manajemen SDM
+          <i class="nav-arrow fas fa-angle-left"></i>
+        </p>
+      </a>
+      <ul class="nav nav-treeview ps-2">
+        <li class="nav-item">
+          <a href="/sdm" class="nav-link {{ Request::is('sdm') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-chart-pie text-info"></i>
+            <p>Dashboard Analitik SDM</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/guru" class="nav-link {{ Request::is('sdm/guru*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-chalkboard-teacher"></i>
+            <p>Data & Laporan Guru</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/tendik" class="nav-link {{ Request::is('sdm/tendik*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-user-cog"></i>
+            <p>Data & Laporan Tendik</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/siswa" class="nav-link {{ Request::is('sdm/siswa*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-user-graduate"></i>
+            <p>Demografi Siswa</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/tugas-mengajar" class="nav-link {{ Request::is('sdm/tugas-mengajar*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-book-reader"></i>
+            <p>Tugas Mengajar (Jadwal)</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/tugas-tambahan" class="nav-link {{ Request::is('sdm/tugas-tambahan*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-award"></i>
+            <p>Tugas Tambahan</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/sdm/cuti" class="nav-link {{ Request::is('sdm/cuti*') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-calendar-check text-warning"></i>
+            <p>Cuti Pegawai</p>
+          </a>
+        </li>
+      </ul>
+    </li>
+    @elseif(auth()->user()->hasRole('guru') || auth()->user()->hasRole('tendik'))
+    <li class="nav-header text-uppercase fs-7 text-white-50 px-3 mt-3 mb-1" style="font-size: 11px; letter-spacing: 0.8px; color: #c084fc !important;">Manajemen SDM</li>
+    <li class="nav-item">
+      <a href="/sdm/cuti" class="nav-link {{ Request::is('sdm/cuti*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-calendar-check text-warning"></i>
+        <p>Pengajuan Cuti Pegawai</p>
+      </a>
     </li>
     @endif
     @endif
