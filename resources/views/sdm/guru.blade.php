@@ -77,7 +77,7 @@
                 <th class="text-center">No</th>
                 <th>Nama Lengkap & NIP</th>
                 <th>Status</th>
-                <th class="text-center">Gol</th>
+                <th class="text-center">Pangkat / Gol</th>
                 <th>Mapel Pokok</th>
                 <th>Kelas Diampu</th>
                 <th class="text-center">Total JP</th>
@@ -111,7 +111,12 @@
                     {{ $g->status_kepegawaian ?: '-' }}
                   </span>
                 </td>
-                <td class="text-center fw-semibold">{{ $g->golongan ?: '-' }}</td>
+                <td class="text-center">
+                  <div class="fw-bold">{{ $g->golongan ?: '-' }}</div>
+                  @if(!empty($g->pangkat) && $g->pangkat !== '-')
+                  <div class="text-muted" style="font-size: 11px;">{{ $g->pangkat }}</div>
+                  @endif
+                </td>
                 <td class="fw-semibold text-primary">{{ $g->mapel ?: '-' }}</td>
                 <td>
                   @forelse($kelasTampil as $k)
@@ -201,7 +206,11 @@
               </select>
             </div>
             <div class="col-md-4">
-              <label class="form-label small fw-bold">Pangkat & Golongan</label>
+              <label class="form-label small fw-bold">Pangkat</label>
+              <input type="text" name="pangkat" id="guru-pangkat" class="form-control" placeholder="Pembina Tk.I / PPPK / -">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold">Golongan</label>
               <select name="golongan" id="guru-golongan" class="form-select">
                 <option value="IV/d">IV/d</option>
                 <option value="IV/c">IV/c</option>
@@ -304,6 +313,7 @@ function openTambahGuru() {
   document.getElementById('guru-nama').value = '';
   document.getElementById('guru-nip').value = '-';
   document.getElementById('guru-status').value = 'Guru PNS';
+  document.getElementById('guru-pangkat').value = '';
   document.getElementById('guru-golongan').value = '-';
   document.getElementById('guru-jk').value = 'L';
   document.getElementById('guru-tgl').value = '';
@@ -320,6 +330,7 @@ function openEditGuru(g) {
   document.getElementById('guru-nama').value = g.nama || '';
   document.getElementById('guru-nip').value = g.nip || '-';
   document.getElementById('guru-status').value = g.status_kepegawaian || 'Guru PNS';
+  document.getElementById('guru-pangkat').value = g.pangkat || '';
   document.getElementById('guru-golongan').value = g.golongan || '-';
   document.getElementById('guru-jk').value = g.jenis_kelamin || 'L';
   document.getElementById('guru-tgl').value = g.tanggal_lahir ? g.tanggal_lahir.substring(0, 10) : '';

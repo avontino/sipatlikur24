@@ -41,7 +41,7 @@
                 <th>Nama Lengkap</th>
                 <th>NIP</th>
                 <th>Status</th>
-                <th class="text-center">Gol</th>
+                <th class="text-center">Pangkat / Gol</th>
                 <th>Jabatan</th>
                 <th>Tanggal Lahir</th>
                 <th>No. WhatsApp</th>
@@ -57,7 +57,12 @@
                 <td class="fw-bold">{{ $t->nama }}</td>
                 <td class="font-monospace small">{{ $t->nip ?: '-' }}</td>
                 <td><span class="badge bg-info text-dark">{{ $t->status_kepegawaian ?: '-' }}</span></td>
-                <td class="text-center fw-semibold">{{ $t->golongan ?: '-' }}</td>
+                <td class="text-center">
+                  <div class="fw-bold">{{ $t->golongan ?: '-' }}</div>
+                  @if(!empty($t->pangkat) && $t->pangkat !== '-')
+                  <div class="text-muted" style="font-size: 11px;">{{ $t->pangkat }}</div>
+                  @endif
+                </td>
                 <td class="fw-semibold text-primary">{{ $t->jabatan ?: '-' }}</td>
                 <td class="small">{{ $t->tanggal_lahir ? $t->tanggal_lahir->format('d/m/Y') . ' (' . $t->usia . ' thn)' : '-' }}</td>
                 <td>
