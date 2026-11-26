@@ -71,7 +71,7 @@
         </form>
 
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0 table-sm">
+          <table id="tableSdmGuru" class="table table-bordered table-striped table-hover align-middle mb-0 w-100">
             <thead class="table-light">
               <tr>
                 <th class="text-center">No</th>
@@ -344,5 +344,20 @@ function openEditGuru(g) {
   });
   new bootstrap.Modal(document.getElementById('modalGuru')).show();
 }
+
+$(document).ready(function() {
+  if ($.fn.DataTable && $('#tableSdmGuru tbody tr td').length > 1) {
+    $('#tableSdmGuru').DataTable({
+      pageLength: 15,
+      lengthMenu: [[10, 15, 25, 50, -1], [10, 15, 25, 50, "Semua"]],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ data",
+        info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+        paginate: { previous: "Sebelumnya", next: "Berikutnya" }
+      }
+    });
+  }
+});
 </script>
 @endsection

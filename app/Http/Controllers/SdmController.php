@@ -130,9 +130,9 @@ class SdmController extends Controller
         $totalTendik = $tendikList->count();
         $totalSiswa = $this->activeSiswaQuery()->count();
 
-        // Hitung prediksi pensiun (<= 3 tahun ke depan)
+        // Hitung seluruh pegawai yang punya tanggal lahir, urutkan dari sisa masa kerja paling sedikit
         $pensiunList = $allStaff->filter(function ($p) {
-            return $p->tanggal_lahir !== null && $p->sisa_tahun_pensiun !== null && $p->sisa_tahun_pensiun <= 3;
+            return $p->tanggal_lahir !== null && $p->sisa_tahun_pensiun !== null;
         })->sortBy('sisa_tahun_pensiun')->values();
 
         $totalMendekatiPensiun = $pensiunList->filter(function ($p) {

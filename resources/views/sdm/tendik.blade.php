@@ -32,9 +32,9 @@
         </div>
       </div>
 
-      <div class="card-body p-0">
+      <div class="card-body p-3">
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
+          <table id="tableSdmTendik" class="table table-bordered table-striped table-hover align-middle mb-0 w-100">
             <thead class="table-light">
               <tr>
                 <th class="text-center">No</th>
@@ -242,5 +242,20 @@ function openEditTendik(t) {
   document.getElementById('td-user-id').value = t.user_id || '';
   new bootstrap.Modal(document.getElementById('modalTendik')).show();
 }
+
+$(document).ready(function() {
+  if ($.fn.DataTable && $('#tableSdmTendik tbody tr td').length > 1) {
+    $('#tableSdmTendik').DataTable({
+      pageLength: 10,
+      lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ data",
+        info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+        paginate: { previous: "Sebelumnya", next: "Berikutnya" }
+      }
+    });
+  }
+});
 </script>
 @endsection

@@ -162,9 +162,9 @@
         </h6>
         <span class="text-muted small">Kalkulasi Otomatis Berdasarkan Tanggal Lahir</span>
       </div>
-      <div class="card-body p-0">
+      <div class="card-body p-3">
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
+          <table id="tablePensiun" class="table table-bordered table-striped table-hover align-middle mb-0 w-100">
             <thead class="table-light">
               <tr>
                 <th>Nama Pegawai</th>
@@ -190,15 +190,17 @@
                 <td class="text-center">
                   @if($p->sisa_tahun_pensiun <= 1)
                     <span class="badge bg-danger">Segera Pensiun</span>
-                  @else
+                  @elseif($p->sisa_tahun_pensiun <= 3)
                     <span class="badge bg-warning text-dark">Persiapan BUP</span>
+                  @else
+                    <span class="badge bg-success">Aktif</span>
                   @endif
                 </td>
               </tr>
               @empty
               <tr>
                 <td colspan="8" class="text-center py-4 text-muted">
-                  Tidak ada pegawai yang memasuki masa pensiun dalam 3 tahun ke depan (pastikan tanggal lahir pegawai sudah diisi).
+                  Belum ada data pegawai dengan tanggal lahir yang terisi.
                 </td>
               </tr>
               @endforelse
@@ -254,6 +256,20 @@ document.addEventListener('DOMContentLoaded', function() {
       scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
     }
   });
+
+  if ($.fn.DataTable && $('#tablePensiun tbody tr td').length > 1) {
+    $('#tablePensiun').DataTable({
+      pageLength: 10,
+      lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+      order: [[6, 'asc']],
+      language: {
+        search: "Cari:",
+        lengthMenu: "Tampilkan _MENU_ data",
+        info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+        paginate: { previous: "Sebelumnya", next: "Berikutnya" }
+      }
+    });
+  }
 });
 </script>
 @endsection
