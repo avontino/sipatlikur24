@@ -836,6 +836,10 @@ $existingJurnalh->save();
             \Log::warning('Gagal sync jurnal ke jurnalh: ' . $e->getMessage());
         }
 
+        $prev = url()->previous();
+        if ($prev && str_contains($prev, '/jurnal')) {
+            return redirect()->back()->with('sukses', 'Jurnal Berhasil Diupdate');
+        }
         return redirect('/jurnal')->with('sukses', 'Jurnal Berhasil Diupdate');
     }
 

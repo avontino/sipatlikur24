@@ -398,6 +398,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    $('#editjurnal form').on('submit', function() {
+        sessionStorage.setItem('jurnal_restore_state', '1');
+    });
+
     if ($.fn.DataTable.isDataTable('#example3')) {
         $('#example3').DataTable().destroy();
     }
@@ -406,6 +410,18 @@ document.addEventListener('DOMContentLoaded', function() {
         processing: true,
         serverSide: true,
         scrollX: true,
+        stateSave: true,
+        stateSaveCallback: function(settings, data) {
+            sessionStorage.setItem('DataTables_jurnal_state', JSON.stringify(data));
+        },
+        stateLoadCallback: function(settings) {
+            if (sessionStorage.getItem('jurnal_restore_state') === '1') {
+                sessionStorage.removeItem('jurnal_restore_state');
+                var saved = sessionStorage.getItem('DataTables_jurnal_state');
+                return saved ? JSON.parse(saved) : null;
+            }
+            return null;
+        },
         ajax: {
             url: "{{ url('/jurnal') }}",
             data: function (d) {
