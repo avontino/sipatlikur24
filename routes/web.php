@@ -28,8 +28,11 @@ Route::group(['middleware'=>['auth', 'force.password.change']],function(){
 			Route::get('/dashboard','DashboardController@index');
 			Route::post('/dashboard/verifikasi-absensi', 'DashboardController@verifikasiAbsensi')->name('dashboard.verifikasi');
 			Route::post('/dashboard/batal-verifikasi', 'DashboardController@batalVerifikasi')->name('dashboard.batalVerifikasi');
+			Route::get('/notifications', 'DashboardController@allNotifications')->name('notifications.index');
 			Route::get('/notifications/{id}/read', 'DashboardController@readNotification')->name('notifications.read');
 			Route::post('/notifications/mark-all-read', 'DashboardController@markAllNotificationsAsRead')->name('notifications.markAllRead');
+			Route::post('/notifications/clear-read', 'DashboardController@clearReadNotifications')->name('notifications.clearRead');
+			Route::delete('/notifications/{id}', 'DashboardController@deleteNotification')->name('notifications.destroy');
 			Route::post('/auth/switch-role','AuthController@switchRole');
 			Route::post('/update-fcm-token', 'AuthController@updateFcmToken');
 			Route::get('/ganti-password','AuthController@gantiPassword');

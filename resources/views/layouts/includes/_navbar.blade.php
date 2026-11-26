@@ -163,7 +163,7 @@
             </div>
             
             <div class="dropdown-divider m-0"></div>
-            <a href="/dashboard" class="dropdown-item dropdown-footer text-center small text-primary py-2 text-decoration-none" style="font-size: 12px;">Lihat Semua di Dashboard</a>
+            <a href="{{ route('notifications.index') }}" class="dropdown-item dropdown-footer text-center small text-primary fw-bold py-2 text-decoration-none" style="font-size: 12px;">Lihat Semua Notifikasi</a>
           </div>
         </li>
       @endif

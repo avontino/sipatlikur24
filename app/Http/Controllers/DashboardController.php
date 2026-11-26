@@ -846,6 +846,13 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
         }
     }
 
+    public function allNotifications()
+    {
+        $notifications = auth()->user()->notifications()->latest()->paginate(25);
+        $unreadCount = auth()->user()->unreadNotifications()->count();
+        return view('notifications.index', compact('notifications', 'unreadCount'));
+    }
+
     public function readNotification($id)
     {
         $notification = auth()->user()->notifications()->findOrFail($id);
@@ -861,6 +868,18 @@ $tagihan_lain = 'Rp. ' . number_format($tagihan_lain, 0, ',', '.');
     {
         auth()->user()->unreadNotifications->markAsRead();
         return redirect()->back()->with('sukses', 'Semua notifikasi berhasil ditandai sebagai dibaca.');
+    }
+
+    public function deleteNotification($id)
+    {
+        auth()->user()->notifications()->findOrFail($id)->delete();
+        return redirect()->back()->with('sukses', 'Notifikasi berhasil dihapus.');
+    }
+
+    public function clearReadNotifications()
+    {
+        auth()->user()->readNotifications()->delete();
+        return redirect()->back()->with('sukses', 'Notifikasi yang sudah dibaca berhasil dibersihkan.');
     }
 
     public function batalVerifikasi(Request $request)
